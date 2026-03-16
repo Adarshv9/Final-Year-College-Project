@@ -1,6 +1,6 @@
 import jwt from 'jsonwebtoken';
 import { env } from '../config/env.js';
-import Token from '../models/Token.js';
+import User from '../models/User.js';
 
 /**
  * Generate an access token for a user.
@@ -28,14 +28,23 @@ export const generateRefreshToken = async (user) => {
     { expiresIn: env.jwt.refreshExpiry }
   );
 
-  // Calculate expiry date for the TTL index
+  // Persist the token expiry so embedded refresh tokens can be pruned later.
   const decoded = jwt.decode(refreshToken);
   const expiresAt = new Date(decoded.exp * 1000);
+  const now = new Date();
 
-  await Token.create({
-    user: user._id,
-    refreshToken,
-    expiresAt,
+  await User.findByIdAndUpdate(user._id, {
+    $pull: {
+      refreshTokens: {
+        expiresAt: { $lte: now },
+      },
+    },
+    $push: {
+      refreshTokens: {
+        token: refreshToken,
+        expiresAt,
+      },
+    },
   });
 
   return refreshToken;
@@ -48,13 +57,28 @@ export const generateRefreshToken = async (user) => {
  */
 export const verifyRefreshToken = async (token) => {
   const decoded = jwt.verify(token, env.jwt.refreshSecret);
+  const now = new Date();
 
-  const storedToken = await Token.findOne({
-    user: decoded.id,
-    refreshToken: token,
-  });
+  const storedToken = await User.findOneAndUpdate(
+    { _id: decoded.id },
+    {
+      $pull: {
+        refreshTokens: {
+          expiresAt: { $lte: now },
+        },
+      },
+    },
+    {
+      new: true,
+      select: '+refreshTokens',
+    }
+  );
 
-  if (!storedToken) {
+  const hasValidToken = storedToken?.refreshTokens?.some(
+    (refreshToken) => refreshToken.token === token
+  );
+
+  if (!hasValidToken) {
     throw new Error('Refresh token not found or has been revoked');
   }
 
@@ -66,7 +90,16 @@ export const verifyRefreshToken = async (token) => {
  * @param {string} token - Refresh token string
  */
 export const removeRefreshToken = async (token) => {
-  await Token.findOneAndDelete({ refreshToken: token });
+  await User.updateOne(
+    { 'refreshTokens.token': token },
+    {
+      $pull: {
+        refreshTokens: {
+          token,
+        },
+      },
+    }
+  );
 };
 
 /**
@@ -74,5 +107,7 @@ export const removeRefreshToken = async (token) => {
  * @param {string} userId - User ObjectId
  */
 export const removeAllUserTokens = async (userId) => {
-  await Token.deleteMany({ user: userId });
+  await User.findByIdAndUpdate(userId, {
+    $set: { refreshTokens: [] },
+  });
 };

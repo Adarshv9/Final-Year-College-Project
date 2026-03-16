@@ -50,8 +50,7 @@ backend/
 │   │   ├── rateLimiter.js   # Rate limiting
 │   │   └── validate.js      # Joi validation middleware
 │   ├── models/
-│   │   ├── Token.js         # Refresh token model
-│   │   └── User.js          # User model
+│   │   └── User.js          # User model with embedded refresh tokens
 │   ├── routes/
 │   │   ├── auth.routes.js
 │   │   ├── index.js         # Route aggregator

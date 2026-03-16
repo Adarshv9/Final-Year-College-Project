@@ -27,9 +27,10 @@ const updateUser = Joi.object({
     email: Joi.string().email().messages({
       'string.email': 'Please provide a valid email address',
     }),
-    role: Joi.string().valid('user', 'admin').messages({
-      'any.only': 'Role must be either user or admin',
+    role: Joi.string().valid('job_seeker', 'recruiter', 'admin').messages({
+      'any.only': 'Role must be one of job_seeker, recruiter, or admin',
     }),
+    isVerified: Joi.boolean(),
     isActive: Joi.boolean(),
   }).min(1), // at least one field must be provided
 });
@@ -47,7 +48,7 @@ const listUsers = Joi.object({
   query: Joi.object({
     page: Joi.number().integer().min(1).default(1),
     limit: Joi.number().integer().min(1).max(100).default(10),
-    role: Joi.string().valid('user', 'admin'),
+    role: Joi.string().valid('job_seeker', 'recruiter', 'admin'),
     search: Joi.string().trim().max(100),
   }),
 });

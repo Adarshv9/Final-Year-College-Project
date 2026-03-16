@@ -4,16 +4,16 @@ import * as tokenService from './token.service.js';
 
 /**
  * Register a new user.
- * @param {Object} data - { name, email, password }
+ * @param {Object} data - { name, email, password, role }
  * @returns {Promise<Object>} { user, accessToken, refreshToken }
  */
-export const register = async ({ name, email, password }) => {
+export const register = async ({ name, email, password, role = 'job_seeker' }) => {
   const existingUser = await User.findOne({ email });
   if (existingUser) {
     throw new ApiError(409, 'Email is already registered');
   }
 
-  const user = await User.create({ name, email, password });
+  const user = await User.create({ name, email, password, role });
 
   const accessToken = tokenService.generateAccessToken(user);
   const refreshToken = await tokenService.generateRefreshToken(user);
@@ -34,6 +34,10 @@ export const login = async ({ email, password }) => {
 
   if (!user.isActive) {
     throw new ApiError(403, 'Account is deactivated. Please contact support.');
+  }
+
+  if (user.role === 'recruiter' && !user.isVerified) {
+    throw new ApiError(403, 'Recruiter account is pending admin verification.');
   }
 
   const isMatch = await user.comparePassword(password);
@@ -62,6 +66,10 @@ export const refreshAccessToken = async (refreshTokenStr) => {
 
   if (!user.isActive) {
     throw new ApiError(403, 'Account is deactivated');
+  }
+
+  if (user.role === 'recruiter' && !user.isVerified) {
+    throw new ApiError(403, 'Recruiter account is pending admin verification.');
   }
 
   // Rotate refresh token: remove old, issue new

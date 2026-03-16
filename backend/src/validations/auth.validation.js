@@ -15,6 +15,9 @@ const register = Joi.object({
       'string.min': 'Password must be at least 6 characters',
       'any.required': 'Password is required',
     }),
+    role: Joi.string().valid('job_seeker', 'recruiter').default('job_seeker').messages({
+      'any.only': 'Role must be either job_seeker or recruiter',
+    }),
   }),
 });
 

@@ -1,13 +1,10 @@
 import jwt from 'jsonwebtoken';
 import { env } from '../config/env.js';
+import User from '../models/User.js';
 import ApiError from '../utils/ApiError.js';
 import catchAsync from '../utils/catchAsync.js';
 
-/**
- * Middleware: verifies the JWT access token from the Authorization header.
- * Attaches the decoded payload to `req.user`.
- */
-export const verifyToken = catchAsync(async (req, _res, next) => {
+export const authenticateJWT = catchAsync(async (req, _res, next) => {
   const authHeader = req.headers.authorization;
 
   if (!authHeader || !authHeader.startsWith('Bearer ')) {
@@ -16,23 +13,28 @@ export const verifyToken = catchAsync(async (req, _res, next) => {
 
   const token = authHeader.split(' ')[1];
 
+  let decoded;
   try {
-    const decoded = jwt.verify(token, env.jwt.accessSecret);
-    req.user = decoded; // { id, email, role }
-    next();
+    decoded = jwt.verify(token, env.jwt.accessSecret);
   } catch (error) {
     throw new ApiError(401, 'Invalid or expired access token');
   }
+
+  const user = await User.findById(decoded.id);
+  if (!user) {
+    throw new ApiError(401, 'User no longer exists');
+  }
+
+  if (!user.isActive) {
+    throw new ApiError(403, 'Account is deactivated');
+  }
+
+  req.user = user;
+  req.auth = decoded;
+  next();
 });
 
-/**
- * Middleware factory: restricts access to users whose role is
- * included in the provided list.
- *
- * @param  {...string} roles - Allowed roles, e.g. 'admin', 'user'
- * @returns {Function} Express middleware
- */
-export const verifyRole = (...roles) => {
+export const authorizeRole = (...roles) => {
   return (req, _res, next) => {
     if (!req.user) {
       throw new ApiError(401, 'Authentication required');
@@ -45,3 +47,23 @@ export const verifyRole = (...roles) => {
     next();
   };
 };
+
+export const checkRecruiterVerified = (req, _res, next) => {
+  if (!req.user) {
+    throw new ApiError(401, 'Authentication required');
+  }
+
+  if (req.user.role !== 'recruiter') {
+    throw new ApiError(403, 'Recruiter access required');
+  }
+
+  if (!req.user.isVerified) {
+    throw new ApiError(403, 'Recruiter account is pending admin verification.');
+  }
+
+  next();
+};
+
+// Backward-compatible aliases for existing imports.
+export const verifyToken = authenticateJWT;
+export const verifyRole = authorizeRole;
