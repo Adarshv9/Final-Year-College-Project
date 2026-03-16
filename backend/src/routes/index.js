@@ -1,14 +1,21 @@
 import express from 'express';
-const router = express.Router();
 
+import adminRoutes from './admin.routes.js';
+import applicationRoutes from './application.routes.js';
 import authRoutes from './auth.routes.js';
+import jobRoutes from './job.routes.js';
+import jobSeekerRoutes from './jobseeker.routes.js';
+import recruiterRoutes from './recruiter.routes.js';
 import userRoutes from './user.routes.js';
 
-/**
- * API v1 route aggregator.
- * Mount all resource routers here.
- */
+const router = express.Router();
+
 router.use('/auth', authRoutes);
+router.use('/jobseeker', jobSeekerRoutes);
+router.use('/recruiter', recruiterRoutes);
+router.use('/admin', adminRoutes);
+router.use('/jobs', jobRoutes);
+router.use('/applications', applicationRoutes);
 router.use('/users', userRoutes);
 
 export default router;

@@ -34,6 +34,9 @@ const errorHandler = (err, req, res, _next) => {
   if (err.name === 'TokenExpiredError') {
     error = new ApiError(401, 'Token expired');
   }
+  if (err.name === 'MulterError') {
+    error = new ApiError(400, err.message);
+  }
 
   const statusCode = error.statusCode || 500;
   const message = error.message || 'Internal Server Error';

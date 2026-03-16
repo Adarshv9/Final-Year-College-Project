@@ -3,12 +3,18 @@
   "version": "1.0.0",
   "description": "Production-ready MERN stack backend with JWT auth, role-based access, and RESTful API",
   "main": "src/server.js",
-  "type":"module",
+  "type": "module",
   "scripts": {
     "start": "node src/server.js",
     "dev": "nodemon src/server.js"
   },
-  "keywords": ["mern", "express", "mongodb", "jwt", "rest-api"],
+  "keywords": [
+    "mern",
+    "express",
+    "mongodb",
+    "jwt",
+    "rest-api"
+  ],
   "author": "",
   "license": "ISC",
   "dependencies": {
@@ -23,6 +29,7 @@
     "jsonwebtoken": "^9.0.2",
     "mongoose": "^8.9.5",
     "morgan": "^1.10.0",
+    "multer": "^2.1.1",
     "winston": "^3.17.0"
   },
   "devDependencies": {

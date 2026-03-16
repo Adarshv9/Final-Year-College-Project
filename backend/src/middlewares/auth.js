@@ -34,6 +34,41 @@ export const authenticateJWT = catchAsync(async (req, _res, next) => {
   next();
 });
 
+export const optionalAuthenticateJWT = catchAsync(async (req, _res, next) => {
+  const authHeader = req.headers.authorization;
+
+  if (!authHeader) {
+    next();
+    return;
+  }
+
+  if (!authHeader.startsWith('Bearer ')) {
+    throw new ApiError(401, 'Invalid authorization header format');
+  }
+
+  const token = authHeader.split(' ')[1];
+
+  let decoded;
+  try {
+    decoded = jwt.verify(token, env.jwt.accessSecret);
+  } catch (error) {
+    throw new ApiError(401, 'Invalid or expired access token');
+  }
+
+  const user = await User.findById(decoded.id);
+  if (!user) {
+    throw new ApiError(401, 'User no longer exists');
+  }
+
+  if (!user.isActive) {
+    throw new ApiError(403, 'Account is deactivated');
+  }
+
+  req.user = user;
+  req.auth = decoded;
+  next();
+});
+
 export const authorizeRole = (...roles) => {
   return (req, _res, next) => {
     if (!req.user) {
@@ -53,11 +88,7 @@ export const checkRecruiterVerified = (req, _res, next) => {
     throw new ApiError(401, 'Authentication required');
   }
 
-  if (req.user.role !== 'recruiter') {
-    throw new ApiError(403, 'Recruiter access required');
-  }
-
-  if (!req.user.isVerified) {
+  if (req.user.role === 'recruiter' && !req.user.isVerified) {
     throw new ApiError(403, 'Recruiter account is pending admin verification.');
   }
 
