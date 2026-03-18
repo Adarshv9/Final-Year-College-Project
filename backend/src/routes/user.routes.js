@@ -1,3 +1,4 @@
+// ── User Routes ──
 import express from 'express';
 const router = express.Router();
 import * as userController from '../controllers/user.controller.js';
@@ -8,10 +9,11 @@ import { authenticateJWT, authorizeRole } from '../middlewares/auth.js';
 // All user routes require authentication
 router.use(authenticateJWT);
 
+// Public endpoints - any authenticated user can view users
 router.get('/', validate(userValidation.listUsers), userController.getUsers);
 router.get('/:id', validate(userValidation.getUser), userController.getUser);
 
-// Only admins can update or delete users
+// Protected endpoints - admin only
 router.put('/:id', authorizeRole('admin'), validate(userValidation.updateUser), userController.updateUser);
 router.delete('/:id', authorizeRole('admin'), validate(userValidation.deleteUser), userController.deleteUser);
 

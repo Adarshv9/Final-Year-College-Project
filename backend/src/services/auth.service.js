@@ -1,3 +1,4 @@
+// ── Authentication Service ──
 import User from '../models/User.js';
 import ApiError from '../utils/ApiError.js';
 import * as tokenService from './token.service.js';

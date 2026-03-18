@@ -1,5 +1,7 @@
+// ── Authentication Validation Schemas ──
 import Joi from 'joi';
 
+// Registration validation schema
 const register = Joi.object({
   body: Joi.object({
     name: Joi.string().trim().min(2).max(50).required().messages({
@@ -21,6 +23,7 @@ const register = Joi.object({
   }),
 });
 
+// Login validation schema
 const login = Joi.object({
   body: Joi.object({
     email: Joi.string().email().required().messages({
@@ -33,6 +36,7 @@ const login = Joi.object({
   }),
 });
 
+// Refresh token validation schema
 const refreshToken = Joi.object({
   body: Joi.object({
     refreshToken: Joi.string().required().messages({

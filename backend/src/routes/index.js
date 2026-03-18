@@ -1,3 +1,4 @@
+// ── Main API Routes ──
 import express from 'express';
 
 import adminRoutes from './admin.routes.js';
@@ -10,6 +11,7 @@ import userRoutes from './user.routes.js';
 
 const router = express.Router();
 
+// Mount all route modules
 router.use('/auth', authRoutes);
 router.use('/jobseeker', jobSeekerRoutes);
 router.use('/recruiter', recruiterRoutes);

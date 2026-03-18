@@ -1,6 +1,8 @@
+// ── User Model ──
 import mongoose from 'mongoose';
 import bcrypt from 'bcryptjs';
 
+// Sub-schema for storing refresh tokens
 const refreshTokenSchema = new mongoose.Schema(
   {
     token: {
@@ -17,6 +19,7 @@ const refreshTokenSchema = new mongoose.Schema(
   }
 );
 
+// User schema with role-based access (job_seeker, recruiter, admin)
 const userSchema = new mongoose.Schema(
   {
     name: {
@@ -69,6 +72,7 @@ const userSchema = new mongoose.Schema(
 
 userSchema.index({ role: 1 });
 
+// Pre-save hook: Hash password before saving to database
 userSchema.pre('save', async function (next) {
   if (!this.isModified('password')) return next();
   const salt = await bcrypt.genSalt(12);
@@ -76,6 +80,7 @@ userSchema.pre('save', async function (next) {
   next();
 });
 
+// Instance method: Compare plaintext password with hashed password
 userSchema.methods.comparePassword = async function (candidatePassword) {
   return bcrypt.compare(candidatePassword, this.password);
 };

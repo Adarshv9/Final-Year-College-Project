@@ -1,5 +1,7 @@
+// ── Recruiter Profile Model ──
 import mongoose from 'mongoose';
 
+// Recruiter profile with company information
 const recruiterProfileSchema = new mongoose.Schema(
   {
     user: {

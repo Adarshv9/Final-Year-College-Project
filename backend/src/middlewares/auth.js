@@ -2,9 +2,9 @@ import jwt from 'jsonwebtoken';
 import { env } from '../config/env.js';
 import User from '../models/User.js';
 import ApiError from '../utils/ApiError.js';
-import catchAsync from '../utils/catchAsync.js';
+import asyncHandler from '../utils/asyncHandler.js';
 
-export const authenticateJWT = catchAsync(async (req, _res, next) => {
+export const authenticateJWT = asyncHandler(async (req, _res, next) => {
   const authHeader = req.headers.authorization;
 
   if (!authHeader || !authHeader.startsWith('Bearer ')) {
@@ -34,7 +34,7 @@ export const authenticateJWT = catchAsync(async (req, _res, next) => {
   next();
 });
 
-export const optionalAuthenticateJWT = catchAsync(async (req, _res, next) => {
+export const optionalAuthenticateJWT = asyncHandler(async (req, _res, next) => {
   const authHeader = req.headers.authorization;
 
   if (!authHeader) {

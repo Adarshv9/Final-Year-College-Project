@@ -1,8 +1,10 @@
-import catchAsync from '../utils/catchAsync.js';
+// ── Admin Controller ──
+import asyncHandler from '../utils/asyncHandler.js';
 import ApiResponse from '../utils/ApiResponse.js';
 import * as adminService from '../services/admin.service.js';
 
-export const getPendingRecruiters = catchAsync(async (req, res) => {
+// Fetch pending recruiter registrations for admin verification
+export const getPendingRecruiters = asyncHandler(async (req, res) => {
   const result = await adminService.getPendingRecruiters(req.query);
 
   res
@@ -10,7 +12,8 @@ export const getPendingRecruiters = catchAsync(async (req, res) => {
     .json(new ApiResponse(200, 'Pending recruiters fetched successfully', result));
 });
 
-export const verifyRecruiter = catchAsync(async (req, res) => {
+// Verify a recruiter account (set verified & active)
+export const verifyRecruiter = asyncHandler(async (req, res) => {
   const recruiter = await adminService.verifyRecruiter(req.params.id);
 
   res
@@ -18,7 +21,8 @@ export const verifyRecruiter = catchAsync(async (req, res) => {
     .json(new ApiResponse(200, 'Recruiter verified successfully', recruiter));
 });
 
-export const rejectRecruiter = catchAsync(async (req, res) => {
+// Reject a recruiter account (deactivate)
+export const rejectRecruiter = asyncHandler(async (req, res) => {
   const recruiter = await adminService.rejectRecruiter(req.params.id);
 
   res
@@ -26,7 +30,8 @@ export const rejectRecruiter = catchAsync(async (req, res) => {
     .json(new ApiResponse(200, 'Recruiter deactivated successfully', recruiter));
 });
 
-export const getUsers = catchAsync(async (req, res) => {
+// Fetch all users with optional filtering
+export const getUsers = asyncHandler(async (req, res) => {
   const result = await adminService.getAllUsers(req.query);
 
   res.status(200).json(new ApiResponse(200, 'Users fetched successfully', result));

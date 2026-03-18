@@ -1,8 +1,10 @@
-import catchAsync from '../utils/catchAsync.js';
+// ── Job Application Controller ──
+import asyncHandler from '../utils/asyncHandler.js';
 import ApiResponse from '../utils/ApiResponse.js';
 import * as applicationService from '../services/application.service.js';
 
-export const createApplication = catchAsync(async (req, res) => {
+// Submit a job application
+export const createApplication = asyncHandler(async (req, res) => {
   const application = await applicationService.createApplication(
     req.params.jobId,
     req.user.id
@@ -13,7 +15,8 @@ export const createApplication = catchAsync(async (req, res) => {
     .json(new ApiResponse(201, 'Application submitted successfully', application));
 });
 
-export const getMyApplications = catchAsync(async (req, res) => {
+// Fetch current user's applications
+export const getMyApplications = asyncHandler(async (req, res) => {
   const result = await applicationService.getMyApplications(req.user.id, req.query);
 
   res
@@ -21,7 +24,8 @@ export const getMyApplications = catchAsync(async (req, res) => {
     .json(new ApiResponse(200, 'Applications fetched successfully', result));
 });
 
-export const getApplicationsForJob = catchAsync(async (req, res) => {
+// Fetch all applications for a specific job (recruiter/admin)
+export const getApplicationsForJob = asyncHandler(async (req, res) => {
   const result = await applicationService.getApplicationsForJob(
     req.params.jobId,
     req.user,
@@ -33,7 +37,8 @@ export const getApplicationsForJob = catchAsync(async (req, res) => {
     .json(new ApiResponse(200, 'Job applications fetched successfully', result));
 });
 
-export const updateApplicationStatus = catchAsync(async (req, res) => {
+// Update application status (shortlist/reject)
+export const updateApplicationStatus = asyncHandler(async (req, res) => {
   const application = await applicationService.updateApplicationStatus(
     req.params.id,
     req.user,

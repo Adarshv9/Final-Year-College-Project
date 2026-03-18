@@ -1,3 +1,4 @@
+// ── Job Routes ──
 import express from 'express';
 import * as jobController from '../controllers/job.controller.js';
 import {
@@ -11,8 +12,11 @@ import * as jobValidation from '../validations/job.validation.js';
 
 const router = express.Router();
 
+// Public endpoints - No authentication required
 router.get('/', optionalAuthenticateJWT, validate(jobValidation.listJobs), jobController.getJobs);
 router.get('/:id', optionalAuthenticateJWT, validate(jobValidation.getJob), jobController.getJob);
+
+// Protected endpoints - Recruiter/Admin only
 
 router.post(
   '/',

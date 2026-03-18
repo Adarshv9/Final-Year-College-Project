@@ -1,5 +1,7 @@
+// ── Job Application Model ──
 import mongoose from 'mongoose';
 
+// Application schema for tracking job applications with match scores
 const applicationSchema = new mongoose.Schema(
   {
     job: {

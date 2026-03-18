@@ -1,5 +1,8 @@
+// ── Job Model ──
 import mongoose from 'mongoose';
+import normalizeSkills from '../utils/normalizeSkills.js';
 
+// Sub-schema for salary range
 const salaryRangeSchema = new mongoose.Schema(
   {
     min: {
@@ -22,6 +25,7 @@ const salaryRangeSchema = new mongoose.Schema(
   }
 );
 
+// Job listing schema with recruiter info and applicants tracking
 const jobSchema = new mongoose.Schema(
   {
     title: {
@@ -37,12 +41,7 @@ const jobSchema = new mongoose.Schema(
     requiredSkills: {
       type: [String],
       default: [],
-      set: (skills) =>
-        Array.isArray(skills)
-          ? skills
-              .filter(Boolean)
-              .map((skill) => (typeof skill === 'string' ? skill.trim() : skill))
-          : [],
+      set: normalizeSkills,
     },
     location: {
       type: String,
@@ -83,7 +82,9 @@ const jobSchema = new mongoose.Schema(
   }
 );
 
+// Indexes for efficient queries
 jobSchema.index({ isActive: 1, createdAt: -1 });
+jobSchema.index({ requiredSkills: 1 });
 
 const Job = mongoose.model('Job', jobSchema);
 

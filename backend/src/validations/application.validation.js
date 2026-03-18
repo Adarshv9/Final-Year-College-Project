@@ -1,7 +1,10 @@
+// ── Job Application Validation Schemas ──
 import Joi from 'joi';
 
+// Reusable MongoDB ObjectId pattern validator
 const objectId = Joi.string().regex(/^[0-9a-fA-F]{24}$/, 'valid ObjectId');
 
+// Create application validation
 const createApplication = Joi.object({
   params: Joi.object({
     jobId: objectId.required().messages({
@@ -11,6 +14,7 @@ const createApplication = Joi.object({
   }),
 });
 
+// Fetch user's applications validation
 const myApplications = Joi.object({
   query: Joi.object({
     page: Joi.number().integer().min(1).default(1),
@@ -19,6 +23,7 @@ const myApplications = Joi.object({
   }),
 });
 
+// Fetch job applications validation
 const jobApplications = Joi.object({
   params: Joi.object({
     jobId: objectId.required().messages({
@@ -33,6 +38,7 @@ const jobApplications = Joi.object({
   }),
 });
 
+// Update application status validation
 const updateApplicationStatus = Joi.object({
   params: Joi.object({
     id: objectId.required().messages({

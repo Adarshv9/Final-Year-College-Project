@@ -1,8 +1,10 @@
+// ── Job Application Service ──
 import Application from '../models/Application.js';
 import Job from '../models/Job.js';
 import JobSeekerProfile from '../models/JobSeekerProfile.js';
 import ApiError from '../utils/ApiError.js';
 
+// Calculate skill match score between job requirements and user profile
 const calculateMatchScore = (requiredSkills = [], profileSkills = []) => {
   const normalizedRequired = [
     ...new Set(
@@ -24,6 +26,7 @@ const calculateMatchScore = (requiredSkills = [], profileSkills = []) => {
   return Math.round((matchedSkills.length / normalizedRequired.length) * 100);
 };
 
+// Verify job owner to prevent unauthorized access
 const ensureApplicationAccess = (job, currentUser) => {
   if (currentUser.role === 'admin') {
     return;
@@ -34,6 +37,7 @@ const ensureApplicationAccess = (job, currentUser) => {
   }
 };
 
+// Submit a new application for a job
 export const createApplication = async (jobId, applicantId) => {
   const job = await Job.findById(jobId);
   if (!job || !job.isActive) {
@@ -69,6 +73,7 @@ export const createApplication = async (jobId, applicantId) => {
   ]);
 };
 
+// Fetch applications submitted by current user
 export const getMyApplications = async (userId, { page = 1, limit = 10, status }) => {
   const filter = { applicant: userId };
   if (status) {
@@ -97,6 +102,7 @@ export const getMyApplications = async (userId, { page = 1, limit = 10, status }
   };
 };
 
+// Fetch all applications for a specific job
 export const getApplicationsForJob = async (
   jobId,
   currentUser,
@@ -136,6 +142,7 @@ export const getApplicationsForJob = async (
   };
 };
 
+// Update application status (shortlist/reject)
 export const updateApplicationStatus = async (applicationId, currentUser, status) => {
   const application = await Application.findById(applicationId).populate('job');
   if (!application) {

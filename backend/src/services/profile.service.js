@@ -1,7 +1,11 @@
+// ── User Profile Service ──
 import JobSeekerProfile from '../models/JobSeekerProfile.js';
 import RecruiterProfile from '../models/RecruiterProfile.js';
 import ApiError from '../utils/ApiError.js';
 
+// ── Job Seeker Profile ──
+
+// Create a new job seeker profile
 export const createJobSeekerProfile = async (userId, profileData) => {
   const existingProfile = await JobSeekerProfile.findOne({ user: userId });
   if (existingProfile) {
@@ -14,6 +18,7 @@ export const createJobSeekerProfile = async (userId, profileData) => {
   });
 };
 
+// Fetch job seeker profile by user ID
 export const getJobSeekerProfile = async (userId) => {
   const profile = await JobSeekerProfile.findOne({ user: userId }).populate(
     'user',
@@ -27,6 +32,7 @@ export const getJobSeekerProfile = async (userId) => {
   return profile;
 };
 
+// Update job seeker profile fields
 export const updateJobSeekerProfile = async (userId, profileData) => {
   const profile = await JobSeekerProfile.findOne({ user: userId });
   if (!profile) {
@@ -39,6 +45,7 @@ export const updateJobSeekerProfile = async (userId, profileData) => {
   return profile.populate('user', 'name email role isVerified isActive');
 };
 
+// Upload resume and store file URL and parsed data
 export const uploadJobSeekerResume = async (userId, resumeUrl, parsedData) => {
   let profile = await JobSeekerProfile.findOne({ user: userId });
 
@@ -56,6 +63,9 @@ export const uploadJobSeekerResume = async (userId, resumeUrl, parsedData) => {
   return profile.populate('user', 'name email role isVerified isActive');
 };
 
+// ── Recruiter Profile ──
+
+// Create a new recruiter profile
 export const createRecruiterProfile = async (userId, profileData) => {
   const existingProfile = await RecruiterProfile.findOne({ user: userId });
   if (existingProfile) {
@@ -68,6 +78,7 @@ export const createRecruiterProfile = async (userId, profileData) => {
   });
 };
 
+// Fetch recruiter profile by user ID
 export const getRecruiterProfile = async (userId) => {
   const profile = await RecruiterProfile.findOne({ user: userId }).populate(
     'user',
@@ -81,6 +92,7 @@ export const getRecruiterProfile = async (userId) => {
   return profile;
 };
 
+// Update recruiter profile fields
 export const updateRecruiterProfile = async (userId, profileData) => {
   const profile = await RecruiterProfile.findOne({ user: userId });
   if (!profile) {

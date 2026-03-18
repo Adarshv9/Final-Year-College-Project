@@ -1,8 +1,10 @@
+// ── User Validation Schemas ──
 import Joi from 'joi';
 
-// Reusable ObjectId pattern
+// Reusable MongoDB ObjectId pattern validator
 const objectId = Joi.string().regex(/^[0-9a-fA-F]{24}$/, 'valid ObjectId');
 
+// Get user validation
 const getUser = Joi.object({
   params: Joi.object({
     id: objectId.required().messages({
@@ -12,6 +14,7 @@ const getUser = Joi.object({
   }),
 });
 
+// Update user validation
 const updateUser = Joi.object({
   params: Joi.object({
     id: objectId.required().messages({
@@ -35,6 +38,7 @@ const updateUser = Joi.object({
   }).min(1), // at least one field must be provided
 });
 
+// Delete user validation
 const deleteUser = Joi.object({
   params: Joi.object({
     id: objectId.required().messages({
@@ -44,6 +48,7 @@ const deleteUser = Joi.object({
   }),
 });
 
+// List users with filters validation
 const listUsers = Joi.object({
   query: Joi.object({
     page: Joi.number().integer().min(1).default(1),

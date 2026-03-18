@@ -1,3 +1,4 @@
+// ── Express App Configuration ──
 import express from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
@@ -16,8 +17,10 @@ const app = express();
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
+// Security: Set HTTP headers
 app.use(helmet());
 
+// CORS: Allow frontend requests from configured domain
 app.use(
   cors({
     origin: env.corsOrigin,
@@ -27,18 +30,24 @@ app.use(
   })
 );
 
+// Body Parser: Parse JSON and form data
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
+
+// Data Sanitization: Prevent MongoDB injection attacks
 app.use(mongoSanitize());
 
+// HTTP Logger: Log requests (debug mode in development, combined in production)
 if (env.nodeEnv === 'development') {
   app.use(morgan('dev'));
 } else {
   app.use(morgan('combined'));
 }
 
+// Rate Limiter: Protect API from abuse
 app.use(generalLimiter);
 
+// Health Check Endpoint
 app.get('/', (_req, res) => {
   res.send('Hello World');
 });
@@ -47,6 +56,7 @@ app.get('/api/health', (_req, res) => {
   res.status(200).json({ success: true, message: 'Server is running' });
 });
 
+// Serve Static Files: Resume uploads directory
 app.use('/uploads', express.static(path.resolve(__dirname, '../uploads')));
 app.use('/api/v1', routes);
 

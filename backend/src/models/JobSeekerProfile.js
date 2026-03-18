@@ -1,5 +1,8 @@
+// ── Job Seeker Profile Model ──
 import mongoose from 'mongoose';
+import normalizeSkills from '../utils/normalizeSkills.js';
 
+// Sub-schema for work experience
 const experienceSchema = new mongoose.Schema(
   {
     company: {
@@ -20,6 +23,7 @@ const experienceSchema = new mongoose.Schema(
   }
 );
 
+// Sub-schema for education details
 const educationSchema = new mongoose.Schema(
   {
     degree: {
@@ -40,6 +44,7 @@ const educationSchema = new mongoose.Schema(
   }
 );
 
+// Job seeker profile with skills, experience, education, and resume
 const jobSeekerProfileSchema = new mongoose.Schema(
   {
     user: {
@@ -56,12 +61,7 @@ const jobSeekerProfileSchema = new mongoose.Schema(
     skills: {
       type: [String],
       default: [],
-      set: (skills) =>
-        Array.isArray(skills)
-          ? skills
-              .filter(Boolean)
-              .map((skill) => (typeof skill === 'string' ? skill.trim() : skill))
-          : [],
+      set: normalizeSkills,
     },
     experience: {
       type: [experienceSchema],
@@ -84,6 +84,9 @@ const jobSeekerProfileSchema = new mongoose.Schema(
     timestamps: true,
   }
 );
+
+// Index for efficient skill-based searching
+jobSeekerProfileSchema.index({ skills: 1 });
 
 const JobSeekerProfile = mongoose.model('JobSeekerProfile', jobSeekerProfileSchema);
 

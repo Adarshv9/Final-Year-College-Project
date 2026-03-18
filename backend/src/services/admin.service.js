@@ -1,8 +1,10 @@
+// ── Admin Service ──
 import RecruiterProfile from '../models/RecruiterProfile.js';
 import User from '../models/User.js';
 import * as userService from './user.service.js';
 import ApiError from '../utils/ApiError.js';
 
+// Fetch all pending recruiter registrations with their profiles
 export const getPendingRecruiters = async ({ page = 1, limit = 10, search }) => {
   const filter = {
     role: 'recruiter',
@@ -46,6 +48,7 @@ export const getPendingRecruiters = async ({ page = 1, limit = 10, search }) => 
   };
 };
 
+// Verify a recruiter and activate their account
 export const verifyRecruiter = async (recruiterId) => {
   const recruiter = await User.findOne({ _id: recruiterId, role: 'recruiter' });
   if (!recruiter) {
@@ -59,6 +62,7 @@ export const verifyRecruiter = async (recruiterId) => {
   return recruiter;
 };
 
+// Reject a recruiter by deactivating their account
 export const rejectRecruiter = async (recruiterId) => {
   const recruiter = await User.findOne({ _id: recruiterId, role: 'recruiter' });
   if (!recruiter) {
@@ -72,6 +76,7 @@ export const rejectRecruiter = async (recruiterId) => {
   return recruiter;
 };
 
+// Alias for fetching all users (delegates to user service)
 export const getAllUsers = async (query) => {
   return userService.getUsers(query);
 };

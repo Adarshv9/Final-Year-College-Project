@@ -1,8 +1,11 @@
+// ── Job Service ──
 import mongoose from 'mongoose';
 import Job from '../models/Job.js';
 import JobSeekerProfile from '../models/JobSeekerProfile.js';
 import ApiError from '../utils/ApiError.js';
+import normalizeSkills from '../utils/normalizeSkills.js';
 
+// Verify job ownership for authorization
 const ensureJobOwnership = (job, currentUser) => {
   if (currentUser.role === 'admin') {
     return;
@@ -13,6 +16,7 @@ const ensureJobOwnership = (job, currentUser) => {
   }
 };
 
+// Create a new job listing
 export const createJob = async (userId, jobData) => {
   const job = await Job.create({
     ...jobData,
@@ -22,6 +26,7 @@ export const createJob = async (userId, jobData) => {
   return job.populate('createdBy', 'name email role');
 };
 
+// Build MongoDB query filter based on search/filter parameters
 const buildJobFilter = ({ search, location, skill }) => {
   const filter = { isActive: true };
 
@@ -44,9 +49,7 @@ const buildJobFilter = ({ search, location, skill }) => {
   return filter;
 };
 
-const normalizeSkills = (skills = []) =>
-  [...new Set(skills.filter(Boolean).map((skill) => String(skill).trim().toLowerCase()))];
-
+// Build MongoDB aggregation pipeline for skill-based job ranking
 const buildRankedJobsPipeline = ({ filter, normalizedSkills, skip, limit }) => [
   { $match: filter },
   {
@@ -139,6 +142,7 @@ const buildRankedJobsPipeline = ({ filter, normalizedSkills, skip, limit }) => [
   },
 ];
 
+// Fetch jobs ranked by skill match for job seekers
 const getRankedJobs = async ({ filter, page, limit, currentUser }) => {
   const profile = await JobSeekerProfile.findOne({ user: currentUser._id }).select('skills');
   const normalizedSkills = normalizeSkills(profile?.skills || []);
@@ -166,6 +170,7 @@ const getRankedJobs = async ({ filter, page, limit, currentUser }) => {
   };
 };
 
+// Get jobs with skill-based ranking for job seekers, basic listing for others
 export const getJobs = async (
   { page = 1, limit = 10, search, location, skill },
   currentUser
@@ -198,6 +203,7 @@ export const getJobs = async (
   };
 };
 
+// Get single job by ID with skill matching for job seekers
 export const getJobById = async (jobId, currentUser) => {
   if (currentUser?.role === 'job_seeker') {
     const profile = await JobSeekerProfile.findOne({ user: currentUser._id }).select('skills');
@@ -243,6 +249,7 @@ export const getJobById = async (jobId, currentUser) => {
   return job;
 };
 
+// Update job details (title, description, requirements, etc.)
 export const updateJob = async (jobId, currentUser, updateData) => {
   const job = await Job.findById(jobId);
   if (!job) {
@@ -257,6 +264,7 @@ export const updateJob = async (jobId, currentUser, updateData) => {
   return job.populate('createdBy', 'name email role');
 };
 
+// Soft delete job (mark as inactive rather than removing from DB)
 export const deleteJob = async (jobId, currentUser) => {
   const job = await Job.findById(jobId);
   if (!job) {

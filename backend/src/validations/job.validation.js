@@ -1,7 +1,10 @@
+// ── Job Validation Schemas ──
 import Joi from 'joi';
 
+// Reusable MongoDB ObjectId pattern validator
 const objectId = Joi.string().regex(/^[0-9a-fA-F]{24}$/, 'valid ObjectId');
 
+// Salary range validation
 const salaryRange = Joi.object({
   min: Joi.number().min(0),
   max: Joi.number().min(0),
@@ -19,6 +22,7 @@ const salaryRange = Joi.object({
   'any.invalid': 'Salary max must be greater than or equal to salary min',
 });
 
+// Create job validation
 const createJob = Joi.object({
   body: Joi.object({
     title: Joi.string().trim().required(),
@@ -30,6 +34,7 @@ const createJob = Joi.object({
   }),
 });
 
+// Update job validation
 const updateJob = Joi.object({
   params: Joi.object({
     id: objectId.required().messages({
@@ -56,7 +61,7 @@ const getJob = Joi.object({
     }),
   }),
 });
-
+// Get single job validation// Delete job validation
 const deleteJob = Joi.object({
   params: Joi.object({
     id: objectId.required().messages({
@@ -66,6 +71,7 @@ const deleteJob = Joi.object({
   }),
 });
 
+// List jobs with filters validation
 const listJobs = Joi.object({
   query: Joi.object({
     page: Joi.number().integer().min(1).default(1),

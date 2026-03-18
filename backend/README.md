@@ -62,7 +62,7 @@ backend/
 │   ├── utils/
 │   │   ├── ApiError.js
 │   │   ├── ApiResponse.js
-│   │   ├── catchAsync.js
+│   │   ├── asyncHandler.js
 │   │   └── logger.js
 │   ├── validations/
 │   │   ├── auth.validation.js
