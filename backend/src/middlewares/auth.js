@@ -5,13 +5,19 @@ import ApiError from '../utils/ApiError.js';
 import asyncHandler from '../utils/asyncHandler.js';
 
 export const authenticateJWT = asyncHandler(async (req, _res, next) => {
-  const authHeader = req.headers.authorization;
+  // Check for token in cookies first, then Authorization header
+  let token = req.cookies?.authToken;
 
-  if (!authHeader || !authHeader.startsWith('Bearer ')) {
-    throw new ApiError(401, 'Access denied. No token provided.');
+  if (!token) {
+    const authHeader = req.headers.authorization;
+    if (authHeader && authHeader.startsWith('Bearer ')) {
+      token = authHeader.split(' ')[1];
+    }
   }
 
-  const token = authHeader.split(' ')[1];
+  if (!token) {
+    throw new ApiError(401, 'Access denied. No token provided.');
+  }
 
   let decoded;
   try {

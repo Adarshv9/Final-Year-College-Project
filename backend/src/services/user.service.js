@@ -90,3 +90,26 @@ export const deleteUser = async (userId) => {
   }
   return user;
 };
+
+/**
+ * Change user password.
+ * @param {string} userId
+ * @param {Object} data - { oldPassword, newPassword }
+ * @returns {Promise<void>}
+ */
+export const changePassword = async (userId, { oldPassword, newPassword }) => {
+  const user = await User.findById(userId).select('+password');
+  if (!user) {
+    throw new ApiError(404, 'User not found');
+  }
+
+  // Verify old password
+  const isMatch = await user.comparePassword(oldPassword);
+  if (!isMatch) {
+    throw new ApiError(401, 'Current password is incorrect');
+  }
+
+  // Update with new password (will be hashed by pre-save hook)
+  user.password = newPassword;
+  await user.save();
+};

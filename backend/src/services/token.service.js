@@ -34,12 +34,17 @@ export const generateRefreshToken = async (user) => {
   const expiresAt = new Date(decoded.exp * 1000);
   const now = new Date();
 
+  // First, remove expired tokens
   await User.findByIdAndUpdate(user._id, {
     $pull: {
       refreshTokens: {
         expiresAt: { $lte: now },
       },
     },
+  });
+
+  // Then, add the new token
+  await User.findByIdAndUpdate(user._id, {
     $push: {
       refreshTokens: {
         token: refreshToken,

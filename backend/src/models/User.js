@@ -43,6 +43,11 @@ const userSchema = new mongoose.Schema(
       minlength: [6, 'Password must be at least 6 characters'],
       select: false,
     },
+    provider: {
+      type: String,
+      enum: ['local', 'google', 'github'],
+      default: 'local',
+    },
     role: {
       type: String,
       enum: {
@@ -50,6 +55,26 @@ const userSchema = new mongoose.Schema(
         message: '{VALUE} is not a valid role',
       },
       default: 'job_seeker',
+    },
+    emailVerified: {
+      type: Boolean,
+      default: false,
+    },
+    approvalStatus: {
+      type: String,
+      enum: {
+        values: ['pending', 'approved', 'rejected'],
+        message: '{VALUE} is not a valid approval status',
+      },
+      default: null,
+    },
+    otp: {
+      type: String,
+      select: false,
+    },
+    otpExpiresAt: {
+      type: Date,
+      select: false,
     },
     isVerified: {
       type: Boolean,

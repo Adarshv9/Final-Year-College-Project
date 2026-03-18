@@ -47,3 +47,14 @@ export const deleteUser = asyncHandler(async (req, res) => {
 
   res.status(response.statusCode).json(response);
 });
+
+/**
+ * PATCH /api/v1/user/change-password
+ */
+export const changePassword = asyncHandler(async (req, res) => {
+  await userService.changePassword(req.user.id, req.body);
+
+  const response = new ApiResponse(200, 'Password updated successfully');
+
+  res.status(response.statusCode).json(response);
+});

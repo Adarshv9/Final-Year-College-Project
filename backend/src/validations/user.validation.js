@@ -58,4 +58,19 @@ const listUsers = Joi.object({
   }),
 });
 
-export { getUser, updateUser, deleteUser, listUsers };
+// Change password validation
+const changePassword = Joi.object({
+  body: Joi.object({
+    oldPassword: Joi.string().min(6).required().messages({
+      'string.min': 'Password must be at least 6 characters',
+      'any.required': 'Current password is required',
+    }),
+    newPassword: Joi.string().min(6).max(128).required().messages({
+      'string.min': 'New password must be at least 6 characters',
+      'string.max': 'New password must be at most 128 characters',
+      'any.required': 'New password is required',
+    }),
+  }),
+});
+
+export { getUser, updateUser, deleteUser, listUsers, changePassword };

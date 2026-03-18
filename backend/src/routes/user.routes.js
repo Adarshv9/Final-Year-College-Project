@@ -13,6 +13,9 @@ router.use(authenticateJWT);
 router.get('/', validate(userValidation.listUsers), userController.getUsers);
 router.get('/:id', validate(userValidation.getUser), userController.getUser);
 
+// Protected endpoints - user specific
+router.patch('/change-password', validate(userValidation.changePassword), userController.changePassword);
+
 // Protected endpoints - admin only
 router.put('/:id', authorizeRole('admin'), validate(userValidation.updateUser), userController.updateUser);
 router.delete('/:id', authorizeRole('admin'), validate(userValidation.deleteUser), userController.deleteUser);

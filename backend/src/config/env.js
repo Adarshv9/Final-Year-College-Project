@@ -9,6 +9,7 @@ const __dirname = dirname(__filename);
 // Load .env from the backend root directory
 dotenv.config({ path: path.resolve(__dirname, '../../.env') });
 
+
 export const env = {
   nodeEnv: process.env.NODE_ENV || 'development',
   port: parseInt(process.env.PORT, 10) || 5000,

@@ -3,6 +3,7 @@ import express from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
 import morgan from 'morgan';
+import cookieParser from 'cookie-parser';
 import mongoSanitize from 'express-mongo-sanitize';
 import path from 'path';
 import { fileURLToPath } from 'url';
@@ -33,6 +34,9 @@ app.use(
 // Body Parser: Parse JSON and form data
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
+
+// Cookie Parser: Parse cookies
+app.use(cookieParser());
 
 // Data Sanitization: Prevent MongoDB injection attacks
 app.use(mongoSanitize());

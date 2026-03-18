@@ -45,4 +45,28 @@ const refreshToken = Joi.object({
   }),
 });
 
-export { register, login, refreshToken };
+// OTP verification validation schema
+const verifyOTP = Joi.object({
+  body: Joi.object({
+    email: Joi.string().email().required().messages({
+      'string.email': 'Please provide a valid email address',
+      'any.required': 'Email is required',
+    }),
+    otp: Joi.string().length(6).required().messages({
+      'string.length': 'OTP must be 6 digits',
+      'any.required': 'OTP is required',
+    }),
+  }),
+});
+
+// Resend OTP validation schema
+const resendOTP = Joi.object({
+  body: Joi.object({
+    email: Joi.string().email().required().messages({
+      'string.email': 'Please provide a valid email address',
+      'any.required': 'Email is required',
+    }),
+  }),
+});
+
+export { register, login, refreshToken, verifyOTP, resendOTP };
