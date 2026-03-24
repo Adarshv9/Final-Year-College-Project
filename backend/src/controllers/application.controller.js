@@ -22,15 +22,23 @@ export const getMyApplications = asyncHandler(async (req, res) => {
 });
 
 export const getApplicationsForJob = asyncHandler(async (req, res) => {
-  const applications = await applicationService.getApplicationsForJob(
+  const { page = 1, limit = 10, status } = req.query;
+
+  const result = await applicationService.getApplicationsForJob(
     req.params.jobId,
-    req.user.id
+    req.user.id,
+    {
+      page: parseInt(page, 10),
+      limit: parseInt(limit, 10),
+      status: status || undefined,
+    }
   );
 
   res.status(200).json({
     success: true,
     statusCode: 200,
-    data: applications,
+    data: result.data,
+    pagination: result.pagination,
   });
 });
 

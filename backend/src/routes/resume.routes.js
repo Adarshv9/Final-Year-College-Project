@@ -2,7 +2,7 @@
 import express from 'express';
 import * as resumeController from '../controllers/resume.controller.js';
 import { authenticateJWT, authorizeRole } from '../middlewares/auth.js';
-import { uploadResume as uploadResumeMiddleware } from '../middlewares/upload.js';
+import { uploadResume as uploadResumeMiddleware, validatePdfSignature } from '../middlewares/upload.js';
 import validate from '../middlewares/validate.js';
 import * as resumeValidation from '../validations/resume.validation.js';
 
@@ -14,8 +14,12 @@ router.put(
   '/resume',
   authenticateJWT,
   uploadResumeMiddleware,
+  validatePdfSignature,
   resumeController.uploadResume
 );
+
+// GET /resume/status/:jobId — Poll background job status
+router.get('/resume/status/:jobId', authenticateJWT, resumeController.getResumeJobStatus);
 
 // POST /resume/manual — Manual create/update (job seekers only)
 router.post(

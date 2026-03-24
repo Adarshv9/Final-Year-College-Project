@@ -4,101 +4,118 @@ import asyncHandler from '../utils/asyncHandler.js';
 import ApiError from '../utils/ApiError.js';
 import ApiResponse from '../utils/ApiResponse.js';
 import * as resumeService from '../services/resume.service.js';
-import {
-  extractTextFromPdf,
-  extractResumeWithAI,
-  transformResumeData,
-} from '../utils/resumeExtraction.js';
 import logger from '../utils/logger.js';
+import { addResumeJob } from '../queues/resume.queue.js';
+import { isRedisAvailable } from '../config/redis.js';
 
 /**
- * PUT /resume — Upload and parse PDF resume with AI extraction
- * Accepts multipart/form-data with 'resume' field
+ * PUT /resume — Upload and parse PDF resume
+ *
+ * If BullMQ/Redis is available → async processing → 202 + jobId
+ * Otherwise → synchronous processing → 200/201 + resume data
  */
 export const uploadResume = asyncHandler(async (req, res) => {
-  // Check if user is a job seeker
   if (req.user.role !== 'job_seeker') {
-    throw new ApiError(403, 'Only job seekers can upload resume');
+    throw new ApiError(403, 'Only job seekers can upload resume', [], false);
   }
-  // Check if file is uploaded
   if (!req.file) {
-    throw new ApiError(400, 'Resume file is required');
+    throw new ApiError(400, 'Resume file is required', [], false);
   }
 
-  try {
-    // Step 1: Extract text from PDF
-    const pdfBuffer = fs.readFileSync(req.file.path);
-    const rawText = await extractTextFromPdf(pdfBuffer);
-    
+  // ── Async path (BullMQ available) ─────────────────────────────────────────
+  if (isRedisAvailable()) {
+    try {
+      const job = await addResumeJob({
+        userId: req.user.id,
+        filePath: req.file.path,
+      });
 
-    if (!rawText || rawText.trim().length === 0) {
-      // Delete uploaded file if extraction fails
-      fs.unlinkSync(req.file.path);
-      throw new ApiError(400, 'Could not extract text from PDF');
+      return res.status(202).json(
+        new ApiResponse(202, 'Resume queued for processing', {
+          jobId: job.id,
+          statusUrl: `/api/v1/resume/status/${job.id}`,
+        })
+      );
+    } catch (err) {
+      logger.warn(`Queue unavailable, falling back to sync processing: ${err.message}`);
     }
+  }
 
-    // Step 2: Extract and parse using AI
-    logger.info('Sending resume text to AI for parsing...');
-    const AiData = await extractResumeWithAI(rawText);
+  // ── Synchronous fallback ───────────────────────────────────────────────────
+  try {
+    const pdfBuffer = fs.readFileSync(req.file.path);
+    const resume = await resumeService.processResumeFile(
+      req.user.id,
+      pdfBuffer,
+      req.file.path
+    );
 
-    // Step 3: Transform resume data (calculate experienceYears, normalize skills, etc.)
-    const transformedData = transformResumeData(AiData);
-
-    // Step 4: Prepare data for upsert
-    const resumeData = {
-      ...transformedData,
-      fileUrl: req.file.path,
-      rawText: rawText.substring(0, 10000), // Store only first 10k chars
-      parsedData: AiData,
-    };
-
-    // Step 5: Atomic upsert to resumes collection
-    const resume = await resumeService.upsertResume(req.user.id, resumeData);
-
-    // Determine if this is a create or update
-    const isCreated = resume.createdAt && resume.updatedAt && resume.createdAt.getTime() === resume.updatedAt.getTime();
+    const isCreated =
+      resume.createdAt &&
+      resume.updatedAt &&
+      resume.createdAt.getTime() === resume.updatedAt.getTime();
     const statusCode = isCreated ? 201 : 200;
-    const message = isCreated ? 'Resume uploaded and parsed successfully' : 'Resume updated successfully';
+    const message = isCreated
+      ? 'Resume uploaded and parsed successfully'
+      : 'Resume updated successfully';
 
-    // Prepare response data
-    const responseData = {
-      name: resume.name,
-      skills: resume.skills,
-      experienceYears: resume.experienceYears,
-    };
-
-    res.status(statusCode).json(new ApiResponse(statusCode, message, responseData));
+    return res.status(statusCode).json(
+      new ApiResponse(statusCode, message, {
+        name: resume.name,
+        skills: resume.skills,
+        experienceYears: resume.experienceYears,
+      })
+    );
   } catch (error) {
     // Clean up uploaded file on error
     if (req.file?.path) {
       try {
         fs.unlinkSync(req.file.path);
       } catch (unlinkError) {
-        logger.error('Error deleting uploaded file:', unlinkError);
+        logger.error(`Error deleting uploaded file: ${unlinkError.message}`);
       }
     }
 
-    // Re-throw if it's an ApiError
-    if (error instanceof ApiError) {
-      throw error;
-    }
-
-    logger.error('Resume upload error:', error);
+    if (error instanceof ApiError) throw error;
+    logger.error(`Resume upload error: ${error.message}`);
     throw new ApiError(500, 'Failed to process resume');
   }
+});
+
+/**
+ * GET /resume/status/:jobId — Poll background job status
+ */
+export const getResumeJobStatus = asyncHandler(async (req, res) => {
+  if (!isRedisAvailable()) {
+    throw new ApiError(503, 'Queue-based processing is not available');
+  }
+
+  const { jobId } = req.params;
+  const { getResumeQueue } = await import('../queues/resume.queue.js');
+  const queue = getResumeQueue();
+  const job = await queue.getJob(jobId);
+
+  if (!job) {
+    throw new ApiError(404, 'Job not found', [], false);
+  }
+
+  const state = await job.getState();
+  const progress = job.progress || 0;
+
+  res.status(200).json(
+    new ApiResponse(200, 'Job status retrieved', { jobId, state, progress })
+  );
 });
 
 /**
  * GET /resume — Fetch current user's resume
  */
 export const getResume = asyncHandler(async (req, res) => {
-  // Check if user is a job seeker
   if (req.user.role !== 'job_seeker') {
-    throw new ApiError(403, 'Only job seekers can view resume');
+    throw new ApiError(403, 'Only job seekers can view resume', [], false);
   }
 
   const resume = await resumeService.getResumeByUserId(req.user.id);
-
   res.status(200).json(new ApiResponse(200, 'Resume fetched successfully', resume));
 });
 
@@ -106,19 +123,17 @@ export const getResume = asyncHandler(async (req, res) => {
  * DELETE /resume — Delete current user's resume
  */
 export const deleteResume = asyncHandler(async (req, res) => {
-  // Check if user is a job seeker
   if (req.user.role !== 'job_seeker') {
-    throw new ApiError(403, 'Only job seekers can delete resume');
+    throw new ApiError(403, 'Only job seekers can delete resume', [], false);
   }
 
   const resume = await resumeService.deleteResume(req.user.id);
 
-  // Delete file from disk
   if (resume.fileUrl) {
     try {
       fs.unlinkSync(resume.fileUrl);
     } catch (error) {
-      logger.warn('Error deleting resume file:', error);
+      logger.warn(`Error deleting resume file: ${error.message}`);
     }
   }
 
@@ -129,9 +144,8 @@ export const deleteResume = asyncHandler(async (req, res) => {
  * PATCH /resume — Partial update of current user's resume
  */
 export const updateResume = asyncHandler(async (req, res) => {
-  // Check if user is a job seeker
   if (req.user.role !== 'job_seeker') {
-    throw new ApiError(403, 'Only job seekers can update resume');
+    throw new ApiError(403, 'Only job seekers can update resume', [], false);
   }
 
   const updates = { ...req.body };
@@ -143,7 +157,6 @@ export const updateResume = asyncHandler(async (req, res) => {
   }
 
   await resumeService.updateResumeFields(req.user.id, updates);
-
   res.status(200).json(new ApiResponse(200, 'Resume updated successfully', null));
 });
 
@@ -152,16 +165,12 @@ export const updateResume = asyncHandler(async (req, res) => {
  */
 export const manualResume = asyncHandler(async (req, res) => {
   if (req.user.role !== 'job_seeker') {
-    throw new ApiError(403, 'Only job seekers can save resume manually');
+    throw new ApiError(403, 'Only job seekers can save resume manually', [], false);
   }
 
   const normalizeEducation = (value) => {
-    if (Array.isArray(value)) {
-      return value;
-    }
-    if (!value || Object.keys(value).length === 0) {
-      return [];
-    }
+    if (Array.isArray(value)) return value;
+    if (!value || Object.keys(value).length === 0) return [];
     return [value];
   };
 
@@ -174,7 +183,7 @@ export const manualResume = asyncHandler(async (req, res) => {
 
   await resumeService.upsertResume(req.user.id, {
     ...manualData,
-    fileUrl: (existingResume?.fileUrl) || manualData.fileUrl || '',
+    fileUrl: existingResume?.fileUrl || manualData.fileUrl || '',
     rawText: existingResume?.rawText || manualData.rawText || '',
     parsedData: existingResume?.parsedData || manualData.parsedData || {},
   });
@@ -182,13 +191,8 @@ export const manualResume = asyncHandler(async (req, res) => {
   res.status(200).json(new ApiResponse(200, 'Resume saved successfully', null));
 });
 
-/**
- * Admin endpoints
- */
+// ── Admin endpoints ───────────────────────────────────────────────────────────
 
-/**
- * GET /resumes — Get all resumes (admin only)
- */
 export const getAllResumes = asyncHandler(async (req, res) => {
   const { limit = 10, page = 1, search = '' } = req.query;
 
@@ -201,18 +205,16 @@ export const getAllResumes = asyncHandler(async (req, res) => {
   res.status(200).json(new ApiResponse(200, 'Resumes fetched successfully', result));
 });
 
-/**
- * PATCH /resumes/:resumeId/verify — Verify resume (admin only)
- */
 export const verifyResume = asyncHandler(async (req, res) => {
   const { resumeId } = req.params;
   const { isVerified } = req.body;
 
   if (typeof isVerified !== 'boolean') {
-    throw new ApiError(400, 'isVerified must be a boolean');
+    throw new ApiError(400, 'isVerified must be a boolean', [], false);
   }
 
   const resume = await resumeService.updateResumeVerification(resumeId, isVerified);
-
-  res.status(200).json(new ApiResponse(200, 'Resume verification updated successfully', resume));
+  res
+    .status(200)
+    .json(new ApiResponse(200, 'Resume verification updated successfully', resume));
 });

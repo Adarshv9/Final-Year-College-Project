@@ -11,17 +11,22 @@ import { fileURLToPath } from 'url';
 import { env } from './config/env.js';
 import { generalLimiter } from './middlewares/rateLimiter.js';
 import errorHandler from './middlewares/errorHandler.js';
+import requestIdMiddleware from './middlewares/requestId.js';
 import ApiError from './utils/ApiError.js';
+import logger from './utils/logger.js';
 import routes from './routes/index.js';
 
 const app = express();
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-// Security: Set HTTP headers
+// ── Security ──────────────────────────────────────────────────────────────────
 app.use(helmet());
 
-// CORS: Allow frontend requests from configured domain
+// ── Request ID — attach before everything so it's available in logs ───────────
+app.use(requestIdMiddleware);
+
+// ── CORS ──────────────────────────────────────────────────────────────────────
 app.use(
   cors({
     origin: env.corsOrigin,
@@ -31,27 +36,37 @@ app.use(
   })
 );
 
-// Body Parser: Parse JSON and form data
+// ── Body Parser ───────────────────────────────────────────────────────────────
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
-// Cookie Parser: Parse cookies
+// ── Cookie Parser ─────────────────────────────────────────────────────────────
 app.use(cookieParser());
 
-// Data Sanitization: Prevent MongoDB injection attacks
+// ── Data Sanitization ─────────────────────────────────────────────────────────
 app.use(mongoSanitize());
 
-// HTTP Logger: Log requests (debug mode in development, combined in production)
+// ── HTTP Logger ───────────────────────────────────────────────────────────────
 if (env.nodeEnv === 'development') {
   app.use(morgan('dev'));
 } else {
   app.use(morgan('combined'));
 }
 
-// Rate Limiter: Protect API from abuse
+// ── API Latency Metrics ───────────────────────────────────────────────────────
+app.use((req, res, next) => {
+  const start = Date.now();
+  res.on('finish', () => {
+    const ms = Date.now() - start;
+    logger.info(`[METRIC] ${req.method} ${req.originalUrl} ${res.statusCode} ${ms}ms`);
+  });
+  next();
+});
+
+// ── Rate Limiter ──────────────────────────────────────────────────────────────
 app.use(generalLimiter);
 
-// Health Check Endpoint
+// ── Health Check ──────────────────────────────────────────────────────────────
 app.get('/', (_req, res) => {
   res.send('Hello World');
 });
@@ -60,14 +75,18 @@ app.get('/api/health', (_req, res) => {
   res.status(200).json({ success: true, message: 'Server is running' });
 });
 
-// Serve Static Files: Resume uploads directory
+// ── Static Files ──────────────────────────────────────────────────────────────
 app.use('/uploads', express.static(path.resolve(__dirname, '../uploads')));
+
+// ── API Routes ────────────────────────────────────────────────────────────────
 app.use('/api/v1', routes);
 
+// ── 404 Handler ───────────────────────────────────────────────────────────────
 app.use((req, _res, next) => {
-  next(new ApiError(404, `Route not found: ${req.method} ${req.originalUrl}`));
+  next(new ApiError(404, `Route not found: ${req.method} ${req.originalUrl}`, [], true, 'ROUTE_NOT_FOUND'));
 });
 
+// ── Global Error Handler ──────────────────────────────────────────────────────
 app.use(errorHandler);
 
 export default app;

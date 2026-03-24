@@ -17,39 +17,67 @@ const storage = multer.diskStorage({
   destination: (_req, _file, cb) => {
     cb(null, uploadsRoot);
   },
-  // Generate unique filename with timestamp and sanitize original name
   filename: (_req, file, cb) => {
     const extension = path.extname(file.originalname);
     const safeName = path
       .basename(file.originalname, extension)
       .replace(/[^a-zA-Z0-9-_]/g, '-')
       .toLowerCase();
-
     cb(null, `${safeName}-${Date.now()}${extension.toLowerCase()}`);
   },
 });
 
-// Validate file type: only allow resume formats
+/**
+ * PDF-only file filter.
+ * Checks both MIME type and file extension.
+ */
 const fileFilter = (_req, file, cb) => {
-  const allowedExtensions = ['.pdf', '.doc', '.docx'];
   const extension = path.extname(file.originalname).toLowerCase();
 
-  if (!allowedExtensions.includes(extension)) {
-    cb(new ApiError(400, 'Only PDF, DOC, and DOCX files are allowed'));
+  if (file.mimetype !== 'application/pdf' || extension !== '.pdf') {
+    cb(new ApiError(400, 'Only PDF files are allowed', [], false));
     return;
   }
 
   cb(null, true);
 };
 
-// Multer configuration: max file size 5MB
+/**
+ * Multer instance — PDF only, 2 MB max
+ */
 const upload = multer({
   storage,
   fileFilter,
   limits: {
-    fileSize: 5 * 1024 * 1024, // 5MB limit
+    fileSize: 2 * 1024 * 1024, // 2 MB
   },
 });
 
 // Export single file upload middleware for resume field
 export const uploadResume = upload.single('resume');
+
+/**
+ * Magic-byte validation middleware.
+ * Must be used AFTER multer has saved the file.
+ * Reads the first 4 bytes and verifies the %PDF signature.
+ */
+export const validatePdfSignature = (req, res, next) => {
+  if (!req.file) return next();
+
+  try {
+    const fd = fs.openSync(req.file.path, 'r');
+    const buffer = Buffer.alloc(4);
+    fs.readSync(fd, buffer, 0, 4, 0);
+    fs.closeSync(fd);
+
+    const signature = buffer.toString('ascii');
+    if (!signature.startsWith('%PDF')) {
+      fs.unlinkSync(req.file.path); // delete the fake file
+      return next(new ApiError(400, 'File is not a valid PDF', [], false));
+    }
+
+    next();
+  } catch (err) {
+    next(new ApiError(500, 'Failed to validate file signature'));
+  }
+};

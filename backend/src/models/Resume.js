@@ -122,4 +122,8 @@ const resumeSchema = new mongoose.Schema(
   }
 );
 
+// ── Indexes ────────────────────────────────────────────────────────────────
+resumeSchema.index({ skills: 1 });
+resumeSchema.index({ user: 1, createdAt: -1 });
+
 export default mongoose.model('Resume', resumeSchema);

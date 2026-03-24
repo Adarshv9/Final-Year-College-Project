@@ -103,6 +103,12 @@ const applicationSchema = new mongoose.Schema(
       trim: true,
       default: null,
     },
+    hybridScore: {
+      type: Number,
+      default: null,
+      min: 0,
+      max: 100,
+    },
   },
   {
     timestamps: true,
