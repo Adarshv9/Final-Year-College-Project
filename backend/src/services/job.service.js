@@ -2,6 +2,7 @@ import Job from '../models/Job.js';
 import Resume from '../models/Resume.js';
 import ApiError from '../utils/ApiError.js';
 import normalizeSkills from '../utils/normalizeSkills.js';
+import { rankJobsWithAI } from '../utils/jobRecommendations.js';
 
 const publicJobFields =
   '_id title companyName location description requiredSkills minExperience jobType salary createdAt updatedAt';
@@ -9,9 +10,8 @@ const publicJobFields =
 const buildPublicJobFilter = ({
   search,
   skill,
+  location,
   locationType,
-  city,
-  country,
   jobType,
   minExperience,
 }) => {
@@ -20,10 +20,7 @@ const buildPublicJobFilter = ({
   if (search) {
     filter.$or = [
       { title: { $regex: search, $options: 'i' } },
-      { companyName: { $regex: search, $options: 'i' } },
       { description: { $regex: search, $options: 'i' } },
-      { 'location.city': { $regex: search, $options: 'i' } },
-      { 'location.country': { $regex: search, $options: 'i' } },
     ];
   }
 
@@ -35,12 +32,16 @@ const buildPublicJobFilter = ({
     filter['location.type'] = locationType;
   }
 
-  if (city) {
-    filter['location.city'] = { $regex: city, $options: 'i' };
-  }
-
-  if (country) {
-    filter['location.country'] = { $regex: country, $options: 'i' };
+  if (location) {
+    filter.$and = [
+      ...(filter.$and || []),
+      {
+        $or: [
+          { 'location.city': { $regex: location, $options: 'i' } },
+          { 'location.country': { $regex: location, $options: 'i' } },
+        ],
+      },
+    ];
   }
 
   if (jobType) {
@@ -48,47 +49,10 @@ const buildPublicJobFilter = ({
   }
 
   if (minExperience !== undefined) {
-    filter.minExperience = { $gte: minExperience };
+    filter.minExperience = { $lte: minExperience };
   }
 
   return filter;
-};
-
-const calculateSkillMatch = (requiredSkills = [], candidateSkills = []) => {
-  const normalizedRequiredSkills = normalizeSkills(requiredSkills);
-  const normalizedCandidateSkills = new Set(normalizeSkills(candidateSkills));
-
-  if (normalizedRequiredSkills.length === 0) {
-    return 0;
-  }
-
-  const matchedSkills = normalizedRequiredSkills.filter((skill) =>
-    normalizedCandidateSkills.has(skill)
-  );
-
-  return Math.round((matchedSkills.length / normalizedRequiredSkills.length) * 100);
-};
-
-const attachResumeMatchScore = async (jobs, currentUser) => {
-  if (currentUser?.role !== 'job_seeker') {
-    return jobs;
-  }
-
-  const resume = await Resume.findOne({ user: currentUser._id }).select('skills').lean();
-  const resumeSkills = resume?.skills || [];
-
-  return jobs
-    .map((job) => ({
-      ...job,
-      matchScore: calculateSkillMatch(job.requiredSkills, resumeSkills),
-    }))
-    .sort((a, b) => {
-      if (b.matchScore !== a.matchScore) {
-        return b.matchScore - a.matchScore;
-      }
-
-      return new Date(b.createdAt) - new Date(a.createdAt);
-    });
 };
 
 export const createJob = async (recruiterId, jobData) =>
@@ -104,8 +68,7 @@ export const getRecruiterJobs = async (recruiterId) =>
     .lean();
 
 export const getJobs = async (
-  { page = 1, limit = 10, search, skill, locationType, city, country, jobType, minExperience },
-  currentUser
+  { page = 1, limit = 10, search, skill, location, locationType, jobType, minExperience }
 ) => {
   const parsedPage = Number(page) || 1;
   const parsedLimit = Number(limit) || 10;
@@ -113,9 +76,8 @@ export const getJobs = async (
   const filter = buildPublicJobFilter({
     search,
     skill,
+    location,
     locationType,
-    city,
-    country,
     jobType,
     minExperience,
   });
@@ -130,10 +92,8 @@ export const getJobs = async (
     Job.countDocuments(filter),
   ]);
 
-  const data = await attachResumeMatchScore(jobs, currentUser);
-
   return {
-    jobs: data,
+    jobs,
     pagination: {
       total,
       page: parsedPage,
@@ -153,6 +113,35 @@ export const getPublicJobById = async (jobId) => {
   }
 
   return job;
+};
+
+export const getRecommendedJobs = async (userId) => {
+  const resume = await Resume.findOne({ user: userId }).select('skills').lean();
+
+
+  if (!resume) {
+    throw new ApiError(404, 'Resume not found');
+  }
+
+  const resumeSkills = normalizeSkills(resume.skills || []);
+
+  if (resumeSkills.length === 0) {
+    return [];
+  }
+
+  const jobs = await Job.find({
+    isActive: true,
+    requiredSkills: { $in: resumeSkills },
+  })
+    .select(publicJobFields)
+    .sort({ createdAt: -1 })
+    .limit(20)
+    .lean();
+
+  return rankJobsWithAI({
+    resumeSkills,
+    jobs,
+  });
 };
 
 export const updateJob = async (jobId, recruiterId, updateData) => {

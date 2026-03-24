@@ -14,6 +14,14 @@ const router = express.Router();
 router.get('/', optionalAuthenticateJWT, validate(jobValidation.listJobs), jobController.getJobs);
 
 router.get(
+  '/recommended',
+  authenticateJWT,
+  authorizeRole('job_seeker'),
+  validate(jobValidation.recommendedJobs),
+  jobController.getRecommendedJobs
+);
+
+router.get(
   '/my',
   authenticateJWT,
   authorizeRole('recruiter'),

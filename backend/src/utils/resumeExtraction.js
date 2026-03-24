@@ -8,8 +8,6 @@ import logger from './logger.js';
 
 import OpenAI from 'openai';
 
-console.log("OPENROUTER KEY:", process.env.OPENROUTER_API_KEY);
-
 const client = new OpenAI({
   apiKey: process.env.OPENROUTER_API_KEY,
   baseURL: "https://openrouter.ai/api/v1",
@@ -32,7 +30,7 @@ export const extractTextFromPdf = async (pdfBuffer) => {
 };
 
 /**
- * Define strict JSON schema for Gemini response
+ * Define strict JSON schema for AI response
  */
 const JSON_SCHEMA = {
   type: 'object',
@@ -134,7 +132,7 @@ const JSON_SCHEMA = {
 };
 
 /**
- * Extract and parse resume information using Gemini AI
+ * Extract and parse resume information using AI
  */
 export const extractResumeWithAI = async (pdfText) => {
   try {

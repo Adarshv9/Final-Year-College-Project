@@ -34,8 +34,6 @@ export const env = {
     max: parseInt(process.env.RATE_LIMIT_MAX_REQUESTS, 10) || 100,
   },
 
-  // Gemini API
-  geminiApiKey: process.env.GEMINI_API_KEY,
 };
 
 /**

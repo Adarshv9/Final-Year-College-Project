@@ -1,5 +1,4 @@
 import asyncHandler from '../utils/asyncHandler.js';
-import ApiResponse from '../utils/ApiResponse.js';
 import * as jobService from '../services/job.service.js';
 
 export const createJob = asyncHandler(async (req, res) => {
@@ -26,9 +25,14 @@ export const getMyJobs = asyncHandler(async (req, res) => {
 });
 
 export const getJobs = asyncHandler(async (req, res) => {
-  const result = await jobService.getJobs(req.query, req.user);
+  const result = await jobService.getJobs(req.query);
 
-  res.status(200).json(new ApiResponse(200, 'Jobs fetched successfully', result));
+  res.status(200).json({
+    success: true,
+    statusCode: 200,
+    data: result.jobs,
+    pagination: result.pagination,
+  });
 });
 
 export const getJob = asyncHandler(async (req, res) => {
@@ -58,5 +62,16 @@ export const deleteJob = asyncHandler(async (req, res) => {
     success: true,
     statusCode: 200,
     message: 'Job deleted successfully',
+  });
+});
+
+export const getRecommendedJobs = asyncHandler(async (req, res) => {
+  const jobs = await jobService.getRecommendedJobs(req.user.id);
+  
+
+  res.status(200).json({
+    success: true,
+    statusCode: 200,
+    data: jobs,
   });
 });

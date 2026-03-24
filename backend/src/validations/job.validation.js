@@ -36,6 +36,8 @@ export const createJob = Joi.object({
 
 export const getMyJobs = Joi.object({});
 
+export const recommendedJobs = Joi.object({});
+
 export const getJob = Joi.object({
   params: Joi.object({
     jobId: objectId.required().messages({
@@ -70,9 +72,8 @@ export const listJobs = Joi.object({
     limit: Joi.number().integer().min(1).max(100).default(10),
     search: Joi.string().trim().max(100),
     skill: Joi.string().trim().max(100),
+    location: Joi.string().trim().max(100),
     locationType: Joi.string().valid('remote', 'onsite', 'hybrid'),
-    city: Joi.string().trim().max(100),
-    country: Joi.string().trim().max(100),
     jobType: Joi.string().valid('full-time', 'part-time', 'internship', 'contract'),
     minExperience: Joi.number().integer().min(0),
   }).allow({}),
