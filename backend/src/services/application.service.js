@@ -9,7 +9,6 @@ import logger from '../utils/logger.js';
 import normalizeSkills from '../utils/normalizeSkills.js';
 import { scoreApplication } from './ai/ai.service.js';
 import { computeHybridScore } from './scoring.service.js';
-import { getCache, setCache, delCache } from '../utils/cache.js';
 
 // ── Email ─────────────────────────────────────────────────────────────────────
 
@@ -67,18 +66,11 @@ const getApplicationWithOwnershipCheck = async (applicationId, recruiterId) => {
 
 /**
  * Compute and persist AI + hybrid scores for an application.
- * Uses Redis cache keyed by `ai:score:<applicationId>` to avoid repeat AI calls.
  */
 const hydrateApplicationScores = async (applicationId, job, resumeSnapshot) => {
-  const cacheKey = `ai:score:${applicationId}`;
-  let aiResult = await getCache(cacheKey);
+  const aiResult = await scoreApplication(job, resumeSnapshot);
 
-  if (!aiResult) {
-    aiResult = await scoreApplication(job, resumeSnapshot);
-    await setCache(cacheKey, aiResult, 3600); // cache AI score 1 hour
-  }
-
-  const { hybridScore, breakdown } = computeHybridScore({
+  const { hybridScore } = computeHybridScore({
     jobSkills: job.requiredSkills || [],
     minExp: job.minExperience || 0,
     candidateSkills: resumeSnapshot.skills || [],
@@ -94,7 +86,7 @@ const hydrateApplicationScores = async (applicationId, job, resumeSnapshot) => {
     },
   });
 
-  return { aiScore: aiResult.matchScore, aiReason: aiResult.reason, hybridScore, breakdown };
+  return { aiScore: aiResult.matchScore, aiReason: aiResult.reason, hybridScore };
 };
 
 // ── Public API ────────────────────────────────────────────────────────────────
@@ -137,9 +129,6 @@ export const createApplication = async (jobId, jobSeeker, message = '') => {
 
   await Job.findByIdAndUpdate(jobId, { $addToSet: { applicants: jobSeeker._id } });
 
-  // Invalidate recommendations cache for this job seeker
-  await delCache(`job:recs:${jobSeeker._id}`);
-
   try {
     await sendApplicationEmail({
       to: jobSeeker.email,
@@ -177,9 +166,6 @@ export const getMyApplications = async (jobSeekerId) => {
 
 /**
  * Get applications for a job — paginated and filterable by status.
- * @param {string} jobId
- * @param {string} recruiterId
- * @param {{ page?: number, limit?: number, status?: string }} options
  */
 export const getApplicationsForJob = async (jobId, recruiterId, options = {}) => {
   await getOwnedJob(jobId, recruiterId);
@@ -244,7 +230,6 @@ export const getRecommendedApplications = async (jobId, recruiterId) => {
     });
   }
 
-  // Sort by hybrid score (deterministic), then AI score as tiebreaker
   return rankedApplications.sort((a, b) => {
     if (b.hybridScore !== a.hybridScore) return b.hybridScore - a.hybridScore;
     return b.aiScore - a.aiScore;
@@ -261,7 +246,6 @@ export const updateApplicationStatus = async (applicationId, recruiter, status) 
   if (!candidate) throw new ApiError(404, 'Candidate not found', [], false);
 
   const previousStatus = application.status;
-
   await Application.findByIdAndUpdate(applicationId, { $set: { status } });
 
   const subject =

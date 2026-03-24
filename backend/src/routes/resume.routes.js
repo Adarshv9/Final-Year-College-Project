@@ -18,9 +18,6 @@ router.put(
   resumeController.uploadResume
 );
 
-// GET /resume/status/:jobId — Poll background job status
-router.get('/resume/status/:jobId', authenticateJWT, resumeController.getResumeJobStatus);
-
 // POST /resume/manual — Manual create/update (job seekers only)
 router.post(
   '/resume/manual',

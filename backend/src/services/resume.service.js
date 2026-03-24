@@ -1,7 +1,6 @@
 // ── Resume Service ──
 import Resume from '../models/Resume.js';
 import ApiError from '../utils/ApiError.js';
-import { getCache, setCache, delCache } from '../utils/cache.js';
 import {
   extractTextFromPdf,
   cleanResumeText,
@@ -9,9 +8,6 @@ import {
 } from '../utils/resumeExtraction.js';
 import { parseResumeText } from './ai/ai.service.js';
 import logger from '../utils/logger.js';
-
-const CACHE_TTL = 600; // 10 minutes
-const cacheKey = (userId) => `resume:${userId}`;
 
 // ── Resume Processing Pipeline ────────────────────────────────────────────────
 
@@ -22,7 +18,6 @@ const cacheKey = (userId) => `resume:${userId}`;
  *  3. Parse with AI → structured JSON
  *  4. Transform (dates, experience years, normalize skills)
  *  5. Upsert to DB
- *  6. Invalidate cache
  *
  * @param {string} userId    - MongoDB user ID
  * @param {Buffer} pdfBuffer - Raw PDF buffer
@@ -93,9 +88,6 @@ export const upsertResume = async (userId, resumeData) => {
     { new: true, upsert: true }
   );
 
-  // Invalidate cache on write
-  await delCache(cacheKey(userId));
-
   return resume;
 };
 
@@ -129,20 +121,13 @@ export const updateResumeFields = async (userId, updates) => {
     throw new ApiError(404, 'Resume not found', [], false);
   }
 
-  await delCache(cacheKey(userId));
   return resume;
 };
 
 /**
- * Get resume by user ID (cached)
+ * Get resume by user ID
  */
 export const getResumeByUserId = async (userId) => {
-  const cached = await getCache(cacheKey(userId));
-  if (cached) {
-    logger.info(`[Cache] Resume hit for user ${userId}`);
-    return cached;
-  }
-
   const resume = await Resume.findOne({ user: userId }).populate(
     'user',
     'name email role isVerified isActive'
@@ -152,7 +137,6 @@ export const getResumeByUserId = async (userId) => {
     throw new ApiError(404, 'Resume not found', [], false);
   }
 
-  await setCache(cacheKey(userId), resume.toObject(), CACHE_TTL);
   return resume;
 };
 
@@ -213,6 +197,5 @@ export const deleteResume = async (userId) => {
     throw new ApiError(404, 'Resume not found', [], false);
   }
 
-  await delCache(cacheKey(userId));
   return resume;
 };

@@ -5,14 +5,9 @@ import ApiError from '../utils/ApiError.js';
 import ApiResponse from '../utils/ApiResponse.js';
 import * as resumeService from '../services/resume.service.js';
 import logger from '../utils/logger.js';
-import { addResumeJob } from '../queues/resume.queue.js';
-import { isRedisAvailable } from '../config/redis.js';
 
 /**
- * PUT /resume — Upload and parse PDF resume
- *
- * If BullMQ/Redis is available → async processing → 202 + jobId
- * Otherwise → synchronous processing → 200/201 + resume data
+ * PUT /resume — Upload and parse PDF resume (synchronous)
  */
 export const uploadResume = asyncHandler(async (req, res) => {
   if (req.user.role !== 'job_seeker') {
@@ -22,26 +17,6 @@ export const uploadResume = asyncHandler(async (req, res) => {
     throw new ApiError(400, 'Resume file is required', [], false);
   }
 
-  // ── Async path (BullMQ available) ─────────────────────────────────────────
-  if (isRedisAvailable()) {
-    try {
-      const job = await addResumeJob({
-        userId: req.user.id,
-        filePath: req.file.path,
-      });
-
-      return res.status(202).json(
-        new ApiResponse(202, 'Resume queued for processing', {
-          jobId: job.id,
-          statusUrl: `/api/v1/resume/status/${job.id}`,
-        })
-      );
-    } catch (err) {
-      logger.warn(`Queue unavailable, falling back to sync processing: ${err.message}`);
-    }
-  }
-
-  // ── Synchronous fallback ───────────────────────────────────────────────────
   try {
     const pdfBuffer = fs.readFileSync(req.file.path);
     const resume = await resumeService.processResumeFile(
@@ -80,31 +55,6 @@ export const uploadResume = asyncHandler(async (req, res) => {
     logger.error(`Resume upload error: ${error.message}`);
     throw new ApiError(500, 'Failed to process resume');
   }
-});
-
-/**
- * GET /resume/status/:jobId — Poll background job status
- */
-export const getResumeJobStatus = asyncHandler(async (req, res) => {
-  if (!isRedisAvailable()) {
-    throw new ApiError(503, 'Queue-based processing is not available');
-  }
-
-  const { jobId } = req.params;
-  const { getResumeQueue } = await import('../queues/resume.queue.js');
-  const queue = getResumeQueue();
-  const job = await queue.getJob(jobId);
-
-  if (!job) {
-    throw new ApiError(404, 'Job not found', [], false);
-  }
-
-  const state = await job.getState();
-  const progress = job.progress || 0;
-
-  res.status(200).json(
-    new ApiResponse(200, 'Job status retrieved', { jobId, state, progress })
-  );
 });
 
 /**
