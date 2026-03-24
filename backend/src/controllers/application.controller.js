@@ -1,51 +1,62 @@
-// ── Job Application Controller ──
 import asyncHandler from '../utils/asyncHandler.js';
-import ApiResponse from '../utils/ApiResponse.js';
 import * as applicationService from '../services/application.service.js';
 
-// Submit a job application
 export const createApplication = asyncHandler(async (req, res) => {
-  const application = await applicationService.createApplication(
+  await applicationService.createApplication(req.params.jobId, req.user, req.body.message);
+
+  res.status(201).json({
+    success: true,
+    statusCode: 201,
+    message: 'Application submitted successfully',
+  });
+});
+
+export const getMyApplications = asyncHandler(async (req, res) => {
+  const applications = await applicationService.getMyApplications(req.user.id);
+
+  res.status(200).json({
+    success: true,
+    statusCode: 200,
+    data: applications,
+  });
+});
+
+export const getApplicationsForJob = asyncHandler(async (req, res) => {
+  const applications = await applicationService.getApplicationsForJob(
     req.params.jobId,
     req.user.id
   );
 
-  res
-    .status(201)
-    .json(new ApiResponse(201, 'Application submitted successfully', application));
+  res.status(200).json({
+    success: true,
+    statusCode: 200,
+    data: applications,
+  });
 });
 
-// Fetch current user's applications
-export const getMyApplications = asyncHandler(async (req, res) => {
-  const result = await applicationService.getMyApplications(req.user.id, req.query);
-
-  res
-    .status(200)
-    .json(new ApiResponse(200, 'Applications fetched successfully', result));
-});
-
-// Fetch all applications for a specific job (recruiter/admin)
-export const getApplicationsForJob = asyncHandler(async (req, res) => {
-  const result = await applicationService.getApplicationsForJob(
+export const getRecommendedApplications = asyncHandler(async (req, res) => {
+  const applications = await applicationService.getRecommendedApplications(
     req.params.jobId,
-    req.user,
-    req.query
+    req.user.id
   );
 
-  res
-    .status(200)
-    .json(new ApiResponse(200, 'Job applications fetched successfully', result));
+  res.status(200).json({
+    success: true,
+    statusCode: 200,
+    data: applications,
+  });
 });
 
-// Update application status (shortlist/reject)
 export const updateApplicationStatus = asyncHandler(async (req, res) => {
-  const application = await applicationService.updateApplicationStatus(
-    req.params.id,
+  await applicationService.updateApplicationStatus(
+    req.params.applicationId,
     req.user,
     req.body.status
   );
 
-  res
-    .status(200)
-    .json(new ApiResponse(200, 'Application status updated successfully', application));
+  res.status(200).json({
+    success: true,
+    statusCode: 200,
+    message: 'Application status updated successfully',
+  });
 });

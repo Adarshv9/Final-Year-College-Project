@@ -1,4 +1,3 @@
-// ── Job Application Routes ──
 import express from 'express';
 import * as applicationController from '../controllers/application.controller.js';
 import {
@@ -11,7 +10,6 @@ import * as applicationValidation from '../validations/application.validation.js
 
 const router = express.Router();
 
-// Job seekers can submit applications
 router.post(
   '/:jobId',
   authenticateJWT,
@@ -20,7 +18,6 @@ router.post(
   applicationController.createApplication
 );
 
-// Job seekers can view their own applications
 router.get(
   '/my',
   authenticateJWT,
@@ -29,21 +26,28 @@ router.get(
   applicationController.getMyApplications
 );
 
-// Recruiters/Admins can view applications for their jobs
+router.get(
+  '/job/:jobId/recommended',
+  authenticateJWT,
+  authorizeRole('recruiter'),
+  checkRecruiterVerified,
+  validate(applicationValidation.recommendedApplications),
+  applicationController.getRecommendedApplications
+);
+
 router.get(
   '/job/:jobId',
   authenticateJWT,
-  authorizeRole('recruiter', 'admin'),
+  authorizeRole('recruiter'),
   checkRecruiterVerified,
   validate(applicationValidation.jobApplications),
   applicationController.getApplicationsForJob
 );
 
-// Recruiters/Admins can update application status
 router.patch(
-  '/:id/status',
+  '/:applicationId/status',
   authenticateJWT,
-  authorizeRole('recruiter', 'admin'),
+  authorizeRole('recruiter'),
   checkRecruiterVerified,
   validate(applicationValidation.updateApplicationStatus),
   applicationController.updateApplicationStatus

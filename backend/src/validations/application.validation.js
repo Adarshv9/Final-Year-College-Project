@@ -1,65 +1,50 @@
-// ── Job Application Validation Schemas ──
 import Joi from 'joi';
 
-// Reusable MongoDB ObjectId pattern validator
-const objectId = Joi.string().regex(/^[0-9a-fA-F]{24}$/, 'valid ObjectId');
+const objectId = Joi.string().pattern(/^[0-9a-fA-F]{24}$/);
 
-// Create application validation
-const createApplication = Joi.object({
+export const createApplication = Joi.object({
   params: Joi.object({
     jobId: objectId.required().messages({
-      'string.pattern.name': 'Invalid job ID format',
+      'string.pattern.base': 'Invalid job ID format',
       'any.required': 'Job ID is required',
     }),
-  }),
+  }).required(),
+  body: Joi.object({
+    message: Joi.string().trim().allow('').default(''),
+  }).required(),
 });
 
-// Fetch user's applications validation
-const myApplications = Joi.object({
-  query: Joi.object({
-    page: Joi.number().integer().min(1).default(1),
-    limit: Joi.number().integer().min(1).max(100).default(10),
-    status: Joi.string().valid('applied', 'shortlisted', 'rejected'),
-  }),
-});
+export const myApplications = Joi.object({});
 
-// Fetch job applications validation
-const jobApplications = Joi.object({
+export const jobApplications = Joi.object({
   params: Joi.object({
     jobId: objectId.required().messages({
-      'string.pattern.name': 'Invalid job ID format',
+      'string.pattern.base': 'Invalid job ID format',
       'any.required': 'Job ID is required',
     }),
-  }),
-  query: Joi.object({
-    page: Joi.number().integer().min(1).default(1),
-    limit: Joi.number().integer().min(1).max(100).default(10),
-    status: Joi.string().valid('applied', 'shortlisted', 'rejected'),
-  }),
+  }).required(),
 });
 
-// Update application status validation
-const updateApplicationStatus = Joi.object({
+export const recommendedApplications = Joi.object({
   params: Joi.object({
-    id: objectId.required().messages({
-      'string.pattern.name': 'Invalid application ID format',
+    jobId: objectId.required().messages({
+      'string.pattern.base': 'Invalid job ID format',
+      'any.required': 'Job ID is required',
+    }),
+  }).required(),
+});
+
+export const updateApplicationStatus = Joi.object({
+  params: Joi.object({
+    applicationId: objectId.required().messages({
+      'string.pattern.base': 'Invalid application ID format',
       'any.required': 'Application ID is required',
     }),
-  }),
+  }).required(),
   body: Joi.object({
-    status: Joi.string()
-      .valid('applied', 'shortlisted', 'rejected')
-      .required()
-      .messages({
-        'any.only': 'Status must be applied, shortlisted, or rejected',
-        'any.required': 'Status is required',
-      }),
-  }),
+    status: Joi.string().valid('accepted', 'rejected').required().messages({
+      'any.only': 'Status must be accepted or rejected',
+      'any.required': 'Status is required',
+    }),
+  }).required(),
 });
-
-export {
-  createApplication,
-  myApplications,
-  jobApplications,
-  updateApplicationStatus,
-};
