@@ -1,4 +1,3 @@
-// ── Job Routes ──
 import express from 'express';
 import * as jobController from '../controllers/job.controller.js';
 import {
@@ -12,34 +11,41 @@ import * as jobValidation from '../validations/job.validation.js';
 
 const router = express.Router();
 
-// Public endpoints - No authentication required
 router.get('/', optionalAuthenticateJWT, validate(jobValidation.listJobs), jobController.getJobs);
-router.get('/:id', optionalAuthenticateJWT, validate(jobValidation.getJob), jobController.getJob);
 
-// Protected endpoints - Recruiter/Admin only
+router.get(
+  '/my',
+  authenticateJWT,
+  authorizeRole('recruiter'),
+  checkRecruiterVerified,
+  validate(jobValidation.getMyJobs),
+  jobController.getMyJobs
+);
+
+router.get('/:jobId', validate(jobValidation.getJob), jobController.getJob);
 
 router.post(
   '/',
   authenticateJWT,
-  authorizeRole('recruiter', 'admin'),
+  authorizeRole('recruiter'),
   checkRecruiterVerified,
   validate(jobValidation.createJob),
   jobController.createJob
 );
 
-router.put(
-  '/:id',
+router.patch(
+  '/:jobId',
   authenticateJWT,
-  authorizeRole('recruiter', 'admin'),
+  authorizeRole('recruiter'),
   checkRecruiterVerified,
   validate(jobValidation.updateJob),
   jobController.updateJob
 );
 
 router.delete(
-  '/:id',
+  '/:jobId',
   authenticateJWT,
-  authorizeRole('recruiter', 'admin'),
+  authorizeRole('recruiter'),
   checkRecruiterVerified,
   validate(jobValidation.deleteJob),
   jobController.deleteJob

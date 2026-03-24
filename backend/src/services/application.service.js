@@ -32,7 +32,7 @@ const ensureApplicationAccess = (job, currentUser) => {
     return;
   }
 
-  if (String(job.createdBy) !== String(currentUser._id)) {
+  if (String(job.recruiterId) !== String(currentUser._id)) {
     throw new ApiError(403, 'You can only manage applications for your own jobs');
   }
 };
@@ -68,7 +68,7 @@ export const createApplication = async (jobId, applicantId) => {
   });
 
   return application.populate([
-    { path: 'job', select: 'title location requiredSkills createdBy' },
+    { path: 'job', select: 'title companyName location requiredSkills recruiterId' },
     { path: 'applicant', select: 'name email role' },
   ]);
 };
@@ -84,7 +84,7 @@ export const getMyApplications = async (userId, { page = 1, limit = 10, status }
 
   const [applications, total] = await Promise.all([
     Application.find(filter)
-      .populate('job', 'title location requiredSkills experienceRequired salaryRange isActive')
+      .populate('job', 'title companyName location requiredSkills minExperience jobType salary isActive')
       .sort({ createdAt: -1 })
       .skip(skip)
       .limit(limit),
@@ -155,7 +155,7 @@ export const updateApplicationStatus = async (applicationId, currentUser, status
   await application.save();
 
   return application.populate([
-    { path: 'job', select: 'title location createdBy' },
+    { path: 'job', select: 'title companyName location recruiterId' },
     { path: 'applicant', select: 'name email role' },
   ]);
 };

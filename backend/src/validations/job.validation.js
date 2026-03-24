@@ -1,85 +1,79 @@
-// ── Job Validation Schemas ──
 import Joi from 'joi';
 
-// Reusable MongoDB ObjectId pattern validator
-const objectId = Joi.string().regex(/^[0-9a-fA-F]{24}$/, 'valid ObjectId');
+const objectId = Joi.string().pattern(/^[0-9a-fA-F]{24}$/);
 
-// Salary range validation
-const salaryRange = Joi.object({
-  min: Joi.number().min(0),
-  max: Joi.number().min(0),
-}).custom((value, helpers) => {
-  if (
-    value.min !== undefined &&
-    value.max !== undefined &&
-    value.max < value.min
-  ) {
-    return helpers.error('any.invalid');
-  }
+const locationSchema = Joi.object({
+  type: Joi.string().valid('remote', 'onsite', 'hybrid').required(),
+  city: Joi.string().trim().allow(null, ''),
+  country: Joi.string().trim().allow(null, ''),
+}).required();
 
-  return value;
-}, 'salary validation').messages({
-  'any.invalid': 'Salary max must be greater than or equal to salary min',
+const createJobBody = Joi.object({
+  title: Joi.string().trim().required(),
+  companyName: Joi.string().trim().required(),
+  location: locationSchema,
+  description: Joi.string().trim().required(),
+  requiredSkills: Joi.array().items(Joi.string().trim()).default([]),
+  minExperience: Joi.number().integer().min(0).required(),
+  jobType: Joi.string().valid('full-time', 'part-time', 'internship', 'contract').required(),
+  salary: Joi.string().trim().allow('').required(),
 });
 
-// Create job validation
-const createJob = Joi.object({
-  body: Joi.object({
-    title: Joi.string().trim().required(),
-    description: Joi.string().trim().required(),
-    requiredSkills: Joi.array().items(Joi.string().trim()).default([]),
-    location: Joi.string().trim().required(),
-    experienceRequired: Joi.number().min(0).required(),
-    salaryRange,
-  }),
+const updateJobBody = Joi.object({
+  title: Joi.string().trim(),
+  companyName: Joi.string().trim(),
+  location: locationSchema,
+  description: Joi.string().trim(),
+  requiredSkills: Joi.array().items(Joi.string().trim()),
+  minExperience: Joi.number().integer().min(0),
+  jobType: Joi.string().valid('full-time', 'part-time', 'internship', 'contract'),
+  salary: Joi.string().trim().allow(''),
+}).min(1);
+
+export const createJob = Joi.object({
+  body: createJobBody.required(),
 });
 
-// Update job validation
-const updateJob = Joi.object({
+export const getMyJobs = Joi.object({});
+
+export const getJob = Joi.object({
   params: Joi.object({
-    id: objectId.required().messages({
-      'string.pattern.name': 'Invalid job ID format',
+    jobId: objectId.required().messages({
+      'string.pattern.base': 'Invalid job ID format',
       'any.required': 'Job ID is required',
     }),
-  }),
-  body: Joi.object({
-    title: Joi.string().trim(),
-    description: Joi.string().trim(),
-    requiredSkills: Joi.array().items(Joi.string().trim()),
-    location: Joi.string().trim(),
-    experienceRequired: Joi.number().min(0),
-    salaryRange,
-    isActive: Joi.boolean(),
-  }).min(1),
+  }).required(),
 });
 
-const getJob = Joi.object({
+export const updateJob = Joi.object({
   params: Joi.object({
-    id: objectId.required().messages({
-      'string.pattern.name': 'Invalid job ID format',
+    jobId: objectId.required().messages({
+      'string.pattern.base': 'Invalid job ID format',
       'any.required': 'Job ID is required',
     }),
-  }),
-});
-// Get single job validation// Delete job validation
-const deleteJob = Joi.object({
-  params: Joi.object({
-    id: objectId.required().messages({
-      'string.pattern.name': 'Invalid job ID format',
-      'any.required': 'Job ID is required',
-    }),
-  }),
+  }).required(),
+  body: updateJobBody.required(),
 });
 
-// List jobs with filters validation
-const listJobs = Joi.object({
+export const deleteJob = Joi.object({
+  params: Joi.object({
+    jobId: objectId.required().messages({
+      'string.pattern.base': 'Invalid job ID format',
+      'any.required': 'Job ID is required',
+    }),
+  }).required(),
+});
+
+export const listJobs = Joi.object({
   query: Joi.object({
     page: Joi.number().integer().min(1).default(1),
     limit: Joi.number().integer().min(1).max(100).default(10),
     search: Joi.string().trim().max(100),
-    location: Joi.string().trim().max(100),
     skill: Joi.string().trim().max(100),
-  }),
+    locationType: Joi.string().valid('remote', 'onsite', 'hybrid'),
+    city: Joi.string().trim().max(100),
+    country: Joi.string().trim().max(100),
+    jobType: Joi.string().valid('full-time', 'part-time', 'internship', 'contract'),
+    minExperience: Joi.number().integer().min(0),
+  }).allow({}),
 });
-
-export { createJob, updateJob, getJob, deleteJob, listJobs };

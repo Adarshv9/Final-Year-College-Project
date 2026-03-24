@@ -1,39 +1,62 @@
-// ── Job Controller ──
 import asyncHandler from '../utils/asyncHandler.js';
 import ApiResponse from '../utils/ApiResponse.js';
 import * as jobService from '../services/job.service.js';
 
-// Create a new job listing
 export const createJob = asyncHandler(async (req, res) => {
   const job = await jobService.createJob(req.user.id, req.body);
 
-  res.status(201).json(new ApiResponse(201, 'Job created successfully', job));
+  res.status(201).json({
+    success: true,
+    statusCode: 201,
+    message: 'Job created successfully',
+    data: {
+      jobId: job._id,
+    },
+  });
 });
 
-// Fetch all jobs with optional filters (search, location, skill matching)
+export const getMyJobs = asyncHandler(async (req, res) => {
+  const jobs = await jobService.getRecruiterJobs(req.user.id);
+
+  res.status(200).json({
+    success: true,
+    statusCode: 200,
+    data: jobs,
+  });
+});
+
 export const getJobs = asyncHandler(async (req, res) => {
   const result = await jobService.getJobs(req.query, req.user);
 
   res.status(200).json(new ApiResponse(200, 'Jobs fetched successfully', result));
 });
 
-// Fetch a single job by ID
 export const getJob = asyncHandler(async (req, res) => {
-  const job = await jobService.getJobById(req.params.id, req.user);
+  const job = await jobService.getPublicJobById(req.params.jobId);
 
-  res.status(200).json(new ApiResponse(200, 'Job fetched successfully', job));
+  res.status(200).json({
+    success: true,
+    statusCode: 200,
+    data: job,
+  });
 });
 
-// Update job details (recruiter/admin only)
 export const updateJob = asyncHandler(async (req, res) => {
-  const job = await jobService.updateJob(req.params.id, req.user, req.body);
+  await jobService.updateJob(req.params.jobId, req.user.id, req.body);
 
-  res.status(200).json(new ApiResponse(200, 'Job updated successfully', job));
+  res.status(200).json({
+    success: true,
+    statusCode: 200,
+    message: 'Job updated successfully',
+  });
 });
 
-// Delete a job listing
 export const deleteJob = asyncHandler(async (req, res) => {
-  await jobService.deleteJob(req.params.id, req.user);
+  await jobService.deleteJob(req.params.jobId, req.user.id);
 
-  res.status(200).json(new ApiResponse(200, 'Job deleted successfully'));
+  res.status(200).json({
+    success: true,
+    statusCode: 200,
+    message: 'Job deleted successfully',
+  });
 });

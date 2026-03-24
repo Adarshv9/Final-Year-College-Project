@@ -1,23 +1,23 @@
-// ── Job Model ──
 import mongoose from 'mongoose';
 import normalizeSkills from '../utils/normalizeSkills.js';
 
-// Sub-schema for salary range
-const salaryRangeSchema = new mongoose.Schema(
+const locationSchema = new mongoose.Schema(
   {
-    min: {
-      type: Number,
-      min: 0,
+    type: {
+      type: String,
+      enum: ['remote', 'onsite', 'hybrid'],
+      required: [true, 'Location type is required'],
+      trim: true,
     },
-    max: {
-      type: Number,
-      min: 0,
-      validate: {
-        validator(value) {
-          return this.min === undefined || value === undefined || value >= this.min;
-        },
-        message: 'Maximum salary must be greater than or equal to minimum salary',
-      },
+    city: {
+      type: String,
+      trim: true,
+      default: null,
+    },
+    country: {
+      type: String,
+      trim: true,
+      default: null,
     },
   },
   {
@@ -25,13 +25,27 @@ const salaryRangeSchema = new mongoose.Schema(
   }
 );
 
-// Job listing schema with recruiter info and applicants tracking
 const jobSchema = new mongoose.Schema(
   {
+    recruiterId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'User',
+      required: [true, 'Recruiter ID is required'],
+      index: true,
+    },
     title: {
       type: String,
       required: [true, 'Job title is required'],
       trim: true,
+    },
+    companyName: {
+      type: String,
+      required: [true, 'Company name is required'],
+      trim: true,
+    },
+    location: {
+      type: locationSchema,
+      required: [true, 'Location is required'],
     },
     description: {
       type: String,
@@ -43,29 +57,26 @@ const jobSchema = new mongoose.Schema(
       default: [],
       set: normalizeSkills,
     },
-    location: {
-      type: String,
-      required: [true, 'Job location is required'],
-      trim: true,
-    },
-    experienceRequired: {
+    minExperience: {
       type: Number,
-      required: [true, 'Experience required is required'],
+      required: [true, 'Minimum experience is required'],
       min: 0,
     },
-    salaryRange: {
-      type: salaryRangeSchema,
-      default: {},
+    jobType: {
+      type: String,
+      enum: ['full-time', 'part-time', 'internship', 'contract'],
+      required: [true, 'Job type is required'],
+      trim: true,
     },
-    createdBy: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: 'User',
-      required: true,
-      index: true,
+    salary: {
+      type: String,
+      trim: true,
+      default: '',
     },
     isActive: {
       type: Boolean,
       default: true,
+      index: true,
     },
     applicants: {
       type: [
@@ -82,7 +93,7 @@ const jobSchema = new mongoose.Schema(
   }
 );
 
-// Indexes for efficient queries
+jobSchema.index({ recruiterId: 1, createdAt: -1 });
 jobSchema.index({ isActive: 1, createdAt: -1 });
 jobSchema.index({ requiredSkills: 1 });
 
