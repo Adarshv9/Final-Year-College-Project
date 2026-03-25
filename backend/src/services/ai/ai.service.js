@@ -11,7 +11,10 @@ import { buildApplicationScoringMessages, buildJobRankingMessages } from './prom
 
 const parseJsonResponse = (text) => {
   // Providers sometimes wrap JSON in markdown fences, so strip them first.
-  const cleaned = text.replace(/```json/g, '').replace(/```/g, '').trim();
+  const cleaned = text
+  .replace(/```json/g, '')
+  .replace(/```/g, '')
+  .trim();
   return JSON.parse(cleaned);
 };
 
