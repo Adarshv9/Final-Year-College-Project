@@ -49,6 +49,37 @@ const resumeSnapshotSchema = new mongoose.Schema(
   }
 );
 
+const decisionEmailSchema = new mongoose.Schema(
+  {
+    type: {
+      type: String,
+      enum: ['accepted', 'rejected', null],
+      default: null,
+    },
+    status: {
+      type: String,
+      enum: ['none', 'scheduled', 'processing', 'sent', 'cancelled', 'failed'],
+      default: 'none',
+    },
+    sendAt: {
+      type: Date,
+      default: null,
+    },
+    sentAt: {
+      type: Date,
+      default: null,
+    },
+    lastError: {
+      type: String,
+      trim: true,
+      default: '',
+    },
+  },
+  {
+    _id: false,
+  }
+);
+
 const applicationSchema = new mongoose.Schema(
   {
     jobId: {
@@ -109,6 +140,10 @@ const applicationSchema = new mongoose.Schema(
       default: null,
       min: 0,
       max: 100,
+    },
+    decisionEmail: {
+      type: decisionEmailSchema,
+      default: () => ({}),
     },
   },
   {

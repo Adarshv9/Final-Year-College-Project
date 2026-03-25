@@ -47,10 +47,21 @@ export default function JobDetailPage() {
     onSuccess: () => {
       toast.success('Application submitted!');
       setApplyModal(false);
+      setMessage('');
       qc.invalidateQueries({ queryKey: ['my-applications'] });
     },
     onError: (err) => {
-      toast.error(err.response?.data?.message || 'Failed to apply');
+      const status = err.response?.status;
+      const apiMessage = err.response?.data?.message || 'Failed to apply';
+
+      if (status === 409) {
+        setApplyModal(false);
+        qc.invalidateQueries({ queryKey: ['my-applications'] });
+        toast.error(apiMessage);
+        return;
+      }
+
+      toast.error(apiMessage);
     },
   });
 

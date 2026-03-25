@@ -5,17 +5,14 @@ import * as authController from '../controllers/auth.controller.js';
 import validate from '../middlewares/validate.js';
 import * as authValidation from '../validations/auth.validation.js';
 import { authenticateJWT, optionalSessionJWT } from '../middlewares/auth.js';
-import { authLimiter } from '../middlewares/rateLimiter.js';
-
-// Apply stricter rate limiting to all auth endpoints
-router.use(authLimiter);
+import { authLimiter, loginLimiter } from '../middlewares/rateLimiter.js';
 
 // Public routes - No authentication required
-router.post('/register', validate(authValidation.register), authController.register);
-router.post('/verify-otp', validate(authValidation.verifyOTP), authController.verifyOTP);
-router.post('/resend-otp', validate(authValidation.resendOTP), authController.resendOTP);
-router.post('/login', validate(authValidation.login), authController.login);
-router.post('/refresh-token', validate(authValidation.refreshToken), authController.refreshToken);
+router.post('/register', authLimiter, validate(authValidation.register), authController.register);
+router.post('/verify-otp', authLimiter, validate(authValidation.verifyOTP), authController.verifyOTP);
+router.post('/resend-otp', authLimiter, validate(authValidation.resendOTP), authController.resendOTP);
+router.post('/login', loginLimiter, validate(authValidation.login), authController.login);
+router.post('/refresh-token', authLimiter, validate(authValidation.refreshToken), authController.refreshToken);
 
 // Protected routes - Require authentication
 router.post('/logout', authenticateJWT, authController.logout);

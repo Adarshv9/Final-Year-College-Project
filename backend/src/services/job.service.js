@@ -64,11 +64,17 @@ export const createJob = async (recruiterId, jobData) =>
     recruiterId,
   });
 
-export const getRecruiterJobs = async (recruiterId) =>
-  Job.find({ recruiterId })
-    .select('_id title jobType isActive createdAt')
+export const getRecruiterJobs = async (recruiterId) => {
+  const jobs = await Job.find({ recruiterId, isActive: true })
+    .select('_id title companyName location requiredSkills jobType applicants createdAt')
     .sort({ createdAt: -1 })
     .lean();
+
+  return jobs.map((job) => ({
+    ...job,
+    applicationsCount: Array.isArray(job.applicants) ? job.applicants.length : 0,
+  }));
+};
 
 export const getJobs = async (
   { page = 1, limit = 10, search, skill, location, locationType, jobType, minExperience }

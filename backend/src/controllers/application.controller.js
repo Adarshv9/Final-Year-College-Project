@@ -57,7 +57,7 @@ export const getRecommendedApplications = asyncHandler(async (req, res) => {
 });
 
 export const updateApplicationStatus = asyncHandler(async (req, res) => {
-  await applicationService.updateApplicationStatus(
+  const result = await applicationService.updateApplicationStatus(
     req.params.applicationId,
     req.user,
     req.body.status
@@ -66,6 +66,7 @@ export const updateApplicationStatus = asyncHandler(async (req, res) => {
   res.status(200).json({
     success: true,
     statusCode: 200,
-    message: 'Application status updated successfully',
+    message: 'Application status updated successfully. Candidate email will be sent after 15 seconds.',
+    data: result,
   });
 });

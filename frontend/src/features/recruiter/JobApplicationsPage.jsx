@@ -85,7 +85,7 @@ export default function JobApplicationsPage() {
   const statusMutation = useMutation({
     mutationFn: ({ id, status }) => applicationsApi.updateStatus(id, status),
     onSuccess: (_, vars) => {
-      toast.success(`Application ${vars.status}!`);
+      toast.success(`Application ${vars.status}. Candidate email will be sent in 15 seconds.`);
       setConfirmModal(null);
       qc.invalidateQueries({ queryKey: ['job-applications', jobId] });
     },
@@ -168,7 +168,7 @@ export default function JobApplicationsPage() {
         }
       >
         <p className="text-sm text-[#94a3b8]">
-          Are you sure you want to <strong className="text-[#e2e8f0]">{confirmModal?.action}</strong> this application? The applicant will be notified.
+          Are you sure you want to <strong className="text-[#e2e8f0]">{confirmModal?.action}</strong> this application? The applicant will be notified after 15 seconds.
         </p>
       </Modal>
     </div>

@@ -10,6 +10,11 @@ import normalizeSkills from '../utils/normalizeSkills.js';
 import { scoreApplication } from './ai/ai.service.js';
 import { computeHybridScore } from './scoring.service.js';
 
+const DECISION_EMAIL_DELAY_MS = 15 * 1000;
+const DECISION_EMAIL_POLL_MS = 5 * 1000;
+let decisionEmailProcessor = null;
+let isProcessingDecisionEmails = false;
+
 // ── Email ─────────────────────────────────────────────────────────────────────
 
 const transporter = nodemailer.createTransport({
@@ -66,6 +71,57 @@ const getApplicationWithOwnershipCheck = async (applicationId, recruiterId) => {
   return { application, job };
 };
 
+const isCompleteApplication = async (application, jobSeekerId) => {
+  if (!application?.resumeId) return false;
+
+  const hasSnapshot =
+    application.resumeSnapshot &&
+    typeof application.resumeSnapshot === 'object' &&
+    Array.isArray(application.resumeSnapshot.skills);
+
+  if (!hasSnapshot) return false;
+
+  const resumeExists = await Resume.exists({
+    _id: application.resumeId,
+    user: jobSeekerId,
+  });
+
+  return Boolean(resumeExists);
+};
+
+const buildDecisionEmailContent = ({ candidate, job, status }) => {
+  if (status === 'accepted') {
+    return {
+      subject: `Congratulations! Selected for ${job.title} at ${job.companyName}`,
+      html: `
+        <h2>Congratulations!</h2>
+        <p>Hi ${candidate.name},</p>
+        <p>Your application for <strong>${job.title}</strong> at <strong>${job.companyName}</strong> has been accepted.</p>
+        <p>Best regards,<br/>Job Portal Team</p>
+      `,
+    };
+  }
+
+  return {
+    subject: `Update on Your Application for ${job.title} at ${job.companyName}`,
+    html: `
+      <h2>Application Update</h2>
+      <p>Hi ${candidate.name},</p>
+      <p>Thank you for applying to <strong>${job.title}</strong> at <strong>${job.companyName}</strong>.</p>
+      <p>After review, your application was not selected for this role.</p>
+      <p>Best regards,<br/>Job Portal Team</p>
+    `,
+  };
+};
+
+const buildDecisionEmailUpdate = (status) => ({
+  'decisionEmail.type': status,
+  'decisionEmail.status': 'scheduled',
+  'decisionEmail.sendAt': new Date(Date.now() + DECISION_EMAIL_DELAY_MS),
+  'decisionEmail.sentAt': null,
+  'decisionEmail.lastError': '',
+});
+
 /**
  * Compute and persist AI + hybrid scores for an application.
  */
@@ -103,9 +159,18 @@ export const createApplication = async (jobId, jobSeeker, message = '') => {
   const existingApplication = await Application.findOne({
     jobId,
     jobSeekerId: jobSeeker._id,
-  }).lean();
+  });
   if (existingApplication) {
-    throw new ApiError(409, 'You have already applied for this job', [], false);
+    const hasCompleteApplication = await isCompleteApplication(existingApplication, jobSeeker._id);
+
+    if (hasCompleteApplication) {
+      throw new ApiError(409, 'You have already applied for this job', [], false);
+    }
+
+    // Recover from legacy/incomplete rows so candidates are not permanently
+    // blocked after an earlier failed apply attempt.
+    await Application.findByIdAndDelete(existingApplication._id);
+    await Job.findByIdAndUpdate(jobId, { $pull: { applicants: jobSeeker._id } });
   }
 
   let application;
@@ -253,36 +318,146 @@ export const updateApplicationStatus = async (applicationId, recruiter, status) 
   const candidate = await User.findById(application.jobSeekerId).lean();
   if (!candidate) throw new ApiError(404, 'Candidate not found', [], false);
 
-  const previousStatus = application.status;
-  await Application.findByIdAndUpdate(applicationId, { $set: { status } });
+  const decisionEmailSendAt = new Date(Date.now() + DECISION_EMAIL_DELAY_MS);
+  await Application.findByIdAndUpdate(applicationId, {
+    $set: {
+      status,
+      ...buildDecisionEmailUpdate(status),
+    },
+  });
 
-  const subject =
-    status === 'accepted'
-      ? `Congratulations! Selected for ${job.title} at ${job.companyName}`
-      : `Update on Your Application for ${job.title} at ${job.companyName}`;
+  logger.info(
+    `Decision email scheduled for application ${applicationId} (${status}) at ${decisionEmailSendAt.toISOString()}`
+  );
 
-  const html =
-    status === 'accepted'
-      ? `
-        <h2>Congratulations!</h2>
-        <p>Hi ${candidate.name},</p>
-        <p>Your application for <strong>${job.title}</strong> at <strong>${job.companyName}</strong> has been accepted.</p>
-        <p>Best regards,<br/>Job Portal Team</p>
-      `
-      : `
-        <h2>Application Update</h2>
-        <p>Hi ${candidate.name},</p>
-        <p>Thank you for applying to <strong>${job.title}</strong> at <strong>${job.companyName}</strong>.</p>
-        <p>After review, your application was not selected for this role.</p>
-        <p>Best regards,<br/>Job Portal Team</p>
-      `;
+  return {
+    status,
+    candidateEmail: candidate.email,
+    jobTitle: job.title,
+    decisionEmailSendAt,
+  };
+};
+
+export const processScheduledDecisionEmails = async () => {
+  if (isProcessingDecisionEmails) return;
+  isProcessingDecisionEmails = true;
 
   try {
-    await sendApplicationEmail({ to: candidate.email, subject, html });
-  } catch (error) {
-    await Application.findByIdAndUpdate(applicationId, {
-      $set: { status: previousStatus },
-    });
-    throw error;
+    const now = new Date();
+    const dueApplications = await Application.find({
+      'decisionEmail.status': 'scheduled',
+      'decisionEmail.sendAt': { $lte: now },
+    })
+      .select('_id jobId jobSeekerId status decisionEmail')
+      .limit(20)
+      .lean();
+
+    for (const dueApplication of dueApplications) {
+      const claimedApplication = await Application.findOneAndUpdate(
+        {
+          _id: dueApplication._id,
+          'decisionEmail.status': 'scheduled',
+          'decisionEmail.sendAt': { $lte: now },
+        },
+        {
+          $set: {
+            'decisionEmail.status': 'processing',
+          },
+        },
+        { new: true }
+      ).lean();
+
+      if (!claimedApplication) continue;
+
+      const decisionType = claimedApplication.decisionEmail?.type;
+      if (!decisionType || decisionType !== claimedApplication.status) {
+        await Application.findByIdAndUpdate(claimedApplication._id, {
+          $set: {
+            'decisionEmail.type': null,
+            'decisionEmail.status': 'cancelled',
+            'decisionEmail.sendAt': null,
+            'decisionEmail.sentAt': null,
+            'decisionEmail.lastError': '',
+          },
+        });
+        continue;
+      }
+
+      const [candidate, job] = await Promise.all([
+        User.findById(claimedApplication.jobSeekerId).lean(),
+        Job.findById(claimedApplication.jobId).lean(),
+      ]);
+
+      if (!candidate || !job) {
+        await Application.findByIdAndUpdate(claimedApplication._id, {
+          $set: {
+            'decisionEmail.status': 'failed',
+            'decisionEmail.lastError': 'Candidate or job not found while sending decision email',
+          },
+        });
+        continue;
+      }
+
+      const { subject, html } = buildDecisionEmailContent({
+        candidate,
+        job,
+        status: decisionType,
+      });
+
+      try {
+        await sendApplicationEmail({
+          to: candidate.email,
+          subject,
+          html,
+        });
+
+        await Application.findByIdAndUpdate(claimedApplication._id, {
+          $set: {
+            'decisionEmail.status': 'sent',
+            'decisionEmail.sentAt': new Date(),
+            'decisionEmail.sendAt': null,
+            'decisionEmail.lastError': '',
+          },
+        });
+      } catch (error) {
+        logger.error(`Decision email send failed for application ${claimedApplication._id}: ${error.message}`);
+
+        await Application.findByIdAndUpdate(claimedApplication._id, {
+          $set: {
+            'decisionEmail.status': 'failed',
+            'decisionEmail.lastError': error.message,
+          },
+        });
+      }
+    }
+  } finally {
+    isProcessingDecisionEmails = false;
   }
+};
+
+export const startDecisionEmailProcessor = () => {
+  if (decisionEmailProcessor) return decisionEmailProcessor;
+
+  const runProcessor = async () => {
+    try {
+      await processScheduledDecisionEmails();
+    } catch (error) {
+      logger.error(`Decision email processor error: ${error.message}`);
+    }
+  };
+
+  decisionEmailProcessor = setInterval(runProcessor, DECISION_EMAIL_POLL_MS);
+  if (typeof decisionEmailProcessor.unref === 'function') {
+    decisionEmailProcessor.unref();
+  }
+
+  void runProcessor();
+  return decisionEmailProcessor;
+};
+
+export const stopDecisionEmailProcessor = () => {
+  if (!decisionEmailProcessor) return;
+
+  clearInterval(decisionEmailProcessor);
+  decisionEmailProcessor = null;
 };

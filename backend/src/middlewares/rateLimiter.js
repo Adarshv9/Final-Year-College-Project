@@ -29,3 +29,18 @@ export const authLimiter = rateLimit({
     message: 'Too many authentication attempts, please try again later.',
   },
 });
+
+/**
+ * Login-specific limiter that only counts failed attempts.
+ */
+export const loginLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 20,
+  standardHeaders: true,
+  legacyHeaders: false,
+  skipSuccessfulRequests: true,
+  message: {
+    success: false,
+    message: 'Too many authentication attempts, please try again later.',
+  },
+});
