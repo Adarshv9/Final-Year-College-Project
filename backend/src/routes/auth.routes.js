@@ -15,7 +15,7 @@ router.post('/login', loginLimiter, validate(authValidation.login), authControll
 router.post('/refresh-token', authLimiter, validate(authValidation.refreshToken), authController.refreshToken);
 
 // Protected routes - Require authentication
-router.post('/logout', authenticateJWT, authController.logout);
+router.post('/logout', optionalSessionJWT, authController.logout);
 router.get('/me', optionalSessionJWT, authController.getMe);
 router.get('/profile', authenticateJWT, authController.profile);
 

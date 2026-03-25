@@ -39,10 +39,8 @@ const login = Joi.object({
 // Refresh token validation schema
 const refreshToken = Joi.object({
   body: Joi.object({
-    refreshToken: Joi.string().required().messages({
-      'any.required': 'Refresh token is required',
-    }),
-  }),
+    refreshToken: Joi.string().optional(),
+  }).required(),
 });
 
 // OTP verification validation schema

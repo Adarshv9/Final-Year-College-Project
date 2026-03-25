@@ -2,6 +2,7 @@
 import jwt from 'jsonwebtoken';
 import { env } from '../config/env.js';
 import User from '../models/User.js';
+import ApiError from '../utils/ApiError.js';
 
 /**
  * Generate an access token for a user.
@@ -85,7 +86,7 @@ export const verifyRefreshToken = async (token) => {
   );
 
   if (!hasValidToken) {
-    throw new Error('Refresh token not found or has been revoked');
+    throw new ApiError(401, 'Refresh token not found or has been revoked');
   }
 
   return decoded;

@@ -246,8 +246,8 @@ export const refreshAccessToken = async (refreshTokenStr) => {
     throw new ApiError(403, 'Account is deactivated');
   }
 
-  if (user.role === 'recruiter' && !user.isVerified) {
-    throw new ApiError(403, 'Recruiter account is pending admin verification.');
+  if (user.role === 'recruiter' && user.approvalStatus !== 'approved') {
+    throw new ApiError(403, 'Your recruiter account is not yet approved by admin.');
   }
 
   // Rotate refresh token: remove old, issue new
@@ -256,22 +256,31 @@ export const refreshAccessToken = async (refreshTokenStr) => {
   const accessToken = tokenService.generateAccessToken(user);
   const refreshToken = await tokenService.generateRefreshToken(user);
 
-  return { accessToken, refreshToken };
+  return {
+    accessToken,
+    refreshToken,
+    user: {
+      id: user._id,
+      email: user.email,
+      role: user.role,
+    },
+  };
 };
 
 /**
- * Logout: invalidate all refresh tokens for a user.
- * @param {string} userId - The user ID
+ * Logout: invalidate the current refresh token when present.
+ * Falls back to clearing all tokens for the user only when there is no
+ * specific refresh token to revoke.
  */
-export const logout = async (userId) => {
-  await User.findByIdAndUpdate(
-    userId,
-    {
-      $set: {
-        refreshTokens: [],
-      },
-    }
-  );
+export const logout = async ({ userId, refreshToken }) => {
+  if (refreshToken) {
+    await tokenService.removeRefreshToken(refreshToken);
+    return;
+  }
+
+  if (userId) {
+    await tokenService.removeAllUserTokens(userId);
+  }
 };
 
 /**

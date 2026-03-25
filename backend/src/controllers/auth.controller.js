@@ -5,6 +5,29 @@ import ApiResponse from '../utils/ApiResponse.js';
 import * as authService from '../services/auth.service.js';
 import * as userService from '../services/user.service.js';
 
+const cookieOptions = {
+  httpOnly: true,
+  secure: process.env.NODE_ENV === 'production',
+  sameSite: 'strict',
+};
+
+const setAuthCookies = (res, { accessToken, refreshToken }) => {
+  res.cookie('authToken', accessToken, {
+    ...cookieOptions,
+    maxAge: 15 * 60 * 1000, // 15 minutes
+  });
+
+  res.cookie('refreshToken', refreshToken, {
+    ...cookieOptions,
+    maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+  });
+};
+
+const clearAuthCookies = (res) => {
+  res.clearCookie('authToken', cookieOptions);
+  res.clearCookie('refreshToken', cookieOptions);
+};
+
 /**
  * POST /api/v1/auth/register
  * Create a new user account. OTP sent to email must be verified first.
@@ -51,20 +74,9 @@ export const resendOTP = asyncHandler(async (req, res) => {
 export const login = asyncHandler(async (req, res) => {
   const { token, refreshToken, user } = await authService.login(req.body);
 
-  // Set httpOnly cookie for access token
-  res.cookie('authToken', token, {
-    httpOnly: true,
-    secure: process.env.NODE_ENV === 'production',
-    sameSite: 'strict',
-    maxAge: 15 * 60 * 1000, // 15 minutes
-  });
-
-  // Set httpOnly cookie for refresh token
-  res.cookie('refreshToken', refreshToken, {
-    httpOnly: true,
-    secure: process.env.NODE_ENV === 'production',
-    sameSite: 'strict',
-    maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+  setAuthCookies(res, {
+    accessToken: token,
+    refreshToken,
   });
 
   const response = new ApiResponse(200, 'Login successful', {
@@ -87,20 +99,9 @@ export const refreshToken = asyncHandler(async (req, res) => {
 
   const { accessToken, refreshToken: newRefreshToken } = await authService.refreshAccessToken(refreshTokenStr);
 
-  // Set new access token cookie
-  res.cookie('authToken', accessToken, {
-    httpOnly: true,
-    secure: process.env.NODE_ENV === 'production',
-    sameSite: 'strict',
-    maxAge: 15 * 60 * 1000, // 15 minutes
-  });
-
-  // Set new refresh token cookie
-  res.cookie('refreshToken', newRefreshToken, {
-    httpOnly: true,
-    secure: process.env.NODE_ENV === 'production',
-    sameSite: 'strict',
-    maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+  setAuthCookies(res, {
+    accessToken,
+    refreshToken: newRefreshToken,
   });
 
   const response = new ApiResponse(200, 'Token refreshed successfully', {
@@ -115,12 +116,12 @@ export const refreshToken = asyncHandler(async (req, res) => {
  * POST /api/v1/auth/logout
  */
 export const logout = asyncHandler(async (req, res) => {
-  // Clear all refresh tokens from database
-  await authService.logout(req.user.id);
+  await authService.logout({
+    userId: req.user?.id,
+    refreshToken: req.cookies?.refreshToken || null,
+  });
 
-  // Clear the authentication cookies
-  res.clearCookie('authToken');
-  res.clearCookie('refreshToken');
+  clearAuthCookies(res);
 
   const response = new ApiResponse(200, 'Logged out successfully');
 
@@ -132,12 +133,24 @@ export const logout = asyncHandler(async (req, res) => {
  * Returns 200 with data: null when there is no valid session (no 401 spam in the browser).
  */
 export const getMe = asyncHandler(async (req, res) => {
-  if (!req.user) {
+  let currentUser = req.user;
+
+  if (!currentUser && req.cookies?.refreshToken) {
+    try {
+      const { accessToken, refreshToken, user } = await authService.refreshAccessToken(req.cookies.refreshToken);
+      setAuthCookies(res, { accessToken, refreshToken });
+      currentUser = user;
+    } catch {
+      clearAuthCookies(res);
+    }
+  }
+
+  if (!currentUser) {
     const response = new ApiResponse(200, 'Not authenticated', null);
     return res.status(200).json(response);
   }
 
-  const user = await userService.getUserById(req.user.id);
+  const user = await userService.getUserById(currentUser.id || currentUser._id);
 
   const response = new ApiResponse(200, 'User profile fetched', user);
 
