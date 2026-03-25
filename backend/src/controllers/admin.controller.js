@@ -30,6 +30,15 @@ export const rejectRecruiter = asyncHandler(async (req, res) => {
     .json(new ApiResponse(200, 'Recruiter deactivated successfully', recruiter));
 });
 
+// Promote an existing verified user to admin
+export const promoteUserToAdmin = asyncHandler(async (req, res) => {
+  const user = await adminService.promoteUserToAdmin(req.params.id);
+
+  res
+    .status(200)
+    .json(new ApiResponse(200, 'User promoted to admin successfully', user));
+});
+
 // Fetch all users with optional filtering
 export const getUsers = asyncHandler(async (req, res) => {
   const result = await adminService.getAllUsers(req.query);

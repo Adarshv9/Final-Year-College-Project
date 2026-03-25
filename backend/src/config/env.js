@@ -16,6 +16,7 @@ export const env = {
 
   // MongoDB
   mongodbUri: process.env.MONGODB_URI || 'mongodb://localhost:27017/college_project',
+  cloudinaryUrl: process.env.CLOUDINARY_URL || '',
 
   // JWT
   jwt: {

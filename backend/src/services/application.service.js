@@ -150,17 +150,19 @@ export const createApplication = async (jobId, jobSeeker, message = '') => {
 
 export const getMyApplications = async (jobSeekerId) => {
   const applications = await Application.find({ jobSeekerId })
-    .populate('jobId', 'title companyName')
+    .populate('jobId', 'title companyName location')
     .sort({ createdAt: -1 })
     .lean();
 
   return applications.map((application) => ({
     applicationId: String(application._id),
-    jobId: String(application.jobId?._id || application.jobId),
+    jobId: String(application.jobId?._id || application.jobId || ''),
     jobTitle: application.jobId?.title || '',
     companyName: application.jobId?.companyName || '',
+    location: application.jobId?.location || null,
     status: application.status,
     appliedAt: application.createdAt,
+    message: application.message || '',
   }));
 };
 

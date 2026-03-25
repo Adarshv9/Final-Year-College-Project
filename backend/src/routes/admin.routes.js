@@ -16,6 +16,7 @@ router.patch('/recruiter/:id/verify', validate(adminValidation.recruiterAction),
 router.patch('/recruiter/:id/reject', validate(adminValidation.recruiterAction), adminController.rejectRecruiter);
 
 // User management
+router.patch('/users/:id/promote-admin', validate(adminValidation.promoteUser), adminController.promoteUserToAdmin);
 router.get('/users', validate(adminValidation.users), adminController.getUsers);
 
 export default router;

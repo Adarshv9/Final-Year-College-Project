@@ -129,8 +129,14 @@ export const logout = asyncHandler(async (req, res) => {
 
 /**
  * GET /api/v1/auth/me
+ * Returns 200 with data: null when there is no valid session (no 401 spam in the browser).
  */
 export const getMe = asyncHandler(async (req, res) => {
+  if (!req.user) {
+    const response = new ApiResponse(200, 'Not authenticated', null);
+    return res.status(200).json(response);
+  }
+
   const user = await userService.getUserById(req.user.id);
 
   const response = new ApiResponse(200, 'User profile fetched', user);

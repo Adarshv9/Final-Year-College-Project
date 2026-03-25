@@ -1,5 +1,3 @@
-// ── Resume Controller ──
-import fs from 'fs';
 import asyncHandler from '../utils/asyncHandler.js';
 import ApiError from '../utils/ApiError.js';
 import ApiResponse from '../utils/ApiResponse.js';
@@ -7,7 +5,7 @@ import * as resumeService from '../services/resume.service.js';
 import logger from '../utils/logger.js';
 
 /**
- * PUT /resume — Upload and parse PDF resume (synchronous)
+ * PUT /resume - Upload and parse PDF resume (synchronous)
  */
 export const uploadResume = asyncHandler(async (req, res) => {
   if (req.user.role !== 'job_seeker') {
@@ -18,12 +16,7 @@ export const uploadResume = asyncHandler(async (req, res) => {
   }
 
   try {
-    const pdfBuffer = fs.readFileSync(req.file.path);
-    const resume = await resumeService.processResumeFile(
-      req.user.id,
-      pdfBuffer,
-      req.file.path
-    );
+    const resume = await resumeService.processResumeFile(req.user.id, req.file.buffer);
 
     const isCreated =
       resume.createdAt &&
@@ -39,18 +32,10 @@ export const uploadResume = asyncHandler(async (req, res) => {
         name: resume.name,
         skills: resume.skills,
         experienceYears: resume.experienceYears,
+        fileUrl: resume.fileUrl,
       })
     );
   } catch (error) {
-    // Clean up uploaded file on error
-    if (req.file?.path) {
-      try {
-        fs.unlinkSync(req.file.path);
-      } catch (unlinkError) {
-        logger.error(`Error deleting uploaded file: ${unlinkError.message}`);
-      }
-    }
-
     if (error instanceof ApiError) throw error;
     logger.error(`Resume upload error: ${error.message}`);
     throw new ApiError(500, 'Failed to process resume');
@@ -58,40 +43,36 @@ export const uploadResume = asyncHandler(async (req, res) => {
 });
 
 /**
- * GET /resume — Fetch current user's resume
+ * GET /resume - Fetch current user's resume
  */
 export const getResume = asyncHandler(async (req, res) => {
   if (req.user.role !== 'job_seeker') {
     throw new ApiError(403, 'Only job seekers can view resume', [], false);
   }
 
-  const resume = await resumeService.getResumeByUserId(req.user.id);
+  const resume = await resumeService.findResumeByUserId(req.user.id);
+
+  if (!resume) {
+    return res.status(200).json(new ApiResponse(200, 'No resume uploaded yet', null));
+  }
+
   res.status(200).json(new ApiResponse(200, 'Resume fetched successfully', resume));
 });
 
 /**
- * DELETE /resume — Delete current user's resume
+ * DELETE /resume - Delete current user's resume
  */
 export const deleteResume = asyncHandler(async (req, res) => {
   if (req.user.role !== 'job_seeker') {
     throw new ApiError(403, 'Only job seekers can delete resume', [], false);
   }
 
-  const resume = await resumeService.deleteResume(req.user.id);
-
-  if (resume.fileUrl) {
-    try {
-      fs.unlinkSync(resume.fileUrl);
-    } catch (error) {
-      logger.warn(`Error deleting resume file: ${error.message}`);
-    }
-  }
-
+  await resumeService.deleteResume(req.user.id);
   res.status(200).json(new ApiResponse(200, 'Resume deleted successfully', null));
 });
 
 /**
- * PATCH /resume — Partial update of current user's resume
+ * PATCH /resume - Partial update of current user's resume
  */
 export const updateResume = asyncHandler(async (req, res) => {
   if (req.user.role !== 'job_seeker') {
@@ -111,7 +92,7 @@ export const updateResume = asyncHandler(async (req, res) => {
 });
 
 /**
- * POST /resume/manual — Manual resume creation or update
+ * POST /resume/manual - Manual resume creation or update
  */
 export const manualResume = asyncHandler(async (req, res) => {
   if (req.user.role !== 'job_seeker') {
@@ -134,14 +115,13 @@ export const manualResume = asyncHandler(async (req, res) => {
   await resumeService.upsertResume(req.user.id, {
     ...manualData,
     fileUrl: existingResume?.fileUrl || manualData.fileUrl || '',
+    filePublicId: existingResume?.filePublicId || manualData.filePublicId || '',
     rawText: existingResume?.rawText || manualData.rawText || '',
     parsedData: existingResume?.parsedData || manualData.parsedData || {},
   });
 
   res.status(200).json(new ApiResponse(200, 'Resume saved successfully', null));
 });
-
-// ── Admin endpoints ───────────────────────────────────────────────────────────
 
 export const getAllResumes = asyncHandler(async (req, res) => {
   const { limit = 10, page = 1, search = '' } = req.query;

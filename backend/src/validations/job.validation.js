@@ -70,11 +70,12 @@ export const listJobs = Joi.object({
   query: Joi.object({
     page: Joi.number().integer().min(1).default(1),
     limit: Joi.number().integer().min(1).max(100).default(10),
-    search: Joi.string().trim().max(100),
-    skill: Joi.string().trim().max(100),
-    location: Joi.string().trim().max(100),
-    locationType: Joi.string().valid('remote', 'onsite', 'hybrid'),
-    jobType: Joi.string().valid('full-time', 'part-time', 'internship', 'contract'),
+    search: Joi.string().trim().max(100).allow(''),
+    skill: Joi.string().trim().max(100).allow(''),
+    location: Joi.string().trim().max(100).allow(''),
+    // Query strings send "" for cleared selects; treat as “no filter”
+    locationType: Joi.string().valid('remote', 'onsite', 'hybrid').empty('').optional(),
+    jobType: Joi.string().valid('full-time', 'part-time', 'internship', 'contract').empty('').optional(),
     minExperience: Joi.number().integer().min(0),
   }).allow({}),
 });

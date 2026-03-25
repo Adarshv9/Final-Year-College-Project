@@ -76,6 +76,29 @@ export const rejectRecruiter = async (recruiterId) => {
   return recruiter;
 };
 
+// Promote an existing verified user to admin
+export const promoteUserToAdmin = async (userId) => {
+  const user = await User.findById(userId);
+  if (!user) {
+    throw new ApiError(404, 'User not found');
+  }
+
+  if (user.role === 'admin') {
+    throw new ApiError(400, 'User is already an admin');
+  }
+
+  if (!user.emailVerified) {
+    throw new ApiError(400, 'Only existing email-verified users can be promoted to admin');
+  }
+
+  user.role = 'admin';
+  user.isActive = true;
+  user.approvalStatus = null;
+  await user.save();
+
+  return user;
+};
+
 // Alias for fetching all users (delegates to user service)
 export const getAllUsers = async (query) => {
   return userService.getUsers(query);

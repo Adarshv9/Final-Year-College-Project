@@ -1,31 +1,7 @@
-// ── File Upload Middleware ──
-import fs from 'fs';
+// File Upload Middleware
 import path from 'path';
 import multer from 'multer';
-import { fileURLToPath } from 'url';
 import ApiError from '../utils/ApiError.js';
-
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-const uploadsRoot = path.resolve(__dirname, '../../uploads/resumes');
-
-// Create uploads directory if it doesn't exist
-fs.mkdirSync(uploadsRoot, { recursive: true });
-
-// Configure where and how files are stored
-const storage = multer.diskStorage({
-  destination: (_req, _file, cb) => {
-    cb(null, uploadsRoot);
-  },
-  filename: (_req, file, cb) => {
-    const extension = path.extname(file.originalname);
-    const safeName = path
-      .basename(file.originalname, extension)
-      .replace(/[^a-zA-Z0-9-_]/g, '-')
-      .toLowerCase();
-    cb(null, `${safeName}-${Date.now()}${extension.toLowerCase()}`);
-  },
-});
 
 /**
  * PDF-only file filter.
@@ -43,10 +19,10 @@ const fileFilter = (_req, file, cb) => {
 };
 
 /**
- * Multer instance — PDF only, 2 MB max
+ * Multer instance - PDF only, 2 MB max
  */
 const upload = multer({
-  storage,
+  storage: multer.memoryStorage(),
   fileFilter,
   limits: {
     fileSize: 2 * 1024 * 1024, // 2 MB
@@ -58,26 +34,20 @@ export const uploadResume = upload.single('resume');
 
 /**
  * Magic-byte validation middleware.
- * Must be used AFTER multer has saved the file.
+ * Must be used AFTER multer has read the file.
  * Reads the first 4 bytes and verifies the %PDF signature.
  */
-export const validatePdfSignature = (req, res, next) => {
+export const validatePdfSignature = (req, _res, next) => {
   if (!req.file) return next();
 
   try {
-    const fd = fs.openSync(req.file.path, 'r');
-    const buffer = Buffer.alloc(4);
-    fs.readSync(fd, buffer, 0, 4, 0);
-    fs.closeSync(fd);
-
-    const signature = buffer.toString('ascii');
-    if (!signature.startsWith('%PDF')) {
-      fs.unlinkSync(req.file.path); // delete the fake file
+    const signature = req.file.buffer?.subarray(0, 4).toString('ascii');
+    if (!signature?.startsWith('%PDF')) {
       return next(new ApiError(400, 'File is not a valid PDF', [], false));
     }
 
     next();
-  } catch (err) {
+  } catch (_error) {
     next(new ApiError(500, 'Failed to validate file signature'));
   }
 };

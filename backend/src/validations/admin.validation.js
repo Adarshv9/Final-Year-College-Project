@@ -23,6 +23,16 @@ const recruiterAction = Joi.object({
   }),
 });
 
+// User promotion validation
+const promoteUser = Joi.object({
+  params: Joi.object({
+    id: objectId.required().messages({
+      'string.pattern.name': 'Invalid user ID format',
+      'any.required': 'User ID is required',
+    }),
+  }),
+});
+
 // Get all users validation
 const users = Joi.object({
   query: Joi.object({
@@ -33,4 +43,4 @@ const users = Joi.object({
   }),
 });
 
-export { pendingRecruiters, recruiterAction, users };
+export { pendingRecruiters, recruiterAction, promoteUser, users };

@@ -118,9 +118,8 @@ export const getPublicJobById = async (jobId) => {
 export const getRecommendedJobs = async (userId) => {
   const resume = await Resume.findOne({ user: userId }).select('skills').lean();
 
-
   if (!resume) {
-    throw new ApiError(404, 'Resume not found');
+    return [];
   }
 
   const resumeSkills = normalizeSkills(resume.skills || []);

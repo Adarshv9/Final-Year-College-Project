@@ -75,6 +75,10 @@ const jobSeekerProfileSchema = new mongoose.Schema(
       type: String,
       trim: true,
     },
+    resumePublicId: {
+      type: String,
+      trim: true,
+    },
     parsedData: {
       type: mongoose.Schema.Types.Mixed,
       default: {},

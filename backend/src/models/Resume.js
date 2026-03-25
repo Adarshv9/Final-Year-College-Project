@@ -105,6 +105,10 @@ const resumeSchema = new mongoose.Schema(
       type: String,
       trim: true,
     },
+    filePublicId: {
+      type: String,
+      trim: true,
+    },
     rawText: {
       type: String,
       trim: true,

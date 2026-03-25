@@ -4,7 +4,7 @@ const router = express.Router();
 import * as authController from '../controllers/auth.controller.js';
 import validate from '../middlewares/validate.js';
 import * as authValidation from '../validations/auth.validation.js';
-import { authenticateJWT } from '../middlewares/auth.js';
+import { authenticateJWT, optionalSessionJWT } from '../middlewares/auth.js';
 import { authLimiter } from '../middlewares/rateLimiter.js';
 
 // Apply stricter rate limiting to all auth endpoints
@@ -19,7 +19,7 @@ router.post('/refresh-token', validate(authValidation.refreshToken), authControl
 
 // Protected routes - Require authentication
 router.post('/logout', authenticateJWT, authController.logout);
-router.get('/me', authenticateJWT, authController.getMe);
+router.get('/me', optionalSessionJWT, authController.getMe);
 router.get('/profile', authenticateJWT, authController.profile);
 
 export default router;

@@ -75,6 +75,40 @@ export const optionalAuthenticateJWT = asyncHandler(async (req, _res, next) => {
   next();
 });
 
+/**
+ * Like authenticateJWT (cookie or Bearer) but never fails:
+ * missing / invalid / expired token simply leaves req.user unset.
+ * Used for GET /auth/me so clients can probe session without a 401 in DevTools.
+ */
+export const optionalSessionJWT = asyncHandler(async (req, _res, next) => {
+  let token = req.cookies?.authToken;
+
+  if (!token) {
+    const authHeader = req.headers.authorization;
+    if (authHeader && authHeader.startsWith('Bearer ')) {
+      token = authHeader.split(' ')[1];
+    }
+  }
+
+  if (!token) {
+    next();
+    return;
+  }
+
+  try {
+    const decoded = jwt.verify(token, env.jwt.accessSecret);
+    const user = await User.findById(decoded.id);
+    if (user?.isActive) {
+      req.user = user;
+      req.auth = decoded;
+    }
+  } catch {
+    // Expired or bad token — treat as logged out
+  }
+
+  next();
+});
+
 export const authorizeRole = (...roles) => {
   return (req, _res, next) => {
     if (!req.user) {

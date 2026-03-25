@@ -64,6 +64,10 @@ export const updateUser = async (userId, updateData) => {
     throw new ApiError(404, 'User not found');
   }
 
+  if (updateData.role === 'admin' && !user.emailVerified) {
+    throw new ApiError(400, 'Only existing email-verified users can be promoted to admin');
+  }
+
   // Check for email uniqueness if email is being changed
   if (updateData.email && updateData.email !== user.email) {
     const existingUser = await User.findOne({ email: updateData.email });

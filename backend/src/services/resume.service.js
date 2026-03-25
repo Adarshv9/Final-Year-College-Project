@@ -1,4 +1,3 @@
-// ── Resume Service ──
 import Resume from '../models/Resume.js';
 import ApiError from '../utils/ApiError.js';
 import {
@@ -7,65 +6,64 @@ import {
   transformResumeData,
 } from '../utils/resumeExtraction.js';
 import { parseResumeText } from './ai/ai.service.js';
+import { deleteResumeAsset, uploadResumeBuffer } from '../config/cloudinary.js';
 import logger from '../utils/logger.js';
-
-// ── Resume Processing Pipeline ────────────────────────────────────────────────
 
 /**
  * Full resume processing pipeline:
- *  1. Extract text from PDF buffer
- *  2. Clean extracted text
- *  3. Parse with AI → structured JSON
- *  4. Transform (dates, experience years, normalize skills)
- *  5. Upsert to DB
- *
- * @param {string} userId    - MongoDB user ID
- * @param {Buffer} pdfBuffer - Raw PDF buffer
- * @param {string} filePath  - Saved file path (stored in resume.fileUrl)
- * @returns {Promise<Object>} Saved resume document
+ * 1. Extract text from PDF buffer
+ * 2. Clean extracted text
+ * 3. Parse with AI -> structured JSON
+ * 4. Transform (dates, experience years, normalize skills)
+ * 5. Upload the source PDF to Cloudinary
+ * 6. Upsert to DB
  */
-export const processResumeFile = async (userId, pdfBuffer, filePath) => {
+export const processResumeFile = async (userId, pdfBuffer) => {
   const start = Date.now();
+  const existingResume = await findResumeByUserId(userId);
 
-  // Step 1: Extract text
   const rawText = await extractTextFromPdf(pdfBuffer);
   if (!rawText || rawText.trim().length === 0) {
     throw new ApiError(400, 'Could not extract text from PDF');
   }
 
-  // Step 2: Clean
   const cleanedText = cleanResumeText(rawText);
 
-  // Step 3: AI parsing
   logger.info(`[Pipeline] Sending resume to AI for user ${userId}`);
   const aiData = await parseResumeText(cleanedText);
-
-  // Step 4: Transform
   const transformedData = transformResumeData(aiData);
 
-  // Step 5: Upsert
+  const upload = await uploadResumeBuffer(pdfBuffer, {
+    public_id: `resume-${userId}-${Date.now()}`,
+  });
+
   const resumeData = {
     ...transformedData,
-    fileUrl: filePath,
+    fileUrl: upload.secure_url,
+    filePublicId: upload.public_id,
     rawText: rawText.substring(0, 10000),
     parsedData: aiData,
   };
 
-  const resume = await upsertResume(userId, resumeData);
+  try {
+    const resume = await upsertResume(userId, resumeData);
 
-  logger.info(`[METRIC] Full resume pipeline for user ${userId} completed in ${Date.now() - start}ms`);
-  return resume;
+    if (existingResume?.filePublicId && existingResume.filePublicId !== upload.public_id) {
+      await deleteResumeAsset(existingResume.filePublicId);
+    }
+
+    logger.info(`[METRIC] Full resume pipeline for user ${userId} completed in ${Date.now() - start}ms`);
+    return resume;
+  } catch (error) {
+    await deleteResumeAsset(upload.public_id);
+    throw error;
+  }
 };
 
-// ── CRUD ─────────────────────────────────────────────────────────────────────
-
-/**
- * Upsert resume (create if doesn't exist, update if exists)
- */
 export const upsertResume = async (userId, resumeData) => {
   const { skills, experiences, experienceYears, ...otherData } = resumeData;
 
-  const resume = await Resume.findOneAndUpdate(
+  return Resume.findOneAndUpdate(
     { user: userId },
     {
       $set: {
@@ -81,19 +79,15 @@ export const upsertResume = async (userId, resumeData) => {
         projects: otherData.projects || [],
         experienceYears: experienceYears || 0,
         fileUrl: otherData.fileUrl || '',
+        filePublicId: otherData.filePublicId || '',
         rawText: otherData.rawText || '',
         parsedData: otherData.parsedData || {},
       },
     },
     { new: true, upsert: true }
   );
-
-  return resume;
 };
 
-/**
- * Update resume fields for the current job seeker
- */
 export const updateResumeFields = async (userId, updates) => {
   const allowedFields = [
     'name', 'email', 'phone', 'location', 'summary',
@@ -124,9 +118,6 @@ export const updateResumeFields = async (userId, updates) => {
   return resume;
 };
 
-/**
- * Get resume by user ID
- */
 export const getResumeByUserId = async (userId) => {
   const resume = await Resume.findOne({ user: userId }).populate(
     'user',
@@ -142,9 +133,6 @@ export const getResumeByUserId = async (userId) => {
 
 export const findResumeByUserId = async (userId) => Resume.findOne({ user: userId });
 
-/**
- * Get all resumes (admin only) — paginated
- */
 export const getAllResumes = async (options = {}) => {
   const { limit = 10, page = 1, search = '' } = options;
   const skip = (page - 1) * limit;
@@ -170,9 +158,6 @@ export const getAllResumes = async (options = {}) => {
   };
 };
 
-/**
- * Update resume verification status (admin only)
- */
 export const updateResumeVerification = async (resumeId, isVerified) => {
   const resume = await Resume.findByIdAndUpdate(
     resumeId,
@@ -187,15 +172,17 @@ export const updateResumeVerification = async (resumeId, isVerified) => {
   return resume;
 };
 
-/**
- * Delete resume by user ID
- */
 export const deleteResume = async (userId) => {
-  const resume = await Resume.findOneAndDelete({ user: userId });
+  const resume = await Resume.findOne({ user: userId });
 
   if (!resume) {
     throw new ApiError(404, 'Resume not found', [], false);
   }
 
+  if (resume.filePublicId) {
+    await deleteResumeAsset(resume.filePublicId);
+  }
+
+  await resume.deleteOne();
   return resume;
 };

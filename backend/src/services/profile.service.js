@@ -18,16 +18,12 @@ export const createJobSeekerProfile = async (userId, profileData) => {
   });
 };
 
-// Fetch job seeker profile by user ID
+// Fetch job seeker profile by user ID (null if not created yet)
 export const getJobSeekerProfile = async (userId) => {
   const profile = await JobSeekerProfile.findOne({ user: userId }).populate(
     'user',
     'name email role isVerified isActive'
   );
-
-  if (!profile) {
-    throw new ApiError(404, 'Job seeker profile not found');
-  }
 
   return profile;
 };
@@ -46,7 +42,7 @@ export const updateJobSeekerProfile = async (userId, profileData) => {
 };
 
 // Upload resume and store file URL and parsed data
-export const uploadJobSeekerResume = async (userId, resumeUrl, parsedData) => {
+export const uploadJobSeekerResume = async (userId, resumeUrl, resumePublicId, parsedData) => {
   let profile = await JobSeekerProfile.findOne({ user: userId });
 
   if (!profile) {
@@ -54,6 +50,7 @@ export const uploadJobSeekerResume = async (userId, resumeUrl, parsedData) => {
   }
 
   profile.resumeUrl = resumeUrl;
+  profile.resumePublicId = resumePublicId;
   if (parsedData !== undefined) {
     profile.parsedData = parsedData;
   }
@@ -78,16 +75,12 @@ export const createRecruiterProfile = async (userId, profileData) => {
   });
 };
 
-// Fetch recruiter profile by user ID
+// Fetch recruiter profile by user ID (null if not created yet)
 export const getRecruiterProfile = async (userId) => {
   const profile = await RecruiterProfile.findOne({ user: userId }).populate(
     'user',
     'name email role isVerified isActive'
   );
-
-  if (!profile) {
-    throw new ApiError(404, 'Recruiter profile not found');
-  }
 
   return profile;
 };
