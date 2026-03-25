@@ -1,3 +1,4 @@
+// Middleware factory that validates request body, params, and query with Joi.
 import ApiError from '../utils/ApiError.js';
 
 /**

@@ -40,6 +40,8 @@ const buildResumeSnapshot = (resume) => {
       : {};
 
   return {
+    // Store only the fields needed for ranking so applications stay stable
+    // even if the candidate edits their resume later.
     name: resume.name || '',
     skills: normalizeSkills(resume.skills || []),
     experienceYears: resume.experienceYears || 0,
@@ -113,6 +115,8 @@ export const createApplication = async (jobId, jobSeeker, message = '') => {
       jobSeekerId: jobSeeker._id,
       recruiterId: job.recruiterId,
       resumeId: resume._id,
+      // Snapshot the resume at apply-time so later resume edits do not
+      // retroactively change the submitted application.
       resumeSnapshot: buildResumeSnapshot(resume),
       message,
       status: 'pending',
@@ -213,6 +217,8 @@ export const getRecommendedApplications = async (jobId, recruiterId) => {
     let hybridScore = application.hybridScore;
 
     if (aiScore === null || hybridScore === null) {
+      // Older rows may not have scores yet, so compute them lazily here
+      // instead of forcing a backfill migration.
       const scores = await hydrateApplicationScores(
         application._id,
         job,

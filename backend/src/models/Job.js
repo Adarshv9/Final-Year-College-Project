@@ -1,3 +1,4 @@
+// Mongoose schema for recruiter-created job postings.
 import mongoose from 'mongoose';
 import normalizeSkills from '../utils/normalizeSkills.js';
 

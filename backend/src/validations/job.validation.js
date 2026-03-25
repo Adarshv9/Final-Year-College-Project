@@ -1,3 +1,4 @@
+// Joi schemas for public job listing and recruiter job management endpoints.
 import Joi from 'joi';
 
 const objectId = Joi.string().pattern(/^[0-9a-fA-F]{24}$/);

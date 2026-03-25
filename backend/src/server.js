@@ -1,3 +1,4 @@
+// Server bootstrap: validates config, connects to MongoDB, and starts Express.
 import app from './app.js';
 import { env, validateEnv } from './config/env.js';
 import connectDB from './config/db.js';

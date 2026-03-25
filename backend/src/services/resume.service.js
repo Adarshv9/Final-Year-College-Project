@@ -1,3 +1,4 @@
+// Business logic for parsing, storing, updating, and deleting resumes.
 import Resume from '../models/Resume.js';
 import ApiError from '../utils/ApiError.js';
 import {

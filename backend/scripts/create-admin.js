@@ -1,3 +1,4 @@
+// CLI script to create or promote a local admin account.
 import mongoose from 'mongoose';
 import connectDB from '../src/config/db.js';
 import User from '../src/models/User.js';

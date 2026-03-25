@@ -1,3 +1,4 @@
+// Mongoose schema for submitted applications and their frozen resume snapshot.
 import mongoose from 'mongoose';
 
 const educationSnapshotSchema = new mongoose.Schema(

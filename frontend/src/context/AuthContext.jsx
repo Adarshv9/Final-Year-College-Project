@@ -29,6 +29,7 @@ export function AuthProvider({ children }) {
   }, []);
 
   const updateUser = useCallback((updates) => {
+    // Merge profile edits into the cached auth user without re-fetching /auth/me.
     setUser(prev => ({ ...prev, ...updates }));
   }, []);
 

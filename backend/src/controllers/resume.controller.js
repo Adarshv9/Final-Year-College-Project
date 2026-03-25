@@ -1,3 +1,4 @@
+// HTTP handlers for resume upload, retrieval, manual edits, and admin verification.
 import asyncHandler from '../utils/asyncHandler.js';
 import ApiError from '../utils/ApiError.js';
 import ApiResponse from '../utils/ApiResponse.js';

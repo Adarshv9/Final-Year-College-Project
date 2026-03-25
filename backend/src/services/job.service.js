@@ -1,3 +1,4 @@
+// Business logic for job search, recruiter CRUD, and recommendations.
 import Job from '../models/Job.js';
 import Resume from '../models/Resume.js';
 import ApiError from '../utils/ApiError.js';
@@ -18,6 +19,8 @@ const buildPublicJobFilter = ({
   const filter = { isActive: true };
 
   if (search) {
+    // Search is intentionally broad so public job discovery works from a
+    // single text box without separate title/description filters.
     filter.$or = [
       { title: { $regex: search, $options: 'i' } },
       { description: { $regex: search, $options: 'i' } },
@@ -137,6 +140,8 @@ export const getRecommendedJobs = async (userId) => {
     .limit(20)
     .lean();
 
+  // Keep the candidate set small before sending it to AI so recommendations
+  // stay fast and grounded in obvious skill overlap.
   return rankJobsWithAI({
     resumeSkills,
     jobs,

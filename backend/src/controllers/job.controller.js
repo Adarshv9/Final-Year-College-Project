@@ -1,3 +1,4 @@
+// HTTP handlers for public job browsing and recruiter job management.
 import asyncHandler from '../utils/asyncHandler.js';
 import * as jobService from '../services/job.service.js';
 

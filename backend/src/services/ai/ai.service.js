@@ -10,6 +10,7 @@ import { buildApplicationScoringMessages, buildJobRankingMessages } from './prom
 // ── helpers ─────────────────────────────────────────────────────────────────
 
 const parseJsonResponse = (text) => {
+  // Providers sometimes wrap JSON in markdown fences, so strip them first.
   const cleaned = text.replace(/```json/g, '').replace(/```/g, '').trim();
   return JSON.parse(cleaned);
 };
@@ -117,6 +118,8 @@ export const rankJobs = async (resumeSkills, jobs) => {
     const jobMap = new Map(jobs.map((job) => [String(job._id), job]));
 
     return parsed
+      // Ignore any hallucinated ids and only keep items we can map back to
+      // the original jobs we provided to the model.
       .filter((item) => jobMap.has(String(item.jobId)))
       .map((item) => {
         const job = jobMap.get(String(item.jobId));

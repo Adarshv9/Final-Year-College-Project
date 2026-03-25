@@ -58,6 +58,7 @@ function AuthGate({ children }) {
 function PublicRoute() {
   const { isAuthenticated, user, loading } = useAuth();
   if (loading) return <PageLoader />;
+  // Logged-in users should not see auth pages again.
   if (isAuthenticated) return <Navigate to={getRoleDashboard(user?.role)} replace />;
   return <Outlet />;
 }
@@ -66,6 +67,7 @@ function ProtectedRoute({ allowedRoles }) {
   const { isAuthenticated, user, loading } = useAuth();
   if (loading) return <PageLoader />;
   if (!isAuthenticated) return <Navigate to="/login" replace />;
+  // If a user is signed in but hits the wrong area, send them to their own dashboard.
   if (allowedRoles && !allowedRoles.includes(user?.role)) {
     return <Navigate to={getRoleDashboard(user?.role)} replace />;
   }
@@ -79,6 +81,7 @@ const S = (Page) => (
 );
 
 const SNull = (Page) => (
+  // Auth screens provide their own loading treatment, so use no extra skeleton.
   <Suspense fallback={null}>
     <Page />
   </Suspense>

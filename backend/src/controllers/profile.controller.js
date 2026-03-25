@@ -1,3 +1,4 @@
+// HTTP handlers for job seeker and recruiter profile management.
 import asyncHandler from '../utils/asyncHandler.js';
 import ApiError from '../utils/ApiError.js';
 import ApiResponse from '../utils/ApiResponse.js';

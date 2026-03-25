@@ -1,3 +1,4 @@
+// HTTP handlers for job applications and recruiter-side review flows.
 import asyncHandler from '../utils/asyncHandler.js';
 import * as applicationService from '../services/application.service.js';
 

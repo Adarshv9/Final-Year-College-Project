@@ -1,3 +1,4 @@
+// Express routes for job seeker applications and recruiter-side review actions.
 import express from 'express';
 import * as applicationController from '../controllers/application.controller.js';
 import {

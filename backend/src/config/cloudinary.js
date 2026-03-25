@@ -1,3 +1,4 @@
+// Cloudinary configuration and helpers for storing resume files.
 import { v2 as cloudinary } from 'cloudinary';
 import ApiError from '../utils/ApiError.js';
 import { env } from './env.js';

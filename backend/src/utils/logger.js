@@ -1,3 +1,4 @@
+// Shared Winston logger used across the backend.
 import winston from 'winston';
 import { env } from '../config/env.js';
 

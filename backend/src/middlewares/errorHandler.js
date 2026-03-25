@@ -1,3 +1,4 @@
+// Converts thrown errors into a consistent API response shape.
 import ApiError from '../utils/ApiError.js';
 import logger from '../utils/logger.js';
 import { env } from '../config/env.js';

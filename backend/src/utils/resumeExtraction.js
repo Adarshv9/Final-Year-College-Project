@@ -65,6 +65,7 @@ const mergeIntervals = (intervals) => {
   for (let i = 1; i < sorted.length; i++) {
     const current = sorted[i];
     const last = merged[merged.length - 1];
+    // Overlapping jobs should count once toward total experience.
     if (current[0] <= last[1]) {
       last[1] = Math.max(last[1], current[1]);
     } else {
@@ -140,6 +141,8 @@ export const transformResumeData = (aiData) => {
     company: exp.company || '',
     role: exp.role || '',
     startDate: parseDate(exp.startDate) || new Date(),
+    // Ongoing roles are stored with a null end date and treated as "until now"
+    // when experience years are calculated.
     endDate:
       exp.endDate && exp.endDate.toLowerCase() !== 'present'
         ? parseDate(exp.endDate)

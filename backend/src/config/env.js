@@ -1,3 +1,4 @@
+// Loads environment variables and exposes normalized backend config.
 import dotenv from 'dotenv';
 import path from 'path';
 import { fileURLToPath } from 'url';

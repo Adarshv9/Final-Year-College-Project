@@ -1,3 +1,4 @@
+// Shared rate limiter configurations for general traffic and auth endpoints.
 import rateLimit from 'express-rate-limit';
 import { env } from '../config/env.js';
 
