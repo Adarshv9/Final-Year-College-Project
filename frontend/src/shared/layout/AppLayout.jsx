@@ -13,6 +13,7 @@ const PAGE_TITLES = {
   '/profile': 'Profile',
   '/change-password': 'Change Password',
   '/recruiter/dashboard': 'Recruiter Dashboard',
+  '/recruiter/applications': 'All Applications',
   '/recruiter/jobs/new': 'Post a New Job',
   '/recruiter/jobs': 'My Job Listings',
   '/recruiter/profile': 'Company Profile',

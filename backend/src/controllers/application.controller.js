@@ -22,6 +22,34 @@ export const getMyApplications = asyncHandler(async (req, res) => {
   });
 });
 
+export const getRecruiterApplications = asyncHandler(async (req, res) => {
+  const {
+    page = 1,
+    limit = 100,
+    status,
+    jobId,
+    sort = 'newest',
+  } = req.query;
+
+  const result = await applicationService.getRecruiterApplications(
+    req.user.id,
+    {
+      page: parseInt(page, 10),
+      limit: parseInt(limit, 10),
+      status: status || undefined,
+      jobId: jobId || undefined,
+      sort,
+    }
+  );
+
+  res.status(200).json({
+    success: true,
+    statusCode: 200,
+    data: result.data,
+    pagination: result.pagination,
+  });
+});
+
 export const getApplicationsForJob = asyncHandler(async (req, res) => {
   const { page = 1, limit = 10, status } = req.query;
 
@@ -63,10 +91,15 @@ export const updateApplicationStatus = asyncHandler(async (req, res) => {
     req.body.status
   );
 
+  const message =
+    req.body.status === 'pending'
+      ? 'Application moved back to pending. Any scheduled decision email was cancelled.'
+      : 'Application status updated successfully. Candidate email will be sent after 15 seconds.';
+
   res.status(200).json({
     success: true,
     statusCode: 200,
-    message: 'Application status updated successfully. Candidate email will be sent after 15 seconds.',
+    message,
     data: result,
   });
 });

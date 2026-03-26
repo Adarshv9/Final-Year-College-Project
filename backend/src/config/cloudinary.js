@@ -39,7 +39,10 @@ export const uploadResumeBuffer = async (buffer, options = {}) => {
   return new Promise((resolve, reject) => {
     const stream = cloudinary.uploader.upload_stream(
       {
-        resource_type: 'raw',
+        resource_type: 'image',
+        // Force Cloudinary to treat this asset as a PDF so the dashboard
+        // shows a PDF "Format" and PDF viewers/downloads behave correctly.
+        format: 'pdf',
         folder: 'talentbridge/resumes',
         use_filename: true,
         unique_filename: true,
@@ -63,8 +66,44 @@ export const uploadResumeBuffer = async (buffer, options = {}) => {
 export const deleteResumeAsset = async (publicId) => {
   if (!publicId || !cloudinaryConfig) return;
 
-  await cloudinary.uploader.destroy(publicId, {
-    resource_type: 'raw',
+  try {
+    const resImage = await cloudinary.uploader.destroy(publicId, {
+      resource_type: 'image',
+    });
+    
+    // Also attempt raw resource deletion in case there are old format files
+    if (resImage.result !== 'ok') {
+      await cloudinary.uploader.destroy(publicId, {
+        resource_type: 'raw',
+      });
+    }
+  } catch (err) {
+    // ignore deletion errors to prevent blocker
+  }
+};
+
+const sanitizeAttachmentName = (value = '') =>
+  value
+    .trim()
+    .replace(/[^a-zA-Z0-9]+/g, '_')
+    .replace(/^_+|_+$/g, '')
+    .slice(0, 80);
+
+export const buildResumeDownloadUrl = (publicId, resumeName = 'Resume') => {
+  if (!publicId || !cloudinaryConfig) return '';
+
+  const attachmentName = sanitizeAttachmentName(`${resumeName}_Resume`) || 'Resume';
+  const looksLikePdfPublicId = /\.pdf$/i.test(publicId);
+
+  return cloudinary.url(publicId, {
+    resource_type: 'image',
+    type: 'upload',
+    // Avoid double extensions: if `publicId` already ends with `.pdf`,
+    // forcing `format: 'pdf'` can result in URLs that don't match the stored asset.
+    ...(looksLikePdfPublicId ? {} : { format: 'pdf' }),
+    flags: `attachment:${attachmentName}`,
+    secure: true,
+    sign_url: true,
   });
 };
 

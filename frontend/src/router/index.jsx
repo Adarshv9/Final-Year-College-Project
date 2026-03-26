@@ -1,4 +1,4 @@
-import { lazy, Suspense } from 'react';
+import { createElement, lazy, Suspense } from 'react';
 import { createBrowserRouter, RouterProvider, Navigate, Outlet } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import AppLayout from '../shared/layout/AppLayout';
@@ -33,6 +33,7 @@ const RecruiterDashboard   = lazy(() => import('../features/recruiter/DashboardP
 const MyJobsPage           = lazy(() => import('../features/recruiter/MyJobsPage'));
 const JobFormPage          = lazy(() => import('../features/recruiter/JobFormPage'));
 const JobApplicationsPage  = lazy(() => import('../features/recruiter/JobApplicationsPage'));
+const RecruiterApplicationsPage = lazy(() => import('../features/recruiter/RecruiterApplicationsPage'));
 const RecruiterProfile     = lazy(() => import('../features/recruiter/ProfilePage'));
 
 // Admin
@@ -74,16 +75,16 @@ function ProtectedRoute({ allowedRoles }) {
   return <Outlet />;
 }
 
-const S = (Page) => (
+const S = (Component) => (
   <Suspense fallback={<PageSkeleton />}>
-    <Page />
+    {createElement(Component)}
   </Suspense>
 );
 
-const SNull = (Page) => (
+const SNull = (Component) => (
   // Auth screens provide their own loading treatment, so use no extra skeleton.
   <Suspense fallback={null}>
-    <Page />
+    {createElement(Component)}
   </Suspense>
 );
 
@@ -129,6 +130,7 @@ const router = createBrowserRouter([
         element: <AppLayout />,
         children: [
           { path: '/recruiter/dashboard',                element: S(RecruiterDashboard) },
+          { path: '/recruiter/applications',             element: S(RecruiterApplicationsPage) },
           { path: '/recruiter/jobs',                     element: S(MyJobsPage) },
           { path: '/recruiter/jobs/new',                 element: S(JobFormPage) },
           { path: '/recruiter/jobs/:jobId/edit',         element: S(JobFormPage) },

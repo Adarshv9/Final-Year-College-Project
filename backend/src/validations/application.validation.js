@@ -17,6 +17,18 @@ export const createApplication = Joi.object({
 
 export const myApplications = Joi.object({});
 
+export const recruiterApplications = Joi.object({
+  query: Joi.object({
+    page: Joi.number().integer().min(1).default(1),
+    limit: Joi.number().integer().min(1).max(200).default(100),
+    status: Joi.string().valid('pending', 'accepted', 'rejected').optional(),
+    jobId: objectId.optional().messages({
+      'string.pattern.base': 'Invalid job ID format',
+    }),
+    sort: Joi.string().valid('newest', 'oldest').default('newest'),
+  }).default({}),
+});
+
 export const jobApplications = Joi.object({
   params: Joi.object({
     jobId: objectId.required().messages({
@@ -43,8 +55,8 @@ export const updateApplicationStatus = Joi.object({
     }),
   }).required(),
   body: Joi.object({
-    status: Joi.string().valid('accepted', 'rejected').required().messages({
-      'any.only': 'Status must be accepted or rejected',
+    status: Joi.string().valid('pending', 'accepted', 'rejected').required().messages({
+      'any.only': 'Status must be pending, accepted, or rejected',
       'any.required': 'Status is required',
     }),
   }).required(),

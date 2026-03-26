@@ -10,7 +10,7 @@ import TagInput from '../../shared/ui/TagInput';
 import Alert from '../../shared/ui/Alert';
 import Badge from '../../shared/ui/Badge';
 
-function UploadTab({ resume, onRefetch }) {
+function UploadTab({ resume }) {
   const qc = useQueryClient();
   const fileRef = useRef(null);
   const [dragging, setDragging] = useState(false);
@@ -66,7 +66,7 @@ function UploadTab({ resume, onRefetch }) {
           </div>
           <div className="flex gap-2">
             {resume.fileUrl && (
-              <a href={resume.fileUrl} target="_blank" rel="noopener noreferrer">
+              <a href="/api/v1/resumes/resume/download">
                 <Button variant="secondary" size="sm"><Download size={13} /> Download</Button>
               </a>
             )}

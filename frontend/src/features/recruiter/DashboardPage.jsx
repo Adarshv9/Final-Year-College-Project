@@ -1,16 +1,16 @@
 import { useQuery } from '@tanstack/react-query';
 import { Link } from 'react-router-dom';
-import { Briefcase, Users, Clock, CheckCircle, Plus, ArrowRight, AlertTriangle } from 'lucide-react';
-import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell } from 'recharts';
-import { jobsApi, applicationsApi } from '../../lib/api';
+import { Briefcase, Users, Plus, ArrowRight } from 'lucide-react';
+import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts';
+import { jobsApi } from '../../lib/api';
 import { recruiterApi } from '../../lib/api';
 import { useAuth } from '../../context/AuthContext';
 import { SkeletonStats } from '../../shared/ui/Skeleton';
-import Badge from '../../shared/ui/Badge';
 import Button from '../../shared/ui/Button';
 import Alert from '../../shared/ui/Alert';
 
-function StatCard({ icon: Icon, label, value, color, to }) {
+function StatCard({ icon, label, value, color, to }) {
+  const Icon = icon;
   const c = (
     <div className={`bg-[#131929] border border-[#1e2a3d] rounded-xl p-5 flex items-center gap-4 hover:border-[#243047] transition-all ${to ? 'cursor-pointer hover:-translate-y-0.5' : ''}`}>
       <div className={`w-11 h-11 rounded-xl flex items-center justify-center flex-shrink-0 ${color}`}>
@@ -78,7 +78,7 @@ export default function RecruiterDashboard() {
       {jobsLoading ? <SkeletonStats count={3} /> : (
         <div className="grid grid-cols-2 lg:grid-cols-3 gap-4">
           <StatCard icon={Briefcase} label="Active Jobs" value={totalJobs} color="bg-indigo-500/15 text-indigo-400" to="/recruiter/jobs" />
-          <StatCard icon={Users} label="Total Applicants" value={jobs.reduce((s, j) => s + (j.applicationsCount || 0), 0)} color="bg-emerald-500/15 text-emerald-400" />
+          <StatCard icon={Users} label="Total Applicants" value={jobs.reduce((s, j) => s + (j.applicationsCount || 0), 0)} color="bg-emerald-500/15 text-emerald-400" to="/recruiter/applications" />
           <StatCard icon={Plus} label="Post New Job" value="+" color="bg-amber-500/15 text-amber-400" to="/recruiter/jobs/new" />
         </div>
       )}

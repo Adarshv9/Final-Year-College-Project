@@ -3,7 +3,15 @@ import asyncHandler from '../utils/asyncHandler.js';
 import ApiError from '../utils/ApiError.js';
 import ApiResponse from '../utils/ApiResponse.js';
 import * as resumeService from '../services/resume.service.js';
+import cloudinary, { buildResumeDownloadUrl } from '../config/cloudinary.js';
 import logger from '../utils/logger.js';
+
+const sanitizeFilename = (value = '') =>
+  value
+    .trim()
+    .replace(/[^a-zA-Z0-9]+/g, '_')
+    .replace(/^_+|_+$/g, '')
+    .slice(0, 80);
 
 /**
  * PUT /resume - Upload and parse PDF resume (synchronous)
@@ -58,6 +66,103 @@ export const getResume = asyncHandler(async (req, res) => {
   }
 
   res.status(200).json(new ApiResponse(200, 'Resume fetched successfully', resume));
+});
+
+export const downloadResume = asyncHandler(async (req, res) => {
+  if (req.user.role !== 'job_seeker') {
+    throw new ApiError(403, 'Only job seekers can download resume', [], false);
+  }
+
+  const resume = await resumeService.getResumeByUserId(req.user.id);
+
+  if (!resume.fileUrl && !resume.filePublicId) {
+    throw new ApiError(404, 'Resume file not found', [], false);
+  }
+
+  // Fast path: redirect to a secure, signed URL for proper Cloudinary delivery.
+  if (resume.filePublicId) {
+    const signedUrl = buildResumeDownloadUrl(resume.filePublicId, resume.name || req.user.name);
+    if (signedUrl) {
+      return res.redirect(signedUrl);
+    }
+  } else if (resume.fileUrl) {
+    // Fallback to storing URL if publicId isn't somehow available
+    return res.redirect(resume.fileUrl);
+  }
+
+  const publicId = resume.filePublicId || '';
+  const normalizedPublicId = publicId.endsWith('.pdf') ? publicId.slice(0, -4) : publicId;
+  const candidateUrls = [
+    '',
+    publicId
+      ? cloudinary.url(publicId, { resource_type: 'raw', type: 'upload', secure: true })
+      : '',
+    normalizedPublicId
+      ? cloudinary.url(normalizedPublicId, {
+        resource_type: 'raw',
+        type: 'upload',
+        format: 'pdf',
+        secure: true,
+      })
+      : '',
+    publicId
+      ? cloudinary.url(publicId, { resource_type: 'image', type: 'upload', secure: true })
+      : '',
+    normalizedPublicId
+      ? cloudinary.url(normalizedPublicId, {
+        resource_type: 'image',
+        type: 'upload',
+        format: 'pdf',
+        secure: true,
+      })
+      : '',
+  ].filter(Boolean);
+
+  let response = null;
+  let lastStatus = 0;
+  let lastUrl = '';
+  const noCacheHeaders = {
+    'Cache-Control': 'no-cache, no-store, must-revalidate',
+    Pragma: 'no-cache',
+    Expires: '0',
+  };
+  const withCacheBuster = (url) => {
+    const separator = url.includes('?') ? '&' : '?';
+    return `${url}${separator}cb=${Date.now()}`;
+  };
+
+  for (const url of candidateUrls) {
+    try {
+      let attempt = await fetch(url, { headers: noCacheHeaders });
+      if (attempt.status === 304) {
+        attempt = await fetch(withCacheBuster(url), { headers: noCacheHeaders });
+      }
+      if (attempt.ok) {
+        response = attempt;
+        break;
+      }
+      lastStatus = attempt.status;
+      lastUrl = url;
+    } catch (_error) {
+      lastUrl = url;
+    }
+  }
+
+  if (!response) {
+    logger.error(
+      `Resume download failed for user=${req.user.id} publicId=${publicId} status=${lastStatus} url=${lastUrl}`
+    );
+    throw new ApiError(502, 'Failed to download resume file', [], false);
+  }
+
+  const arrayBuffer = await response.arrayBuffer();
+  const buffer = Buffer.from(arrayBuffer);
+  const filename = `${sanitizeFilename(resume.name || req.user.name || 'Resume') || 'Resume'}_Resume.pdf`;
+
+  res.setHeader('Content-Type', 'application/pdf');
+  res.setHeader('Content-Length', buffer.length);
+  res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
+  res.status(200).send(buffer);
 });
 
 /**

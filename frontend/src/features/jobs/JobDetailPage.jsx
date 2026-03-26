@@ -18,10 +18,14 @@ function formatAppliedDate(str) {
   return new Date(str).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' });
 }
 
+function getApplicationJobId(application) {
+  return String(application?.jobId || application?.job?._id || '');
+}
+
 export default function JobDetailPage() {
   const { jobId: jobIdParam } = useParams();
   const jobId = jobIdParam && jobIdParam !== 'undefined' ? jobIdParam : undefined;
-  const { isAuthenticated, user } = useAuth();
+  const { isAuthenticated, user, loading: authLoading } = useAuth();
   const navigate = useNavigate();
   const qc = useQueryClient();
   const [applyModal, setApplyModal] = useState(false);
@@ -33,30 +37,57 @@ export default function JobDetailPage() {
     enabled: Boolean(jobId),
   });
 
-  const { data: myAppsData, isLoading: myAppsLoading } = useQuery({
+  const {
+    data: myAppsData,
+    isLoading: myAppsLoading,
+    refetch: refetchMyApplications,
+  } = useQuery({
     queryKey: ['my-applications'],
     queryFn: () => applicationsApi.myApplications().then(r => r.data),
     enabled: Boolean(jobId && isAuthenticated && user?.role === 'job_seeker'),
+    refetchOnMount: 'always',
   });
 
   const myApps = myAppsData?.data || [];
-  const myApplication = myApps.find((a) => String(a.jobId) === String(jobId));
+  const myApplication = myApps.find((application) => getApplicationJobId(application) === String(jobId));
 
   const applyMutation = useMutation({
-    mutationFn: () => applicationsApi.apply(jobId, { message }),
+    mutationFn: async () => {
+      const latest = await refetchMyApplications();
+      const latestApps = latest.data?.data || [];
+      const existingApplication = latestApps.find(
+        (application) => getApplicationJobId(application) === String(jobId)
+      );
+
+      if (existingApplication) {
+        const duplicateError = new Error('You have already applied for this job');
+        duplicateError.isDuplicateApplication = true;
+        throw duplicateError;
+      }
+
+      return applicationsApi.apply(jobId, { message });
+    },
     onSuccess: () => {
       toast.success('Application submitted!');
       setApplyModal(false);
       setMessage('');
       qc.invalidateQueries({ queryKey: ['my-applications'] });
     },
-    onError: (err) => {
+    onError: async (err) => {
+      if (err.isDuplicateApplication) {
+        setApplyModal(false);
+        setMessage('');
+        toast.error(err.message);
+        return;
+      }
+
       const status = err.response?.status;
       const apiMessage = err.response?.data?.message || 'Failed to apply';
 
       if (status === 409) {
         setApplyModal(false);
-        qc.invalidateQueries({ queryKey: ['my-applications'] });
+        setMessage('');
+        await refetchMyApplications();
         toast.error(apiMessage);
         return;
       }
@@ -68,6 +99,14 @@ export default function JobDetailPage() {
   const handleApply = () => {
     if (!isAuthenticated) { navigate('/login'); return; }
     if (user?.role !== 'job_seeker') { toast.error('Only job seekers can apply'); return; }
+    if (authLoading || myAppsLoading) {
+      toast('Checking your application status...');
+      return;
+    }
+    if (myApplication) {
+      toast.error('You have already applied for this job');
+      return;
+    }
     setApplyModal(true);
   };
 
@@ -184,7 +223,7 @@ export default function JobDetailPage() {
             {/* Apply card */}
             <div className="bg-[#131929] border border-[#1e2a3d] rounded-2xl p-5">
               {isAuthenticated && user?.role === 'job_seeker' ? (
-                myAppsLoading ? (
+                authLoading || myAppsLoading ? (
                   <p className="text-sm text-[#64748b] text-center py-2">Loading your application…</p>
                 ) : myApplication ? (
                   <>

@@ -28,6 +28,15 @@ router.get(
 );
 
 router.get(
+  '/recruiter',
+  authenticateJWT,
+  authorizeRole('recruiter'),
+  checkRecruiterVerified,
+  validate(applicationValidation.recruiterApplications),
+  applicationController.getRecruiterApplications
+);
+
+router.get(
   '/job/:jobId/recommended',
   authenticateJWT,
   authorizeRole('recruiter'),

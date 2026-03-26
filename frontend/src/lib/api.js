@@ -35,6 +35,7 @@ export const jobsApi = {
 export const applicationsApi = {
   apply: (jobId, data) => api.post(`/applications/${jobId}`, data),
   myApplications: (params) => api.get('/applications/my', { params }),
+  recruiter: (params) => api.get('/applications/recruiter', { params }),
   forJob: (jobId, params) => api.get(`/applications/job/${jobId}`, { params }),
   recommendedForJob: (jobId, params) => api.get(`/applications/job/${jobId}/recommended`, { params }),
   updateStatus: (applicationId, status) =>

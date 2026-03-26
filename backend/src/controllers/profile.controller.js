@@ -55,7 +55,8 @@ export const uploadResume = asyncHandler(async (req, res) => {
   const parsedData = parseParsedData(req.body.parsedData);
   const currentProfile = await profileService.getJobSeekerProfile(req.user.id);
   const upload = await uploadResumeBuffer(req.file.buffer, {
-    public_id: `profile-resume-${req.user.id}-${Date.now()}`,
+    // Include `.pdf` so Cloudinary identifies the asset as a PDF.
+    public_id: `profile-resume-${req.user.id}-${Date.now()}.pdf`,
   });
 
   if (currentProfile?.resumePublicId && currentProfile.resumePublicId !== upload.public_id) {

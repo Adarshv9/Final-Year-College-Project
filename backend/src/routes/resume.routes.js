@@ -29,6 +29,9 @@ router.post(
 // GET /resume — Get current user's resume (job seekers only)
 router.get('/resume', authenticateJWT, resumeController.getResume);
 
+// GET /resume/download — Download current user's resume with a friendly filename
+router.get('/resume/download', authenticateJWT, resumeController.downloadResume);
+
 // PATCH /resume — Partial update for current user's resume (job seekers only)
 router.patch(
   '/resume',

@@ -7,6 +7,7 @@ import User from '../models/User.js';
 import ApiError from '../utils/ApiError.js';
 import logger from '../utils/logger.js';
 import normalizeSkills from '../utils/normalizeSkills.js';
+import { buildResumeDownloadUrl } from '../config/cloudinary.js';
 import { scoreApplication } from './ai/ai.service.js';
 import { computeHybridScore } from './scoring.service.js';
 
@@ -55,6 +56,64 @@ const buildResumeSnapshot = (resume) => {
       institution: firstEducation.institution || '',
       year: firstEducation.year ?? null,
     },
+  };
+};
+
+const hasSnapshotEducation = (education = {}) =>
+  Boolean(education?.degree || education?.institution || education?.year);
+
+const buildApplicantDetails = (application) => {
+  const resume =
+    application.resumeId && typeof application.resumeId === 'object'
+      ? application.resumeId
+      : null;
+
+  const snapshot = application.resumeSnapshot || {};
+  const snapshotEducation = hasSnapshotEducation(snapshot.education)
+    ? [snapshot.education]
+    : [];
+
+  const skills =
+    Array.isArray(snapshot.skills) && snapshot.skills.length > 0
+      ? snapshot.skills
+      : Array.isArray(resume?.skills)
+        ? resume.skills
+        : [];
+
+  const education =
+    snapshotEducation.length > 0
+      ? snapshotEducation
+      : Array.isArray(resume?.education)
+        ? resume.education
+        : [];
+
+  return {
+    name: application.jobSeekerId?.name || snapshot.name || resume?.name || 'Applicant',
+    email: application.jobSeekerId?.email || resume?.email || '',
+    phone: resume?.phone || '',
+    location: resume?.location || '',
+    summary: resume?.summary || '',
+    skills,
+    education,
+    experience: Array.isArray(resume?.experiences) ? resume.experiences : [],
+    experienceYears: snapshot.experienceYears ?? resume?.experienceYears ?? 0,
+    resumeUrl: resume?.fileUrl || '',
+    resumeDownloadUrl: buildResumeDownloadUrl(
+      resume?.filePublicId,
+      application.jobSeekerId?.name || snapshot.name || resume?.name || 'Resume'
+    ),
+    resumeVerified: Boolean(resume?.isVerified),
+  };
+};
+
+const buildJobSummary = (job) => {
+  if (!job || typeof job !== 'object') return null;
+
+  return {
+    _id: String(job._id || ''),
+    title: job.title || '',
+    companyName: job.companyName || '',
+    location: job.location || '',
   };
 };
 
@@ -118,6 +177,14 @@ const buildDecisionEmailUpdate = (status) => ({
   'decisionEmail.type': status,
   'decisionEmail.status': 'scheduled',
   'decisionEmail.sendAt': new Date(Date.now() + DECISION_EMAIL_DELAY_MS),
+  'decisionEmail.sentAt': null,
+  'decisionEmail.lastError': '',
+});
+
+const buildCancelledDecisionEmailUpdate = () => ({
+  'decisionEmail.type': null,
+  'decisionEmail.status': 'cancelled',
+  'decisionEmail.sendAt': null,
   'decisionEmail.sentAt': null,
   'decisionEmail.lastError': '',
 });
@@ -191,7 +258,13 @@ export const createApplication = async (jobId, jobSeeker, message = '') => {
     });
   } catch (error) {
     if (error?.code === 11000) {
-      throw new ApiError(409, 'You have already applied for this job', [], false);
+      const duplicateFields = Object.keys(error.keyPattern || error.keyValue || {});
+      const isApplicationDuplicate =
+        duplicateFields.includes('jobId') && duplicateFields.includes('jobSeekerId');
+
+      if (isApplicationDuplicate) {
+        throw new ApiError(409, 'You have already applied for this job', [], false);
+      }
     }
     throw error;
   }
@@ -235,6 +308,69 @@ export const getMyApplications = async (jobSeekerId) => {
   }));
 };
 
+export const getRecruiterApplications = async (recruiterId, options = {}) => {
+  const {
+    page = 1,
+    limit = 100,
+    status,
+    jobId,
+    sort = 'newest',
+  } = options;
+
+  if (jobId) {
+    await getOwnedJob(jobId, recruiterId);
+  }
+
+  const skip = (page - 1) * limit;
+  const query = { recruiterId };
+
+  if (status) query.status = status;
+  if (jobId) query.jobId = jobId;
+
+  const sortOption = sort === 'oldest' ? { createdAt: 1 } : { createdAt: -1 };
+
+  const [applications, total] = await Promise.all([
+    Application.find(query)
+      .populate('jobId', 'title companyName location')
+      .populate('jobSeekerId', 'name email')
+      .populate(
+        'resumeId',
+        'name email phone location summary skills education experiences experienceYears fileUrl isVerified'
+      )
+      .sort(sortOption)
+      .skip(skip)
+      .limit(limit)
+      .lean(),
+    Application.countDocuments(query),
+  ]);
+
+  return {
+    data: applications.map((application) => {
+      const applicant = buildApplicantDetails(application);
+
+      return {
+        _id: String(application._id),
+        applicationId: String(application._id),
+        applicant,
+        candidateName: applicant.name,
+        experienceYears: applicant.experienceYears,
+        status: application.status,
+        message: application.message || '',
+        aiScore: application.aiScore,
+        hybridScore: application.hybridScore,
+        appliedAt: application.createdAt,
+        job: buildJobSummary(application.jobId),
+      };
+    }),
+    pagination: {
+      page,
+      limit,
+      total,
+      pages: Math.ceil(total / limit),
+    },
+  };
+};
+
 /**
  * Get applications for a job — paginated and filterable by status.
  */
@@ -248,19 +384,36 @@ export const getApplicationsForJob = async (jobId, recruiterId, options = {}) =>
   if (status) query.status = status;
 
   const [applications, total] = await Promise.all([
-    Application.find(query).sort({ createdAt: -1 }).skip(skip).limit(limit).lean(),
+    Application.find(query)
+      .populate('jobSeekerId', 'name email')
+      .populate(
+        'resumeId',
+        'name email phone location summary skills education experiences experienceYears fileUrl isVerified'
+      )
+      .sort({ createdAt: -1 })
+      .skip(skip)
+      .limit(limit)
+      .lean(),
     Application.countDocuments(query),
   ]);
 
   return {
-    data: applications.map((application) => ({
-      applicationId: String(application._id),
-      candidateName: application.resumeSnapshot?.name || '',
-      experienceYears: application.resumeSnapshot?.experienceYears || 0,
-      status: application.status,
-      aiScore: application.aiScore,
-      hybridScore: application.hybridScore,
-    })),
+    data: applications.map((application) => {
+      const applicant = buildApplicantDetails(application);
+
+      return {
+        _id: String(application._id),
+        applicationId: String(application._id),
+        applicant,
+        candidateName: applicant.name,
+        experienceYears: applicant.experienceYears,
+        status: application.status,
+        message: application.message || '',
+        aiScore: application.aiScore,
+        hybridScore: application.hybridScore,
+        appliedAt: application.createdAt,
+      };
+    }),
     pagination: {
       page,
       limit,
@@ -272,7 +425,14 @@ export const getApplicationsForJob = async (jobId, recruiterId, options = {}) =>
 
 export const getRecommendedApplications = async (jobId, recruiterId) => {
   const job = await getOwnedJob(jobId, recruiterId);
-  const applications = await Application.find({ jobId }).sort({ createdAt: -1 }).lean();
+  const applications = await Application.find({ jobId })
+    .populate('jobSeekerId', 'name email')
+    .populate(
+      'resumeId',
+      'name email phone location summary skills education experiences experienceYears fileUrl isVerified'
+    )
+    .sort({ createdAt: -1 })
+    .lean();
 
   const rankedApplications = [];
 
@@ -294,12 +454,20 @@ export const getRecommendedApplications = async (jobId, recruiterId) => {
       hybridScore = scores.hybridScore;
     }
 
+    const applicant = buildApplicantDetails(application);
+
     rankedApplications.push({
+      _id: String(application._id),
       applicationId: String(application._id),
-      candidateName: application.resumeSnapshot?.name || '',
+      applicant,
+      candidateName: applicant.name,
+      experienceYears: applicant.experienceYears,
+      status: application.status,
+      message: application.message || '',
       aiScore,
       hybridScore,
       reason: aiReason || '',
+      appliedAt: application.createdAt,
     });
   }
 
@@ -317,6 +485,33 @@ export const updateApplicationStatus = async (applicationId, recruiter, status) 
 
   const candidate = await User.findById(application.jobSeekerId).lean();
   if (!candidate) throw new ApiError(404, 'Candidate not found', [], false);
+
+  if (status === application.status) {
+    return {
+      status,
+      candidateEmail: candidate.email,
+      jobTitle: job.title,
+      decisionEmailSendAt: null,
+    };
+  }
+
+  if (status === 'pending') {
+    await Application.findByIdAndUpdate(applicationId, {
+      $set: {
+        status,
+        ...buildCancelledDecisionEmailUpdate(),
+      },
+    });
+
+    logger.info(`Decision email cancelled for application ${applicationId}; status reverted to pending`);
+
+    return {
+      status,
+      candidateEmail: candidate.email,
+      jobTitle: job.title,
+      decisionEmailSendAt: null,
+    };
+  }
 
   const decisionEmailSendAt = new Date(Date.now() + DECISION_EMAIL_DELAY_MS);
   await Application.findByIdAndUpdate(applicationId, {
@@ -372,13 +567,7 @@ export const processScheduledDecisionEmails = async () => {
       const decisionType = claimedApplication.decisionEmail?.type;
       if (!decisionType || decisionType !== claimedApplication.status) {
         await Application.findByIdAndUpdate(claimedApplication._id, {
-          $set: {
-            'decisionEmail.type': null,
-            'decisionEmail.status': 'cancelled',
-            'decisionEmail.sendAt': null,
-            'decisionEmail.sentAt': null,
-            'decisionEmail.lastError': '',
-          },
+          $set: buildCancelledDecisionEmailUpdate(),
         });
         continue;
       }

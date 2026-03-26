@@ -20,6 +20,7 @@ const NAV = {
   recruiter: [
     { to: '/recruiter/dashboard', icon: LayoutDashboard, label: 'Dashboard' },
     { to: '/recruiter/jobs', icon: Briefcase, label: 'My Jobs' },
+    { to: '/recruiter/applications', icon: Users, label: 'Applications' },
     { to: '/recruiter/jobs/new', icon: Plus, label: 'Post a Job' },
     { to: '/recruiter/profile', icon: Building2, label: 'Company Profile' },
   ],
@@ -80,23 +81,27 @@ export default function Sidebar({ mobileOpen, onClose }) {
 
         {/* Nav */}
         <nav className="flex-1 px-3 py-4 space-y-0.5 overflow-y-auto">
-          {links.map(({ to, icon: Icon, label }) => (
-            <NavLink
-              key={to}
-              to={to}
-              end={to !== '/jobs'}
-              onClick={onClose}
-              className={({ isActive }) => [
-                'flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-150',
-                isActive
-                  ? 'bg-indigo-500/15 text-indigo-400'
-                  : 'text-[#94a3b8] hover:bg-[#1a2236] hover:text-[#e2e8f0]',
-              ].join(' ')}
-            >
-              <Icon size={17} className="flex-shrink-0" />
-              <span>{label}</span>
-            </NavLink>
-          ))}
+          {links.map(({ to, icon, label }) => {
+            const Icon = icon;
+
+            return (
+              <NavLink
+                key={to}
+                to={to}
+                end={to !== '/jobs'}
+                onClick={onClose}
+                className={({ isActive }) => [
+                  'flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-150',
+                  isActive
+                    ? 'bg-indigo-500/15 text-indigo-400'
+                    : 'text-[#94a3b8] hover:bg-[#1a2236] hover:text-[#e2e8f0]',
+                ].join(' ')}
+              >
+                <Icon size={17} className="flex-shrink-0" />
+                <span>{label}</span>
+              </NavLink>
+            );
+          })}
         </nav>
 
         {/* User footer */}
