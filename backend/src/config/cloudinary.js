@@ -39,10 +39,10 @@ export const uploadResumeBuffer = async (buffer, options = {}) => {
   return new Promise((resolve, reject) => {
     const stream = cloudinary.uploader.upload_stream(
       {
-        resource_type: 'image',
+        resource_type: 'raw',
         // Force Cloudinary to treat this asset as a PDF so the dashboard
         // shows a PDF "Format" and PDF viewers/downloads behave correctly.
-        format: 'pdf',
+        // format: 'pdf',
         folder: 'talentbridge/resumes',
         use_filename: true,
         unique_filename: true,
