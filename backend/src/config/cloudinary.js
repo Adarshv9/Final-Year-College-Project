@@ -93,14 +93,11 @@ export const buildResumeDownloadUrl = (publicId, resumeName = 'Resume') => {
   if (!publicId || !cloudinaryConfig) return '';
 
   const attachmentName = sanitizeAttachmentName(`${resumeName}_Resume`) || 'Resume';
-  const looksLikePdfPublicId = /\.pdf$/i.test(publicId);
+  // const looksLikePdfPublicId = /\.pdf$/i.test(publicId);
 
   return cloudinary.url(publicId, {
     resource_type: 'raw',
     type: 'upload',
-    // Avoid double extensions: if `publicId` already ends with `.pdf`,
-    // forcing `format: 'pdf'` can result in URLs that don't match the stored asset.
-    ...(looksLikePdfPublicId ? {} : { format: 'pdf' }),
     flags: `attachment:${attachmentName}`,
     secure: true,
     sign_url: true,

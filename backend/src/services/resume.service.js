@@ -36,7 +36,7 @@ export const processResumeFile = async (userId, pdfBuffer) => {
 
   const upload = await uploadResumeBuffer(pdfBuffer, {
     // Include `.pdf` so Cloudinary identifies the asset as a PDF even for `resource_type: 'raw'`.
-    public_id: `resume-${userId}-${Date.now()}`,
+    public_id: `resume-${userId}-${Date.now()}.pdf`,
   });
 
   const resumeData = {
