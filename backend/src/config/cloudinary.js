@@ -68,7 +68,7 @@ export const deleteResumeAsset = async (publicId) => {
 
   try {
     const resImage = await cloudinary.uploader.destroy(publicId, {
-      resource_type: 'image',
+      resource_type: 'raw',
     });
     
     // Also attempt raw resource deletion in case there are old format files
@@ -96,7 +96,7 @@ export const buildResumeDownloadUrl = (publicId, resumeName = 'Resume') => {
   const looksLikePdfPublicId = /\.pdf$/i.test(publicId);
 
   return cloudinary.url(publicId, {
-    resource_type: 'image',
+    resource_type: 'raw',
     type: 'upload',
     // Avoid double extensions: if `publicId` already ends with `.pdf`,
     // forcing `format: 'pdf'` can result in URLs that don't match the stored asset.
