@@ -1,3 +1,4 @@
+// React context that restores the session and exposes auth helpers to the app.
 import { createContext, useContext, useEffect, useState, useCallback } from 'react';
 import api from '../lib/axios';
 
@@ -7,7 +8,8 @@ export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
 
-  // Restore session on mount using httpOnly cookie (no localStorage)
+  // Restore the current session once on startup. The backend reads the
+  // httpOnly cookie, so the frontend never has to persist tokens itself.
   useEffect(() => {
     api.get('/auth/me')
       .then(({ data }) => setUser(data.data?.user || data.data))
@@ -24,6 +26,8 @@ export function AuthProvider({ children }) {
   }, []);
 
   const logout = useCallback(async () => {
+    // Even if the API call fails, clear local auth state so the UI does not
+    // keep rendering a stale signed-in session.
     try { await api.post('/auth/logout'); } catch (_) { /* ignore */ }
     setUser(null);
   }, []);

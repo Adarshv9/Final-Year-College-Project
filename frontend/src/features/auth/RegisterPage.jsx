@@ -1,3 +1,4 @@
+// Registration page for job seekers and recruiters with initial account setup.
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useForm } from 'react-hook-form';

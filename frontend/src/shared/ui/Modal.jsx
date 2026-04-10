@@ -1,3 +1,4 @@
+// Modal dialog component with escape handling and backdrop behavior.
 import { useEffect } from 'react';
 import { X } from 'lucide-react';
 import Button from './Button';

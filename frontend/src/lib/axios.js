@@ -1,3 +1,4 @@
+// Shared Axios client with base URL, cookies, and response handling.
 import axios from 'axios';
 
 const API_BASE = '/api/v1';
@@ -24,6 +25,8 @@ const shouldSkipRefresh = (url = '') =>
 
 const refreshSession = async () => {
   if (!refreshRequest) {
+    // Reuse a single in-flight refresh so a burst of 401s only triggers one
+    // refresh request instead of a thundering herd.
     refreshRequest = api.post('/auth/refresh-token', {})
       .finally(() => {
         refreshRequest = null;
@@ -48,6 +51,7 @@ api.interceptors.response.use(
       originalRequest._retry = true;
 
       try {
+        // Refresh first, then replay the original request with the new cookie.
         await refreshSession();
         return api(originalRequest);
       } catch (refreshError) {
@@ -58,6 +62,7 @@ api.interceptors.response.use(
       }
     }
 
+    // If the request was not recoverable, fall back to the login screen.
     if (status === 401 && !isAuthPage()) {
       window.location.href = '/login';
     }

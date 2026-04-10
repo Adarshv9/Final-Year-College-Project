@@ -3,6 +3,9 @@ import JobSeekerProfile from '../models/JobSeekerProfile.js';
 import RecruiterProfile from '../models/RecruiterProfile.js';
 import ApiError from '../utils/ApiError.js';
 
+// Job seekers and recruiters use separate collections because their profile
+// fields diverge quickly and are edited from different parts of the UI.
+
 // ── Job Seeker Profile ──
 
 // Create a new job seeker profile
@@ -46,6 +49,8 @@ export const uploadJobSeekerResume = async (userId, resumeUrl, resumePublicId, p
   let profile = await JobSeekerProfile.findOne({ user: userId });
 
   if (!profile) {
+    // Resume upload can be the first profile-touching action for a new user,
+    // so create the shell profile lazily when needed.
     profile = new JobSeekerProfile({ user: userId });
   }
 

@@ -20,6 +20,9 @@ const app = express();
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
+// Middleware order matters: security and request metadata come first,
+// parsers/sanitizers run before routes, and the error handler stays last.
+
 // ── Security ──────────────────────────────────────────────────────────────────
 app.use(helmet());
 
@@ -76,9 +79,13 @@ app.get('/api/health', (_req, res) => {
 });
 
 // ── Static Files ──────────────────────────────────────────────────────────────
+// Uploaded resume files are exposed from a separate folder instead of being
+// served through the API controllers.
 app.use('/uploads', express.static(path.resolve(__dirname, '../uploads')));
 
 // ── API Routes ────────────────────────────────────────────────────────────────
+// Versioning the API at the mount point makes it easier to evolve routes
+// without changing the rest of the server setup.
 app.use('/api/v1', routes);
 
 // ── 404 Handler ───────────────────────────────────────────────────────────────

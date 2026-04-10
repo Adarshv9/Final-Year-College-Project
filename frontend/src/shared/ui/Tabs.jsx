@@ -1,3 +1,4 @@
+// Lightweight tabs component for swapping between related views.
 import { useState } from 'react';
 
 export function Tabs({ tabs, defaultTab, className = '' }) {

@@ -1,3 +1,4 @@
+// Public job listing page with search, filters, and pagination.
 import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { Link, useNavigate } from 'react-router-dom';
@@ -82,6 +83,8 @@ function JobCard({ job }) {
 }
 
 export default function JobsPage() {
+  // Filters double as the React Query key so changing any control naturally
+  // triggers a refetch and resets pagination together.
   const [filters, setFilters] = useState({ search: '', jobType: '', locationType: '', page: 1 });
   const [showFilters, setShowFilters] = useState(false);
   const { isAuthenticated } = useAuth();

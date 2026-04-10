@@ -1,3 +1,4 @@
+// Vite configuration for the frontend dev server and build pipeline.
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 import tailwindcss from '@tailwindcss/vite';

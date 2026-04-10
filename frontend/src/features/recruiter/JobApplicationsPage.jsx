@@ -1,3 +1,4 @@
+// Recruiter page for reviewing applications tied to one specific job posting.
 import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useParams, Link } from 'react-router-dom';

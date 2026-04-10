@@ -1,3 +1,4 @@
+// Recruiter form page for creating new job posts and editing existing ones.
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
@@ -43,6 +44,7 @@ export default function JobFormPage() {
 
   useEffect(() => {
     if (jobData) {
+      // Reshape the API response into the flat fields controlled by the form.
       reset({
         title: jobData.title || '',
         companyName: jobData.companyName || '',
@@ -71,6 +73,7 @@ export default function JobFormPage() {
   });
 
   const onSubmit = (data) => {
+    // Convert the flat form values back into the nested payload expected by the API.
     const payload = {
       title: data.title,
       companyName: data.companyName,
@@ -98,6 +101,7 @@ export default function JobFormPage() {
 
   const inputCls = (hasError) => `w-full bg-[#0b0f1a] border rounded-lg px-3 py-2.5 text-sm text-[#e2e8f0] placeholder-[#64748b] outline-none focus:ring-2 transition-all ${hasError ? 'border-rose-500 focus:ring-rose-500/20' : 'border-[#1e2a3d] focus:border-indigo-500 focus:ring-indigo-500/20'}`;
   const selectCls = `${inputCls(false)} cursor-pointer`;
+  // Draw a custom chevron so native selects match the rest of the form styling.
   const selectStyle = { appearance: 'none', backgroundImage: "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%2364748b' d='M6 8L1 3h10z'/%3E%3C/svg%3E\")", backgroundRepeat: 'no-repeat', backgroundPosition: 'right 12px center', paddingRight: '2rem' };
 
   return (

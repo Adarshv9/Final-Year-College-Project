@@ -1,3 +1,4 @@
+// Admin page for managing platform users, roles, and account status.
 import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Search, Users, Trash2, X, ShieldCheck } from 'lucide-react';

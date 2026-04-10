@@ -1,3 +1,4 @@
+// Central React Router definition for public, protected, and role-based routes.
 import { createElement, lazy, Suspense } from 'react';
 import { createBrowserRouter, RouterProvider, Navigate, Outlet } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
@@ -14,6 +15,8 @@ const PageSkeleton = () => (
 );
 
 // ── Lazy pages ──
+// Each area is lazy-loaded so users only download the screens for the role
+// and route they actually visit.
 const LoginPage        = lazy(() => import('../features/auth/LoginPage'));
 const RegisterPage     = lazy(() => import('../features/auth/RegisterPage'));
 const OTPVerifyPage    = lazy(() => import('../features/auth/OTPVerifyPage'));
@@ -90,6 +93,8 @@ const SNull = (Component) => (
 
 // ── Router ──
 const router = createBrowserRouter([
+  // Route groups mirror the product areas: public browsing first, then
+  // role-locked spaces wrapped in the shared application shell.
   // Public routes (no auth required)
   { path: '/jobs', element: S(JobsPage) },
   { path: '/jobs/:jobId', element: S(JobDetailPage) },
@@ -163,5 +168,7 @@ const router = createBrowserRouter([
 ]);
 
 export default function AppRouter() {
+  // Keeping RouterProvider here lets main.jsx stay focused on app-wide
+  // providers such as auth, React Query, and toasts.
   return <RouterProvider router={router} />;
 }

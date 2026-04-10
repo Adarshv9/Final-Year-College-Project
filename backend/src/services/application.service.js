@@ -16,6 +16,9 @@ const DECISION_EMAIL_POLL_MS = 5 * 1000;
 let decisionEmailProcessor = null;
 let isProcessingDecisionEmails = false;
 
+// This service handles both recruiter-facing application queries and the
+// delayed decision-email workflow that runs in the background.
+
 // ── Email ─────────────────────────────────────────────────────────────────────
 
 const transporter = nodemailer.createTransport({
@@ -73,6 +76,8 @@ const buildApplicantDetails = (application) => {
     ? [snapshot.education]
     : [];
 
+  // Prefer the frozen snapshot first so recruiter views stay tied to the
+  // version of the resume that was actually submitted.
   const skills =
     Array.isArray(snapshot.skills) && snapshot.skills.length > 0
       ? snapshot.skills
@@ -126,6 +131,8 @@ const getOwnedJob = async (jobId, recruiterId) => {
 const getApplicationWithOwnershipCheck = async (applicationId, recruiterId) => {
   const application = await Application.findById(applicationId).lean();
   if (!application) throw new ApiError(404, 'Application not found', [], false);
+  // Ownership is enforced through the job so recruiters cannot mutate
+  // applications that belong to another recruiter.
   const job = await getOwnedJob(application.jobId, recruiterId);
   return { application, job };
 };
@@ -174,6 +181,7 @@ const buildDecisionEmailContent = ({ candidate, job, status }) => {
 };
 
 const buildDecisionEmailUpdate = (status) => ({
+  // Delay the email slightly so recruiters can undo accidental decisions.
   'decisionEmail.type': status,
   'decisionEmail.status': 'scheduled',
   'decisionEmail.sendAt': new Date(Date.now() + DECISION_EMAIL_DELAY_MS),
@@ -269,6 +277,8 @@ export const createApplication = async (jobId, jobSeeker, message = '') => {
     throw error;
   }
 
+  // The job keeps a lightweight applicant list for recruiter dashboards while
+  // the full application document stores the detailed submission payload.
   await Job.findByIdAndUpdate(jobId, { $addToSet: { applicants: jobSeeker._id } });
 
   try {
@@ -297,6 +307,8 @@ export const getMyApplications = async (jobSeekerId) => {
     .lean();
 
   return applications.map((application) => ({
+    // Flatten populate output so the frontend does not have to handle
+    // different shapes for populated vs. unpopulated relations.
     applicationId: String(application._id),
     jobId: String(application.jobId?._id || application.jobId || ''),
     jobTitle: application.jobId?.title || '',
@@ -345,6 +357,8 @@ export const getRecruiterApplications = async (recruiterId, options = {}) => {
   ]);
 
   return {
+    // Flatten related documents here so the frontend receives a stable shape
+    // for tables and candidate cards.
     data: applications.map((application) => {
       const applicant = buildApplicantDetails(application);
 
@@ -496,6 +510,8 @@ export const updateApplicationStatus = async (applicationId, recruiter, status) 
   }
 
   if (status === 'pending') {
+    // Moving back to pending acts like an undo, so any scheduled decision
+    // email is cancelled before it can be sent.
     await Application.findByIdAndUpdate(applicationId, {
       $set: {
         status,
@@ -539,6 +555,8 @@ export const processScheduledDecisionEmails = async () => {
 
   try {
     const now = new Date();
+    // Process a small batch at a time so email work does not monopolize the
+    // event loop if many decisions become due together.
     const dueApplications = await Application.find({
       'decisionEmail.status': 'scheduled',
       'decisionEmail.sendAt': { $lte: now },
@@ -548,6 +566,7 @@ export const processScheduledDecisionEmails = async () => {
       .lean();
 
     for (const dueApplication of dueApplications) {
+      // Claim the row first so concurrent polling loops cannot send twice.
       const claimedApplication = await Application.findOneAndUpdate(
         {
           _id: dueApplication._id,
@@ -564,6 +583,7 @@ export const processScheduledDecisionEmails = async () => {
 
       if (!claimedApplication) continue;
 
+      // If the recruiter changed the decision meanwhile, cancel the stale email.
       const decisionType = claimedApplication.decisionEmail?.type;
       if (!decisionType || decisionType !== claimedApplication.status) {
         await Application.findByIdAndUpdate(claimedApplication._id, {
@@ -635,6 +655,8 @@ export const startDecisionEmailProcessor = () => {
     }
   };
 
+  // A simple polling loop is enough here because the scheduled workload is
+  // small and entirely persisted in MongoDB.
   decisionEmailProcessor = setInterval(runProcessor, DECISION_EMAIL_POLL_MS);
   if (typeof decisionEmailProcessor.unref === 'function') {
     decisionEmailProcessor.unref();

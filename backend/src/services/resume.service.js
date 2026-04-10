@@ -83,6 +83,8 @@ export const upsertResume = async (userId, resumeData) => {
         fileUrl: otherData.fileUrl || '',
         filePublicId: otherData.filePublicId || '',
         rawText: otherData.rawText || '',
+        // Keep the original AI payload as well as normalized top-level fields
+        // so admins can inspect what the model extracted.
         parsedData: otherData.parsedData || {},
       },
     },
@@ -91,6 +93,8 @@ export const upsertResume = async (userId, resumeData) => {
 };
 
 export const updateResumeFields = async (userId, updates) => {
+  // Manual edits are intentionally whitelisted so clients cannot overwrite
+  // storage metadata such as Cloudinary ids by accident.
   const allowedFields = [
     'name', 'email', 'phone', 'location', 'summary',
     'skills', 'experiences', 'education', 'projects', 'experienceYears',
@@ -139,6 +143,8 @@ export const getAllResumes = async (options = {}) => {
   const { limit = 10, page = 1, search = '' } = options;
   const skip = (page - 1) * limit;
 
+  // Admin search stays name-based for now to keep moderation queries fast and
+  // predictable.
   const query = search ? { name: { $regex: search, $options: 'i' } } : {};
 
   const resumes = await Resume.find(query)

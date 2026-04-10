@@ -1,3 +1,4 @@
+// Chip-style input for entering multiple free-form tags such as skills.
 import { useState, useRef } from 'react';
 import { X, Plus } from 'lucide-react';
 
@@ -7,6 +8,7 @@ export function TagInput({ value = [], onChange, placeholder = 'Add item…', la
 
   const addTag = (tag) => {
     const trimmed = tag.trim();
+    // Ignore empty values and keep the chip list unique.
     if (trimmed && !value.includes(trimmed)) {
       onChange([...value, trimmed]);
     }
@@ -22,6 +24,7 @@ export function TagInput({ value = [], onChange, placeholder = 'Add item…', la
       e.preventDefault();
       addTag(input);
     } else if (e.key === 'Backspace' && !input && value.length > 0) {
+      // Match common tag-input UX by deleting the last chip first.
       onChange(value.slice(0, -1));
     }
   };

@@ -20,6 +20,8 @@ const transporter = nodemailer.createTransport({
   },
 });
 
+// Fail fast during startup when SMTP credentials are wrong instead of waiting
+// until the first signup attempt to discover the issue.
 await transporter.verify()
   .then(() => console.log("SMTP SUCCESS"))
   .catch((err) => console.log("SMTP FAIL:", err));
@@ -91,7 +93,8 @@ export const register = async ({ name, email, password, role = 'job_seeker' }) =
     throw new ApiError(409, 'Email is already registered');
   }
 
-  // Generate OTP
+  // Account creation and OTP generation happen together so the email address
+  // is reserved immediately after signup starts.
   const otp = generateOTP();
   const otpExpiresAt = getOTPExpiry();
 
@@ -215,7 +218,8 @@ export const login = async ({ email, password }) => {
     throw new ApiError(403, 'Your recruiter account is not yet approved by admin.');
   }
 
-  // Generate tokens (refresh token is saved to DB in tokenService)
+  // Access tokens stay short-lived while refresh tokens are persisted for
+  // rotation and revocation in tokenService.
   const token = tokenService.generateAccessToken(user);
   const refreshToken = await tokenService.generateRefreshToken(user);
 
@@ -250,7 +254,7 @@ export const refreshAccessToken = async (refreshTokenStr) => {
     throw new ApiError(403, 'Your recruiter account is not yet approved by admin.');
   }
 
-  // Rotate refresh token: remove old, issue new
+  // Rotation limits replay risk by making each refresh token single-use.
   await tokenService.removeRefreshToken(refreshTokenStr);
 
   const accessToken = tokenService.generateAccessToken(user);

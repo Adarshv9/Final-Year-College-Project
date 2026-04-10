@@ -1,3 +1,4 @@
+// Shared select component styled to match the rest of the form system.
 import { forwardRef } from 'react';
 import { inputBase } from './Input';
 

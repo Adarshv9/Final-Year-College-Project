@@ -1,3 +1,4 @@
+// Job seeker profile editor for personal details and career preferences.
 import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useForm, useFieldArray } from 'react-hook-form';

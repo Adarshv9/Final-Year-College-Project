@@ -1,3 +1,4 @@
+// Pagination controls for moving through multi-page result sets.
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 
 export function Pagination({ page, totalPages, onPageChange }) {

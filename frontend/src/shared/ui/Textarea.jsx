@@ -1,3 +1,4 @@
+// Shared textarea component with forwarded refs and consistent styling.
 import { forwardRef } from 'react';
 import { inputBase } from './Input';
 

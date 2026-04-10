@@ -19,6 +19,8 @@ const startServer = async () => {
     validateEnv();
     await connectDB();
     logger.info('MongoDB connected');
+    // Decision emails are scheduled in MongoDB and processed by a lightweight
+    // polling loop that only starts once the database is ready.
     startDecisionEmailProcessor();
 
     const server = app.listen(env.port, () => {
@@ -38,6 +40,7 @@ const startServer = async () => {
     process.on('SIGTERM', () => gracefulShutdown('SIGTERM'));
     process.on('SIGINT', () => gracefulShutdown('SIGINT'));
 
+    // Exit on unhandled failures rather than serving requests in a bad state.
     process.on('unhandledRejection', (err) => {
       logger.error(`Unhandled Rejection: ${err.message}`);
       server.close(() => process.exit(1));

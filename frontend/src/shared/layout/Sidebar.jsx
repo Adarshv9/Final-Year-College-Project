@@ -1,3 +1,4 @@
+// Sidebar navigation that adapts links to the signed-in user role.
 import { NavLink, useNavigate } from 'react-router-dom';
 import {
   Briefcase, LayoutDashboard, Star, FileText, User,
@@ -8,6 +9,8 @@ import { useAuth } from '../../context/AuthContext';
 import toast from 'react-hot-toast';
 
 const NAV = {
+  // The sidebar is configuration-driven so role menus stay centralized in one
+  // place instead of being scattered across conditional JSX.
   job_seeker: [
     { to: '/dashboard', icon: LayoutDashboard, label: 'Dashboard' },
     { to: '/jobs', icon: Briefcase, label: 'Browse Jobs' },
@@ -51,6 +54,7 @@ export default function Sidebar({ mobileOpen, onClose }) {
   };
 
   const initials = user?.name
+    // Fallback avatar keeps the footer usable even without uploaded photos.
     ? user.name.split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase()
     : '?';
 

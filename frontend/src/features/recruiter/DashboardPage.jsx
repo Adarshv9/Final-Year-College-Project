@@ -1,3 +1,4 @@
+// Recruiter dashboard with job, application, and hiring overview metrics.
 import { useQuery } from '@tanstack/react-query';
 import { Link } from 'react-router-dom';
 import { Briefcase, Users, Plus, ArrowRight } from 'lucide-react';

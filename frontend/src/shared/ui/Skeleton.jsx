@@ -1,3 +1,4 @@
+// Skeleton placeholder components used while data-heavy screens are loading.
 export function Skeleton({ className = '', height, width, rounded = 'lg' }) {
   const radiusMap = { sm: 'rounded', md: 'rounded-md', lg: 'rounded-lg', full: 'rounded-full' };
   return (

@@ -1,3 +1,4 @@
+// Reusable recruiter card component that displays applicant details and scores.
 import { Link } from 'react-router-dom';
 import {
   CheckCircle,

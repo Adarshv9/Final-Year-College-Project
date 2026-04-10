@@ -39,6 +39,8 @@ export const computeHybridScore = ({
   const aiNormalized = Math.max(0, Math.min(100, Number(aiScore) || 0)) / 100;
 
   // ── Weighted hybrid ───────────────────────────────────────────────────────
+  // The deterministic parts carry more weight than the model score so noisy
+  // AI output cannot completely overpower obvious skill or experience gaps.
   const hybridRaw = 0.5 * skillScore + 0.3 * expScore + 0.2 * aiNormalized;
 
   // Scale back to 0–100 for consistency with aiScore

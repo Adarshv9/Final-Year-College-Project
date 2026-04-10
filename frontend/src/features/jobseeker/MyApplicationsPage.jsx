@@ -1,3 +1,4 @@
+// Job seeker page for tracking submitted applications and their statuses.
 import { useQuery } from '@tanstack/react-query';
 import { Link } from 'react-router-dom';
 import { Briefcase, MapPin, Clock, ChevronRight } from 'lucide-react';

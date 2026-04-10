@@ -1,3 +1,4 @@
+// Admin page for reviewing and approving pending recruiter accounts.
 import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { ShieldCheck, ShieldX, Search, User, Mail, Clock } from 'lucide-react';

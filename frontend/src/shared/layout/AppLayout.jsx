@@ -1,3 +1,4 @@
+// Shared authenticated layout that wraps pages with navigation and content chrome.
 import { useState } from 'react';
 import { Outlet, useLocation } from 'react-router-dom';
 import { Menu, Bell } from 'lucide-react';
@@ -28,6 +29,8 @@ export default function AppLayout() {
   const { pathname } = useLocation();
   const { user } = useAuth();
 
+  // Prefix matching keeps nested routes such as edit/detail pages under the
+  // nearest section title without passing a title prop through every screen.
   const title = Object.entries(PAGE_TITLES).find(([path]) => pathname.startsWith(path))?.[1] || 'TalentBridge';
 
   return (

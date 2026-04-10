@@ -51,6 +51,8 @@ const resumeSnapshotSchema = new mongoose.Schema(
 
 const decisionEmailSchema = new mongoose.Schema(
   {
+    // `type` stores the intended decision, while `status` tracks email-job
+    // execution so the send pipeline can be retried safely.
     type: {
       type: String,
       enum: ['accepted', 'rejected', null],
@@ -110,6 +112,8 @@ const applicationSchema = new mongoose.Schema(
       immutable: true,
     },
     resumeSnapshot: {
+      // Freeze the submitted resume details at apply-time so future resume
+      // edits do not rewrite historical applications.
       type: resumeSnapshotSchema,
       required: true,
       immutable: true,
@@ -152,6 +156,8 @@ const applicationSchema = new mongoose.Schema(
 );
 
 applicationSchema.index({ jobId: 1, jobSeekerId: 1 }, { unique: true });
+// Prevent duplicate applications for the same job even if two apply requests
+// race each other.
 
 const Application = mongoose.model('Application', applicationSchema);
 

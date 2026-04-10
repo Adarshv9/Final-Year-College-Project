@@ -1,3 +1,4 @@
+// Shared button component with variants, sizes, and loading treatment.
 import { forwardRef } from 'react';
 
 const variants = {

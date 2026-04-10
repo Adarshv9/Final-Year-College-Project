@@ -1,3 +1,4 @@
+// Reusable alert banner for info, success, warning, and error states.
 import { AlertTriangle, Info, CheckCircle, XCircle } from 'lucide-react';
 
 const configs = {

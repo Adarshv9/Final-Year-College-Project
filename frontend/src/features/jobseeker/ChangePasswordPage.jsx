@@ -1,3 +1,4 @@
+// Job seeker settings page for updating the account password.
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';

@@ -39,6 +39,7 @@ export const parseResumeText = async (rawText) => {
       throw new ApiError(500, 'Invalid JSON from AI', [], false);
     }
 
+    // Validate the AI response before it reaches the rest of the pipeline.
     if (!parsed || typeof parsed !== 'object') {
       throw new ApiError(400, 'Invalid resume data structure from AI', [], false);
     }
@@ -118,6 +119,8 @@ export const rankJobs = async (resumeSkills, jobs) => {
 
     logger.info(`[METRIC] AI job ranking completed in ${Date.now() - start}ms`);
 
+    // Map ids back to the original query results so the UI only receives
+    // trusted fields from our own database, not arbitrary model output.
     const jobMap = new Map(jobs.map((job) => [String(job._id), job]));
 
     return parsed

@@ -1,3 +1,4 @@
+// Simple card wrapper used to group content with consistent surface styling.
 export function Card({ children, className = '', hover = false, padding = true }) {
   return (
     <div

@@ -1,3 +1,4 @@
+// Job seeker dashboard summarizing profile progress, resume status, and quick actions.
 import { useQuery } from '@tanstack/react-query';
 import { Link } from 'react-router-dom';
 import { Briefcase, Star, FileText, CheckCircle, Clock, XCircle, TrendingUp, ArrowRight } from 'lucide-react';

@@ -1,3 +1,4 @@
+// OTP verification page that completes email-based account confirmation.
 import { useState, useEffect, useRef } from 'react';
 import { useNavigate, useLocation, Link } from 'react-router-dom';
 import { Briefcase, RefreshCcw } from 'lucide-react';

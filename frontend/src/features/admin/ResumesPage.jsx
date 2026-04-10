@@ -1,3 +1,4 @@
+// Admin page for browsing uploaded resumes and verifying candidate documents.
 import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Search, FileText, CheckCircle, X } from 'lucide-react';

@@ -1,3 +1,4 @@
+// Login page that authenticates users and redirects them into the correct role area.
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useForm } from 'react-hook-form';

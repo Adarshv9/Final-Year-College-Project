@@ -1,3 +1,4 @@
+// Admin dashboard page showing high-level platform metrics and recent activity.
 import { useQuery } from '@tanstack/react-query';
 import { Shield, Users, Briefcase, FileText, TrendingUp } from 'lucide-react';
 import { Link } from 'react-router-dom';

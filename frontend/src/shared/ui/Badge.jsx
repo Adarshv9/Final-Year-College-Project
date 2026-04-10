@@ -1,3 +1,4 @@
+// Small badge component for compact status and category labels.
 const variants = {
   default: 'bg-[#1a2236] text-[#94a3b8]',
   accent: 'bg-indigo-500/15 text-indigo-400',

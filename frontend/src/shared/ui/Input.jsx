@@ -1,3 +1,4 @@
+// Shared text input component with forwarded refs and consistent styling.
 import { forwardRef } from 'react';
 
 export const inputBase = 'w-full bg-[#0b0f1a] border border-[#1e2a3d] rounded-lg px-3 py-2.5 text-sm text-[#e2e8f0] placeholder-[#64748b] outline-none transition-all duration-150 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 disabled:opacity-50 disabled:cursor-not-allowed';

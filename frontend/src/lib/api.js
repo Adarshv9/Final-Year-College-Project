@@ -1,6 +1,9 @@
+// Thin API wrapper that groups frontend calls by feature area.
 import api from '../lib/axios';
 
 export const authApi = {
+  // Auth requests are grouped separately because several screens call them
+  // directly outside React Query flows.
   register: (data) => api.post('/auth/register', data),
   login: (data) => api.post('/auth/login', data),
   verifyOTP: (data) => api.post('/auth/verify-otp', data),
@@ -23,6 +26,8 @@ export const usersApi = {
 };
 
 export const jobsApi = {
+  // Public browsing and recruiter management share the same backend resource,
+  // so both read and write helpers live here.
   list: (params) => api.get('/jobs', { params }),
   recommended: (params) => api.get('/jobs/recommended', { params }),
   myJobs: (params) => api.get('/jobs/my', { params }),
@@ -65,6 +70,8 @@ export const recruiterApi = {
 };
 
 export const adminApi = {
+  // Admin screens reuse some user/resume endpoints but keep entry points
+  // grouped here so moderation code stays easy to scan.
   pendingRecruiters: (params) => api.get('/admin/recruiters/pending', { params }),
   verifyRecruiter: (id) => api.patch(`/admin/recruiter/${id}/verify`),
   rejectRecruiter: (id) => api.patch(`/admin/recruiter/${id}/reject`),

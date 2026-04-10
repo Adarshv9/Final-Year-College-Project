@@ -1,3 +1,4 @@
+// Job seeker resume page for PDF upload, manual editing, and resume management.
 import { useState, useRef } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useForm, useFieldArray } from 'react-hook-form';
@@ -41,6 +42,7 @@ function UploadTab({ resume }) {
 
   const handleFile = (f) => {
     if (!f) return;
+    // Mirror backend upload limits here so validation feels instant.
     if (f.type !== 'application/pdf') { toast.error('Only PDF files allowed'); return; }
     if (f.size > 2 * 1024 * 1024) { toast.error('Max file size is 2 MB'); return; }
     setFile(f);
@@ -122,6 +124,7 @@ function ManualEditTab({ resume }) {
   const [skills, setSkills] = useState(resume?.skills || []);
 
   const { register, handleSubmit, control, formState: { isSubmitting } } = useForm({
+    // `values` rehydrates the editor whenever a saved resume is fetched or refreshed.
     values: resume ? {
       name: resume.name || '',
       email: resume.email || '',
@@ -272,6 +275,7 @@ export default function ResumePage() {
   const { data: resume, isLoading } = useQuery({
     queryKey: ['my-resume'],
     queryFn: () => resumeApi.get().then(r => r.data.data).catch(err => {
+      // A missing resume is a normal empty state for new users.
       if (err.response?.status === 404) return null;
       throw err;
     }),

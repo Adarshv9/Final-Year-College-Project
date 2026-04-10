@@ -42,6 +42,7 @@ export const authenticateJWT = asyncHandler(async (req, _res, next) => {
 });
 
 export const optionalAuthenticateJWT = asyncHandler(async (req, _res, next) => {
+  // This helper is for routes where auth is useful but not mandatory.
   const authHeader = req.headers.authorization;
 
   if (!authHeader) {
@@ -112,6 +113,7 @@ export const optionalSessionJWT = asyncHandler(async (req, _res, next) => {
 
 export const authorizeRole = (...roles) => {
   return (req, _res, next) => {
+    // Role checks assume an earlier auth middleware already attached req.user.
     if (!req.user) {
       throw new ApiError(401, 'Authentication required');
     }
