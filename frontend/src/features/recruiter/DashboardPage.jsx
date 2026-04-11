@@ -54,7 +54,7 @@ export default function RecruiterDashboard() {
   return (
     <div className="max-w-5xl mx-auto space-y-8 animate-fade-in">
       <div>
-        <h1 className="text-2xl font-bold text-[#e2e8f0]">Welcome, {user?.name?.split(' ')[0]}! 👋</h1>
+        <h1 className="text-2xl font-bold text-[#e2e8f0]">Welcome, {user?.name?.split(' ')[0]}!</h1>
         <p className="text-sm text-[#94a3b8] mt-1">Your recruiter dashboard</p>
       </div>
 

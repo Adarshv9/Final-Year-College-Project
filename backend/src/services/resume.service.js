@@ -19,36 +19,49 @@ import logger from '../utils/logger.js';
  * 5. Upload the source PDF to Cloudinary
  * 6. Upsert to DB
  */
-export const processResumeFile = async (userId, pdfBuffer) => {
+export const processResumeFile = async (userId, pdfBuffer, options = {}) => {
+  const { assertClientConnected = () => {} } = options;
   const start = Date.now();
   const existingResume = await findResumeByUserId(userId);
-
-  const rawText = await extractTextFromPdf(pdfBuffer);
-  if (!rawText || rawText.trim().length === 0) {
-    throw new ApiError(400, 'Could not extract text from PDF');
-  }
-
-  const cleanedText = cleanResumeText(rawText);
-
-  logger.info(`[Pipeline] Sending resume to AI for user ${userId}`);
-  const aiData = await parseResumeText(cleanedText);
-  const transformedData = transformResumeData(aiData);
-
-  const upload = await uploadResumeBuffer(pdfBuffer, {
-    // Include `.pdf` so Cloudinary identifies the asset as a PDF even for `resource_type: 'raw'`.
-    public_id: `resume-${userId}-${Date.now()}.pdf`,
-  });
-
-  const resumeData = {
-    ...transformedData,
-    fileUrl: upload.secure_url,
-    filePublicId: upload.public_id,
-    rawText: rawText.substring(0, 10000),
-    parsedData: aiData,
-  };
+  let upload = null;
+  let resume = null;
 
   try {
-    const resume = await upsertResume(userId, resumeData);
+    assertClientConnected();
+
+    const rawText = await extractTextFromPdf(pdfBuffer);
+    if (!rawText || rawText.trim().length === 0) {
+      throw new ApiError(400, 'Could not extract text from PDF');
+    }
+
+    assertClientConnected();
+    const cleanedText = cleanResumeText(rawText);
+
+    logger.info(`[Pipeline] Sending resume to AI for user ${userId}`);
+    const aiData = await parseResumeText(cleanedText);
+    assertClientConnected();
+    
+    logger.info(`[Pipeline] Transforming (dates, experience years, normalize skills) for user ${userId}`);
+    const transformedData = transformResumeData(aiData);
+    assertClientConnected();
+
+    logger.info(`[Pipeline] Uploading PDF to Cloudinary for user ${userId}`);
+    upload = await uploadResumeBuffer(pdfBuffer, {
+      // Include `.pdf` so Cloudinary identifies the asset as a PDF even for `resource_type: 'raw'`.
+      public_id: `resume-${userId}-${Date.now()}.pdf`,
+    });
+
+    assertClientConnected();
+    logger.info(`[Pipeline] Saving resume to database for user ${userId}`);
+    const resumeData = {
+      ...transformedData,
+      fileUrl: upload.secure_url,
+      filePublicId: upload.public_id,
+      rawText: rawText.substring(0, 10000),
+      parsedData: aiData,
+    };
+
+    resume = await upsertResume(userId, resumeData);
 
     if (existingResume?.filePublicId && existingResume.filePublicId !== upload.public_id) {
       await deleteResumeAsset(existingResume.filePublicId);
@@ -57,7 +70,9 @@ export const processResumeFile = async (userId, pdfBuffer) => {
     logger.info(`[METRIC] Full resume pipeline for user ${userId} completed in ${Date.now() - start}ms`);
     return resume;
   } catch (error) {
-    await deleteResumeAsset(upload.public_id);
+    if (upload?.public_id && !resume) {
+      await deleteResumeAsset(upload.public_id);
+    }
     throw error;
   }
 };

@@ -78,6 +78,14 @@ function ProtectedRoute({ allowedRoles }) {
   return <Outlet />;
 }
 
+function JobsLayout() {
+  const { isAuthenticated, loading } = useAuth();
+  if (loading) return <PageLoader />;
+  // Jobs stay public, but signed-in users should browse them inside the shared
+  // application shell so their role sidebar remains available.
+  return isAuthenticated ? <AppLayout /> : <Outlet />;
+}
+
 const S = (Component) => (
   <Suspense fallback={<PageSkeleton />}>
     {createElement(Component)}
@@ -95,9 +103,15 @@ const SNull = (Component) => (
 const router = createBrowserRouter([
   // Route groups mirror the product areas: public browsing first, then
   // role-locked spaces wrapped in the shared application shell.
-  // Public routes (no auth required)
-  { path: '/jobs', element: S(JobsPage) },
-  { path: '/jobs/:jobId', element: S(JobDetailPage) },
+  // Public routes (no auth required), with the shared shell layered in when a
+  // session already exists.
+  {
+    element: <JobsLayout />,
+    children: [
+      { path: '/jobs', element: S(JobsPage) },
+      { path: '/jobs/:jobId', element: S(JobDetailPage) },
+    ],
+  },
 
   // Auth routes (redirect if already logged in)
   {

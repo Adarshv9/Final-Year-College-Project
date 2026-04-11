@@ -1,35 +1,51 @@
 // Job seeker resume page for PDF upload, manual editing, and resume management.
-import { useState, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useForm, useFieldArray } from 'react-hook-form';
-import { Upload, FileText, Trash2, Edit3, Plus, Save, Download, CheckCircle2 } from 'lucide-react';
+import { Upload, Trash2, Edit3, Plus, Save, Download, CheckCircle2, Clock, Paperclip } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { resumeApi } from '../../lib/api';
 import Button from '../../shared/ui/Button';
 import { Skeleton } from '../../shared/ui/Skeleton';
 import TagInput from '../../shared/ui/TagInput';
 import Alert from '../../shared/ui/Alert';
-import Badge from '../../shared/ui/Badge';
 
-function UploadTab({ resume }) {
+const RESUME_PROCESS_STEPS = [
+  {
+    title: 'Uploading PDF',
+    description: 'Sending your file securely to the server',
+  },
+  {
+    title: 'Extracting text',
+    description: 'Reading the PDF and extracting resume content',
+  },
+  {
+    title: 'Parsing with AI',
+    description: 'Structuring skills, experience, education, and projects',
+  },
+  {
+    title: 'Saving resume',
+    description: 'Updating your profile and storing the source PDF',
+  },
+];
+
+function getUploadStatusText(step, progress) {
+  if (step === 0) {
+    return progress > 0 && progress < 100
+      ? `Uploading PDF (${progress}%)`
+      : 'Uploading PDF...';
+  }
+  if (step === 1) return 'Extracting text from PDF...';
+  if (step === 2) return 'Parsing resume with AI...';
+  return 'Saving resume to your profile...';
+}
+
+function UploadTab({ resume, file, setFile, uploadMutation, uploadProgress, uploadStep, aiSlow, onCancelUpload }) {
   const qc = useQueryClient();
   const fileRef = useRef(null);
   const [dragging, setDragging] = useState(false);
-  const [file, setFile] = useState(null);
-
-  const uploadMutation = useMutation({
-    mutationFn: (f) => {
-      const fd = new FormData();
-      fd.append('resume', f);
-      return resumeApi.upload(fd);
-    },
-    onSuccess: () => {
-      toast.success('Resume uploaded!');
-      setFile(null);
-      qc.invalidateQueries({ queryKey: ['my-resume'] });
-    },
-    onError: (err) => toast.error(err.response?.data?.message || 'Upload failed'),
-  });
+  const isUploading = uploadMutation.isPending;
+  const statusText = getUploadStatusText(uploadStep, uploadProgress);
 
   const deleteMutation = useMutation({
     mutationFn: resumeApi.delete,
@@ -42,6 +58,7 @@ function UploadTab({ resume }) {
 
   const handleFile = (f) => {
     if (!f) return;
+    if (isUploading) return;
     // Mirror backend upload limits here so validation feels instant.
     if (f.type !== 'application/pdf') { toast.error('Only PDF files allowed'); return; }
     if (f.size > 2 * 1024 * 1024) { toast.error('Max file size is 2 MB'); return; }
@@ -51,6 +68,7 @@ function UploadTab({ resume }) {
   const handleDrop = (e) => {
     e.preventDefault();
     setDragging(false);
+    if (isUploading) return;
     const f = e.dataTransfer.files[0];
     if (f) handleFile(f);
   };
@@ -63,7 +81,7 @@ function UploadTab({ resume }) {
             <CheckCircle2 size={20} className="text-emerald-400" />
             <div>
               <div className="text-sm font-semibold text-[#e2e8f0]">Resume on file</div>
-              {resume.isVerified && <div className="text-xs text-emerald-400">✓ Verified by admin</div>}
+              {resume.isVerified && <div className="text-xs text-emerald-400 flex items-center gap-1"><CheckCircle2 size={11} /> Verified by admin</div>}
             </div>
           </div>
           <div className="flex gap-2">
@@ -76,6 +94,7 @@ function UploadTab({ resume }) {
               variant="danger"
               size="sm"
               loading={deleteMutation.isPending}
+              disabled={isUploading}
               onClick={() => deleteMutation.mutate()}
             >
               <Trash2 size={13} /> Remove
@@ -86,34 +105,116 @@ function UploadTab({ resume }) {
 
       {/* Drop zone */}
       <div
-        className={`border-2 border-dashed rounded-xl p-8 text-center transition-all cursor-pointer ${dragging ? 'border-indigo-500 bg-indigo-500/5' : 'border-[#1e2a3d] hover:border-[#243047]'}`}
-        onClick={() => fileRef.current?.click()}
-        onDragOver={(e) => { e.preventDefault(); setDragging(true); }}
+        className={`border-2 border-dashed rounded-xl p-8 text-center transition-all ${isUploading ? 'opacity-60 cursor-not-allowed border-[#1e2a3d]' : dragging ? 'border-indigo-500 bg-indigo-500/5 cursor-pointer' : 'border-[#1e2a3d] hover:border-[#243047] cursor-pointer'}`}
+        onClick={() => { if (!isUploading) fileRef.current?.click(); }}
+        onDragOver={(e) => {
+          e.preventDefault();
+          if (isUploading) return;
+          setDragging(true);
+        }}
         onDragLeave={() => setDragging(false)}
         onDrop={handleDrop}
       >
-        <Upload size={28} className={`mx-auto mb-3 ${dragging ? 'text-indigo-400' : 'text-[#64748b]'}`} />
+        <Upload size={28} className={`mx-auto mb-3 ${dragging && !isUploading ? 'text-indigo-400' : 'text-[#64748b]'}`} />
         <p className="text-sm font-medium text-[#e2e8f0] mb-1">
           {file ? file.name : 'Drop your resume here or click to browse'}
         </p>
-        <p className="text-xs text-[#64748b]">PDF only, max 2 MB</p>
+        <p className="text-xs text-[#64748b]">
+          {isUploading ? statusText : 'PDF only, max 2 MB'}
+        </p>
         <input
           ref={fileRef}
           type="file"
           accept="application/pdf"
           className="hidden"
+          disabled={isUploading}
           onChange={e => handleFile(e.target.files[0])}
         />
       </div>
 
+      {isUploading && (
+        <Alert type="info">
+          <div className="space-y-4">
+            <div>
+              <div className="font-semibold text-[#e2e8f0]">Processing your resume</div>
+              <p className="mt-1 text-xs text-indigo-200/80">
+                We upload the PDF, extract the text, parse it with AI, and then save the structured resume.
+              </p>
+            </div>
+
+            {/* Slow AI warning */}
+            {aiSlow && uploadStep === 2 && (
+              <div className="text-xs text-amber-300/90 bg-amber-500/10 border border-amber-500/20 rounded-lg px-3 py-2 flex items-center gap-2">
+                <Clock size={13} className="flex-shrink-0 text-amber-400" />
+                The AI is taking longer than usual — free models can queue. Please keep the tab open and wait.
+              </div>
+            )}
+
+            <div className="space-y-3">
+              {RESUME_PROCESS_STEPS.map((step, index) => {
+                const isCompleted = index < uploadStep;
+                const isActive = index === uploadStep;
+                const title =
+                  index === 0 && isActive && uploadProgress > 0 && uploadProgress < 100
+                    ? `${step.title} (${uploadProgress}%)`
+                    : step.title;
+
+                return (
+                  <div key={step.title} className="flex items-start gap-3">
+                    <div className="mt-0.5 flex-shrink-0">
+                      {isCompleted ? (
+                        <CheckCircle2 size={16} className="text-emerald-300" />
+                      ) : (
+                        <span
+                          className={[
+                            'block h-3 w-3 rounded-full border',
+                            isActive
+                              ? 'border-indigo-200 bg-indigo-300 animate-pulse'
+                              : 'border-indigo-200/40 bg-transparent',
+                          ].join(' ')}
+                        />
+                      )}
+                    </div>
+                    <div className="min-w-0">
+                      <div className={isActive ? 'text-[#e2e8f0] font-medium' : 'text-indigo-100/90'}>
+                        {title}
+                      </div>
+                      <div className="text-xs text-indigo-200/70">{step.description}</div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        </Alert>
+      )}
+
       {file && (
-        <Button
-          full
-          loading={uploadMutation.isPending}
-          onClick={() => uploadMutation.mutate(file)}
-        >
-          <Upload size={14} /> Upload Resume
-        </Button>
+        isUploading ? (
+          <div className="flex gap-3">
+            <Button
+              className="flex-1"
+              loading={uploadMutation.isPending}
+              onClick={() => uploadMutation.mutate(file)}
+            >
+              <Upload size={14} /> {statusText}
+            </Button>
+            <Button
+              variant="secondary"
+              onClick={onCancelUpload}
+            >
+              Cancel Upload
+            </Button>
+          </div>
+        ) : (
+          <Button
+            full
+            loading={uploadMutation.isPending}
+            onClick={() => uploadMutation.mutate(file)}
+          >
+            <Upload size={14} /> Upload Resume
+          </Button>
+        )
       )}
     </div>
   );
@@ -271,6 +372,92 @@ function ManualEditTab({ resume }) {
 
 export default function ResumePage() {
   const [tab, setTab] = useState('upload');
+  const [uploadFile, setUploadFile] = useState(null);
+  const [uploadProgress, setUploadProgress] = useState(0);
+  const [uploadStep, setUploadStep] = useState(0);
+  const [aiSlow, setAiSlow] = useState(false);
+  const qc = useQueryClient();
+  const abortControllerRef = useRef(null);
+
+  const resetUploadState = () => {
+    setUploadProgress(0);
+    setUploadStep(0);
+    setAiSlow(false);
+  };
+
+  const handleCancelUpload = () => {
+    abortControllerRef.current?.abort();
+  };
+
+  const uploadMutation = useMutation({
+    mutationFn: (file) => {
+      const controller = new AbortController();
+      abortControllerRef.current = controller;
+      resetUploadState();
+      const fd = new FormData();
+      fd.append('resume', file);
+      return resumeApi.upload(fd, {
+        signal: controller.signal,
+        onUploadProgress: (event) => {
+          if (!event.total) return;
+          const nextProgress = Math.min(100, Math.round((event.loaded / event.total) * 100));
+          setUploadProgress(nextProgress);
+        },
+      });
+    },
+    onSuccess: () => {
+      toast.success('Resume uploaded!');
+      setUploadFile(null);
+      resetUploadState();
+      qc.invalidateQueries({ queryKey: ['my-resume'] });
+    },
+    onError: (err) => {
+      resetUploadState();
+      if (err?.code === 'ERR_CANCELED') {
+        toast('Resume upload canceled');
+        return;
+      }
+      toast.error(err.response?.data?.message || 'Upload failed');
+    },
+    onSettled: () => {
+      abortControllerRef.current = null;
+    },
+  });
+
+  useEffect(() => {
+    if (!uploadMutation.isPending) return undefined;
+    if (uploadProgress < 100) {
+      setUploadStep(0);
+      return undefined;
+    }
+
+    // PDF reached server — start the server-side pipeline steps
+    setUploadStep(1);
+
+    // Step 1 (text extraction) is fast — advance to AI parsing after ~1.5s
+    const extractTimer = setTimeout(() => setUploadStep(2), 1500);
+
+    // Step 2 (AI) can take 30-60s on a free model.
+    // Show a "taking longer than usual" warning after 15s.
+    // Do NOT auto-advance to "Saving" — only advance when the response truly arrives.
+    const slowTimer = setTimeout(() => setAiSlow(true), 16_500);
+
+    return () => {
+      clearTimeout(extractTimer);
+      clearTimeout(slowTimer);
+    };
+  }, [uploadMutation.isPending, uploadProgress]);
+
+  // When the mutation finally resolves (AI done + saved), bump to the last step briefly
+  useEffect(() => {
+    if (uploadMutation.isSuccess) {
+      setUploadStep(3);
+    }
+  }, [uploadMutation.isSuccess]);
+
+  useEffect(() => () => {
+    abortControllerRef.current?.abort();
+  }, []);
 
   const { data: resume, isLoading } = useQuery({
     queryKey: ['my-resume'],
@@ -299,24 +486,37 @@ export default function ResumePage() {
       {/* Tabs */}
       <div className="flex gap-1 border-b border-[#1e2a3d]">
         {[
-          { id: 'upload', label: '📎 Upload PDF', icon: Upload },
-          { id: 'manual', label: '✏️ Manual Edit', icon: Edit3 },
+          { id: 'upload', label: 'Upload PDF', icon: Paperclip },
+          { id: 'manual', label: 'Manual Edit', icon: Edit3 },
         ].map(t => (
           <button
             key={t.id}
+            disabled={uploadMutation.isPending}
             onClick={() => setTab(t.id)}
             className={[
-              'px-4 py-2.5 text-sm font-medium border-b-2 -mb-px transition-all',
+              'flex items-center gap-1.5 px-4 py-2.5 text-sm font-medium border-b-2 -mb-px transition-all disabled:opacity-60 disabled:cursor-not-allowed',
               tab === t.id ? 'text-indigo-400 border-indigo-500' : 'text-[#64748b] border-transparent hover:text-[#94a3b8]',
             ].join(' ')}
           >
+            <t.icon size={14} />
             {t.label}
           </button>
         ))}
       </div>
 
       <div>
-        {tab === 'upload' && <UploadTab resume={resume} />}
+        {tab === 'upload' && (
+          <UploadTab
+            resume={resume}
+            file={uploadFile}
+            setFile={setUploadFile}
+            uploadMutation={uploadMutation}
+            uploadProgress={uploadProgress}
+            uploadStep={uploadStep}
+            aiSlow={aiSlow}
+            onCancelUpload={handleCancelUpload}
+          />
+        )}
         {tab === 'manual' && <ManualEditTab resume={resume} />}
       </div>
     </div>

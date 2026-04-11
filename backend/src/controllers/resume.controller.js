@@ -24,8 +24,31 @@ export const uploadResume = asyncHandler(async (req, res) => {
     throw new ApiError(400, 'Resume file is required', [], false);
   }
 
+  let clientDisconnected = false;
+  let responseFinished = false;
+  const markDisconnected = () => {
+    if (!responseFinished) {
+      clientDisconnected = true;
+    }
+  };
+  const markFinished = () => {
+    responseFinished = true;
+  };
+  const assertClientConnected = () => {
+    if (clientDisconnected || req.aborted || res.destroyed) {
+      throw new ApiError(499, 'Resume upload canceled by client', [], true, 'CLIENT_DISCONNECTED');
+    }
+  };
+
+  req.once('aborted', markDisconnected);
+  res.once('close', markDisconnected);
+  res.once('finish', markFinished);
+
   try {
-    const resume = await resumeService.processResumeFile(req.user.id, req.file.buffer);
+    const resume = await resumeService.processResumeFile(req.user.id, req.file.buffer, {
+      assertClientConnected,
+    });
+    assertClientConnected();
 
     const isCreated =
       resume.createdAt &&
@@ -45,9 +68,24 @@ export const uploadResume = asyncHandler(async (req, res) => {
       })
     );
   } catch (error) {
+    if (
+      error?.errorCode === 'CLIENT_DISCONNECTED' ||
+      error?.statusCode === 499 ||
+      clientDisconnected ||
+      req.aborted ||
+      res.destroyed
+    ) {
+      logger.info(`Resume upload canceled by client for user ${req.user.id}`);
+      return;
+    }
+
     if (error instanceof ApiError) throw error;
     logger.error(`Resume upload error: ${error.message}`);
     throw new ApiError(500, 'Failed to process resume');
+  } finally {
+    req.off('aborted', markDisconnected);
+    res.off('close', markDisconnected);
+    res.off('finish', markFinished);
   }
 });
 

@@ -2,7 +2,7 @@
 import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { Link, useNavigate } from 'react-router-dom';
-import { Search, MapPin, Briefcase, Filter, X, Clock, Building2, ChevronRight } from 'lucide-react';
+import { Search, MapPin, Briefcase, Filter, X, Clock, Building2, ChevronRight, DollarSign } from 'lucide-react';
 import { jobsApi } from '../../lib/api';
 import { useAuth } from '../../context/AuthContext';
 import Badge from '../../shared/ui/Badge';
@@ -68,7 +68,7 @@ function JobCard({ job }) {
           {job.minExperience != null && (
             <span className="flex items-center gap-1"><Briefcase size={12} />{job.minExperience}+ yrs</span>
           )}
-          {job.salary && <span>💰 {job.salary}</span>}
+          {job.salary && <span className="flex items-center gap-1"><DollarSign size={12} />{job.salary}</span>}
         </div>
         <button
           onClick={handleApplyClick}

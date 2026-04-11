@@ -4,7 +4,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod/v4';
-import { Briefcase, Mail, Lock, Eye, EyeOff, User, Briefcase as BriefIcon } from 'lucide-react';
+import { Briefcase, Mail, Lock, Eye, EyeOff, User, Briefcase as BriefIcon, Info } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { authApi } from '../../lib/api';
 import Button from '../../shared/ui/Button';
@@ -150,7 +150,7 @@ export default function RegisterPage() {
 
           {selectedRole === 'recruiter' && (
             <div className="flex items-start gap-2 p-3 bg-amber-500/10 border border-amber-500/20 rounded-lg text-xs text-amber-400">
-              <span className="mt-0.5">ℹ️</span>
+              <Info size={14} className="mt-0.5 flex-shrink-0" />
               <span>Recruiter accounts require admin approval before login is granted.</span>
             </div>
           )}

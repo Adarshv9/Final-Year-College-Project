@@ -4,7 +4,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod/v4';
-import { Briefcase, Mail, Lock, Eye, EyeOff } from 'lucide-react';
+import { Briefcase, Mail, Lock, Eye, EyeOff, AlertTriangle } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { useAuth } from '../../context/AuthContext';
 import { authApi } from '../../lib/api';
@@ -69,7 +69,7 @@ export default function LoginPage() {
 
         {pendingApproval && (
           <div className="flex items-start gap-3 p-4 bg-amber-500/10 border border-amber-500/30 rounded-xl text-amber-300 text-sm mb-6">
-            <span className="text-amber-400 mt-0.5">⚠️</span>
+            <AlertTriangle size={16} className="text-amber-400 mt-0.5 flex-shrink-0" />
             <div>
               <div className="font-semibold mb-1">Account Pending Approval</div>
               <div className="text-amber-400/80">Your recruiter account is awaiting admin approval. You'll be notified once approved.</div>

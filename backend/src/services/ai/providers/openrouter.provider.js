@@ -2,8 +2,12 @@
 // Single source of truth for the OpenAI-compatible client pointed at OpenRouter.
 import OpenAI from 'openai';
 import ApiError from '../../../utils/ApiError.js';
+import logger from '../../../utils/logger.js';
 
 const DEFAULT_MODEL = 'nvidia/nemotron-3-super-120b-a12b:free';
+// Free-tier models on OpenRouter can queue for a very long time.
+// A hard timeout prevents the pipeline from hanging silently.
+const REQUEST_TIMEOUT_MS = 60_000;
 const DEFAULT_TEMPERATURE = 0.2;
 
 let _client = null;
@@ -16,6 +20,8 @@ const getClient = () => {
     _client = new OpenAI({
       apiKey: process.env.OPENROUTER_API_KEY,
       baseURL: 'https://openrouter.ai/api/v1',
+      timeout: REQUEST_TIMEOUT_MS,
+      maxRetries: 0, // surface errors immediately; retry logic lives in callers
     });
   }
   return _client;
@@ -29,19 +35,34 @@ const getClient = () => {
  */
 export const chatCompletion = async (messages, options = {}) => {
   const client = getClient();
+  const model = options.model || DEFAULT_MODEL;
 
-  const completion = await client.chat.completions.create({
-    model: options.model || DEFAULT_MODEL,
-    messages,
-    temperature: options.temperature ?? DEFAULT_TEMPERATURE,
-    ...options.extra,
-  });
+  logger.info(`[AI] Sending request to model: ${model}`);
+
+  let completion;
+  try {
+    completion = await client.chat.completions.create({
+      model,
+      messages,
+      temperature: options.temperature ?? DEFAULT_TEMPERATURE,
+      ...options.extra,
+    });
+  } catch (err) {
+    if (err?.code === 'ETIMEDOUT' || err?.name === 'APIConnectionTimeoutError' || err?.message?.includes('timeout')) {
+      logger.error(`[AI] Request timed out after ${REQUEST_TIMEOUT_MS / 1000}s for model: ${model}`);
+      throw new ApiError(504, 'AI provider timed out. Please try again.');
+    }
+    logger.error(`[AI] Provider error: ${err?.message}`);
+    throw new ApiError(502, `AI provider error: ${err?.message}`);
+  }
 
   const content = completion.choices[0]?.message?.content;
   if (!content) {
+    logger.error(`[AI] Empty response from model: ${model}`);
     throw new ApiError(502, 'Empty response from AI provider');
   }
 
+  logger.info(`[AI] Response received from model: ${model}`);
   return content;
 };
 

@@ -4,7 +4,7 @@ import { useParams, useNavigate, Link } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import {
   ArrowLeft, MapPin, Briefcase, Clock, Building2,
-  CheckCircle, Send, AlertTriangle, Star,
+  CheckCircle, Send, AlertTriangle, Star, DollarSign,
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { jobsApi, applicationsApi } from '../../lib/api';
@@ -189,7 +189,7 @@ export default function JobDetailPage() {
             )}
             {job.salary && (
               <span className="flex items-center gap-1.5">
-                💰 {job.salary}
+                <DollarSign size={14} /> {job.salary}
               </span>
             )}
           </div>

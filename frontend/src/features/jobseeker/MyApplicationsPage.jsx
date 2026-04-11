@@ -1,7 +1,7 @@
 // Job seeker page for tracking submitted applications and their statuses.
 import { useQuery } from '@tanstack/react-query';
 import { Link } from 'react-router-dom';
-import { Briefcase, MapPin, Clock, ChevronRight } from 'lucide-react';
+import { Briefcase, MapPin, Clock, ChevronRight, Sparkles } from 'lucide-react';
 import { applicationsApi } from '../../lib/api';
 import Badge from '../../shared/ui/Badge';
 import { SkeletonCard } from '../../shared/ui/Skeleton';
@@ -110,7 +110,8 @@ export default function MyApplicationsPage() {
 
             {app.status === 'accepted' && (
               <div className="mt-3 flex items-center gap-2 p-3 bg-emerald-500/10 rounded-lg">
-                <span className="text-emerald-400 text-sm font-medium">🎉 Congratulations! You've been accepted.</span>
+                <Sparkles size={15} className="text-emerald-400 flex-shrink-0" />
+                <span className="text-emerald-400 text-sm font-medium">Congratulations! You've been accepted.</span>
               </div>
             )}
           </div>

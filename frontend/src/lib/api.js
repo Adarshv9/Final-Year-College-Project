@@ -49,8 +49,12 @@ export const applicationsApi = {
 
 export const resumeApi = {
   get: () => api.get('/resumes/resume'),
-  upload: (formData) => api.put('/resumes/resume', formData, {
-    headers: { 'Content-Type': 'multipart/form-data' },
+  upload: (formData, config = {}) => api.put('/resumes/resume', formData, {
+    ...config,
+    headers: {
+      'Content-Type': 'multipart/form-data',
+      ...(config.headers || {}),
+    },
   }),
   manual: (data) => api.post('/resumes/resume/manual', data),
   update: (data) => api.patch('/resumes/resume', data),

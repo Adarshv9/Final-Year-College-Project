@@ -1,7 +1,7 @@
 // Recruiter page that lists posted jobs and quick actions for each listing.
 import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { Plus, Edit, Trash2, Users, Briefcase, MoreVertical } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { jobsApi } from '../../lib/api';
@@ -13,6 +13,7 @@ import Modal from '../../shared/ui/Modal';
 
 export default function MyJobsPage() {
   const qc = useQueryClient();
+  const navigate = useNavigate();
   const [deleteId, setDeleteId] = useState(null);
 
   const { data, isLoading } = useQuery({
@@ -62,7 +63,11 @@ export default function MyJobsPage() {
       ) : (
         <div className="space-y-4">
           {jobs.map(job => (
-            <div key={job._id} className="bg-[#131929] border border-[#1e2a3d] rounded-xl p-5 hover:border-[#243047] transition-all">
+            <div
+              key={job._id}
+              className="bg-[#131929] border border-[#1e2a3d] rounded-xl p-5 hover:border-indigo-500/40 transition-all cursor-pointer"
+              onClick={() => navigate(`/recruiter/jobs/${job._id}/applications`)}
+            >
               <div className="flex items-start justify-between gap-4">
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2 flex-wrap mb-1">
@@ -76,13 +81,11 @@ export default function MyJobsPage() {
                   )}
                 </div>
                 <div className="flex items-center gap-2 flex-shrink-0">
-                  <Link to={`/recruiter/jobs/${job._id}/applications`}>
-                    <Button variant="secondary" size="sm">
-                      <Users size={13} />
-                      <span className="text-emerald-400 font-bold">{job.applicationsCount || 0}</span>
-                    </Button>
-                  </Link>
-                  <Link to={`/recruiter/jobs/${job._id}/edit`}>
+                  <div className="inline-flex items-center gap-1.5 px-2.5 py-1.5 bg-[#1e2a3d] rounded-lg text-sm">
+                    <Users size={13} className="text-[#94a3b8]" />
+                    <span className="text-emerald-400 font-bold">{job.applicationsCount || 0}</span>
+                  </div>
+                  <Link to={`/recruiter/jobs/${job._id}/edit`} onClick={(e) => e.stopPropagation()}>
                     <Button variant="secondary" size="icon">
                       <Edit size={14} />
                     </Button>
@@ -90,7 +93,7 @@ export default function MyJobsPage() {
                   <Button
                     variant="danger"
                     size="icon"
-                    onClick={() => setDeleteId(job._id)}
+                    onClick={(e) => { e.stopPropagation(); setDeleteId(job._id); }}
                   >
                     <Trash2 size={14} />
                   </Button>
