@@ -10,8 +10,10 @@ import { SkeletonList } from '../../shared/ui/Skeleton';
 import EmptyState from '../../shared/ui/EmptyState';
 import Pagination from '../../shared/ui/Pagination';
 import Modal from '../../shared/ui/Modal';
+import { useAuth } from '../../context/AuthContext';
 
 export default function UsersPage() {
+  const { user: currentUser } = useAuth();
   const qc = useQueryClient();
   const [search, setSearch] = useState('');
   const [role, setRole] = useState('');
@@ -151,13 +153,15 @@ export default function UsersPage() {
                           Make Admin
                         </Button>
                       )}
-                      <Button
-                        variant="danger"
-                        size="icon-sm"
-                        onClick={() => setDeleteId(user._id)}
-                      >
-                        <Trash2 size={13} />
-                      </Button>
+                      {user.email !== 'vishwakar@student.iul.ac.in' && user.email !== currentUser?.email && (
+                        <Button
+                          variant="danger"
+                          size="icon-sm"
+                          onClick={() => setDeleteId(user._id)}
+                        >
+                          <Trash2 size={13} />
+                        </Button>
+                      )}
                     </div>
                   </td>
                 </tr>

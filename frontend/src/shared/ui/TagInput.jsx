@@ -29,6 +29,20 @@ export function TagInput({ value = [], onChange, placeholder = 'Add item…', la
     }
   };
 
+  const handlePaste = (e) => {
+    // Split pasted text by comma, semicolon, or newline and add each as a tag.
+    const pasted = e.clipboardData.getData('text');
+    const parts = pasted.split(/[,;\n]+/).map(s => s.trim()).filter(Boolean);
+    if (parts.length > 1) {
+      e.preventDefault();
+      const next = [...value];
+      parts.forEach(p => { if (p && !next.includes(p)) next.push(p); });
+      onChange(next);
+      setInput('');
+    }
+    // If it's a single word, let it type normally.
+  };
+
   return (
     <div className="flex flex-col gap-1.5">
       {label && <label className="text-sm font-medium text-[#e2e8f0]">{label}</label>}
@@ -59,13 +73,14 @@ export function TagInput({ value = [], onChange, placeholder = 'Add item…', la
           value={input}
           onChange={(e) => setInput(e.target.value)}
           onKeyDown={handleKeyDown}
+          onPaste={handlePaste}
           onBlur={() => input && addTag(input)}
           placeholder={value.length === 0 ? placeholder : ''}
           className="flex-1 min-w-[120px] bg-transparent text-sm text-[#e2e8f0] placeholder-[#64748b] outline-none py-0.5 px-1"
         />
       </div>
       {error && <p className="text-xs text-rose-400">{error}</p>}
-      <p className="text-xs text-[#64748b]">Press Enter or comma to add</p>
+      <p className="text-xs text-[#64748b]">Press Enter or comma to add · Paste a comma-separated list to bulk-add</p>
     </div>
   );
 }

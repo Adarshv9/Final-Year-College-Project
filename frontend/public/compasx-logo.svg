@@ -1,0 +1,32 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="420" height="96" viewBox="0 0 420 96" fill="none">
+  <defs>
+    <linearGradient id="compasx-text" x1="20" y1="16" x2="240" y2="88" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#7EC6FF"/>
+      <stop offset="0.52" stop-color="#2C73C8"/>
+      <stop offset="1" stop-color="#0B2F70"/>
+    </linearGradient>
+    <linearGradient id="compasx-x" x1="274" y1="8" x2="372" y2="88" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#5CF6FF"/>
+      <stop offset="0.5" stop-color="#12D8E8"/>
+      <stop offset="1" stop-color="#0A9FC2"/>
+    </linearGradient>
+  </defs>
+
+  <text
+    x="10"
+    y="67"
+    fill="url(#compasx-text)"
+    font-family="Inter, Arial, sans-serif"
+    font-size="62"
+    font-weight="800"
+    letter-spacing="-2.2"
+  >
+    Compas
+  </text>
+
+  <g>
+    <path d="M279 20H307L332 48L307 76H279L304 48L279 20Z" fill="url(#compasx-x)"/>
+    <path d="M323 51L356 16H378L348 48L379 80H357L333 56L311 80H289L323 51Z" fill="url(#compasx-x)"/>
+    <path d="M352 20L384 2L372 34L352 20Z" fill="#78FBFF"/>
+  </g>
+</svg>

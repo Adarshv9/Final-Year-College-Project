@@ -8,8 +8,7 @@ import ApiError from '../utils/ApiError.js';
 export const getPendingRecruiters = async ({ page = 1, limit = 10, search }) => {
   const filter = {
     role: 'recruiter',
-    isVerified: false,
-    isActive: true,
+    approvalStatus: 'pending',
   };
 
   if (search) {
@@ -57,6 +56,7 @@ export const verifyRecruiter = async (recruiterId) => {
 
   recruiter.isVerified = true;
   recruiter.isActive = true;
+  recruiter.approvalStatus = 'approved';
   await recruiter.save();
 
   return recruiter;
@@ -71,6 +71,7 @@ export const rejectRecruiter = async (recruiterId) => {
 
   recruiter.isVerified = false;
   recruiter.isActive = false;
+  recruiter.approvalStatus = 'rejected';
   await recruiter.save();
 
   return recruiter;

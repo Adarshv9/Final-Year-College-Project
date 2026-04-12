@@ -1,12 +1,12 @@
 // Job seeker profile editor for personal details and career preferences.
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useForm, useFieldArray } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod/v4';
-import { Plus, Trash2, Save, User } from 'lucide-react';
+import { Plus, Trash2, Save, User, Download } from 'lucide-react';
 import toast from 'react-hot-toast';
-import { jobSeekerApi } from '../../lib/api';
+import { jobSeekerApi, resumeApi } from '../../lib/api';
 import Button from '../../shared/ui/Button';
 import { Skeleton } from '../../shared/ui/Skeleton';
 import TagInput from '../../shared/ui/TagInput';
@@ -34,10 +34,12 @@ export default function JobSeekerProfilePage() {
   const { data, isLoading } = useQuery({
     queryKey: ['jobseeker-profile'],
     queryFn: () => jobSeekerApi.getProfile().then(r => r.data.data),
-    onSuccess: (d) => {
-      if (d?.skills) setSkills(d.skills);
-    },
   });
+
+  // Sync skills state when profile data loads (TanStack Query v5 removed onSuccess from useQuery).
+  useEffect(() => {
+    if (data?.skills) setSkills(data.skills);
+  }, [data]);
 
   const { register, handleSubmit, control, reset, formState: { errors, isDirty, isSubmitting } } = useForm({
     resolver: zodResolver(schema),
@@ -53,6 +55,28 @@ export default function JobSeekerProfilePage() {
   const { fields: eduFields, append: appendEdu, remove: removeEdu } = useFieldArray({ control, name: 'education' });
 
   const isNew = !isLoading && !data;
+
+  // Fetch parsed resume so we can offer one-click skill import.
+  const { data: resumeData, isLoading: resumeLoading } = useQuery({
+    queryKey: ['my-resume'],
+    queryFn: () => resumeApi.get().then(r => r.data.data).catch(err => {
+      if (err.response?.status === 404) return null;
+      throw err;
+    }),
+    staleTime: 60_000,
+  });
+
+  const handleImportFromResume = () => {
+    const resumeSkills = resumeData?.skills || [];
+    if (!resumeSkills.length) {
+      toast('No skills found in your resume. Upload a resume first.');
+      return;
+    }
+    // Merge resume skills into existing profile skills, deduplicating.
+    const merged = [...new Set([...skills, ...resumeSkills])];
+    setSkills(merged);
+    toast.success(`Imported ${resumeSkills.length} skills from your resume!`);
+  };
 
   const mutation = useMutation({
     mutationFn: (payload) => isNew
@@ -82,13 +106,17 @@ export default function JobSeekerProfilePage() {
   return (
     <div className="max-w-2xl mx-auto space-y-6 animate-fade-in">
       <div>
-        <h1 className="text-2xl font-bold text-[#e2e8f0]">Job Seeker Profile</h1>
-        <p className="text-sm text-[#94a3b8] mt-1">Complete your profile to get better job recommendations</p>
+        <h1 className="text-2xl font-bold text-[#e2e8f0]">My Profile</h1>
+        <p className="text-sm text-[#94a3b8] mt-1">This information powers your AI job matching and personalised recommendations — it is not your resume document.</p>
       </div>
 
-      {isNew && (
+      {isNew ? (
         <Alert type="info">
-          You haven't created a profile yet. Fill in your details to get started with personalized job recommendations!
+          Welcome! Fill in your headline, skills, and experience so our AI can start matching you with the right roles.
+        </Alert>
+      ) : (
+        <Alert type="info">
+          Keep this profile up to date for the most accurate job recommendations.
         </Alert>
       )}
 
@@ -110,7 +138,20 @@ export default function JobSeekerProfilePage() {
 
         {/* Skills */}
         <div className="bg-[#131929] border border-[#1e2a3d] rounded-xl p-5">
-          <h2 className="text-base font-semibold text-[#e2e8f0] mb-4">Skills</h2>
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-base font-semibold text-[#e2e8f0]">Skills</h2>
+            {resumeData?.skills?.length > 0 && (
+              <Button
+                type="button"
+                variant="secondary"
+                size="sm"
+                onClick={handleImportFromResume}
+                loading={resumeLoading}
+              >
+                <Download size={13} /> Import from Resume
+              </Button>
+            )}
+          </div>
           <TagInput
             value={skills}
             onChange={setSkills}

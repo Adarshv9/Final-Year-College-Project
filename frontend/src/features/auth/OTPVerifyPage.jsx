@@ -1,10 +1,11 @@
 // OTP verification page that completes email-based account confirmation.
 import { useState, useEffect, useRef } from 'react';
 import { useNavigate, useLocation, Link } from 'react-router-dom';
-import { Briefcase, RefreshCcw } from 'lucide-react';
+import { RefreshCcw } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { authApi } from '../../lib/api';
 import Button from '../../shared/ui/Button';
+import BrandLogo from '../../shared/ui/BrandLogo';
 
 const OTP_LENGTH = 6;
 const RESEND_COOLDOWN = 60;
@@ -100,10 +101,7 @@ export default function OTPVerifyPage() {
       <div className="w-full max-w-[440px] bg-[#131929] border border-[#1e2a3d] rounded-2xl p-8 shadow-2xl animate-fade-in">
         {/* Logo */}
         <div className="flex items-center gap-3 mb-8">
-          <div className="w-10 h-10 bg-indigo-500 rounded-xl flex items-center justify-center">
-            <Briefcase size={20} className="text-white" />
-          </div>
-          <span className="text-xl font-bold text-[#e2e8f0]">TalentBridge</span>
+          <BrandLogo imageClassName="h-10 w-auto" />
         </div>
 
         <div className="text-center mb-8">

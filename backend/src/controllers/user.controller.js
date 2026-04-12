@@ -41,7 +41,7 @@ export const updateUser = asyncHandler(async (req, res) => {
  * DELETE /api/v1/users/:id
  */
 export const deleteUser = asyncHandler(async (req, res) => {
-  await userService.deleteUser(req.params.id);
+  await userService.deleteUser(req.params.id, req.user);
 
   const response = new ApiResponse(200, 'User deleted successfully');
 

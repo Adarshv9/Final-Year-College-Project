@@ -68,6 +68,11 @@ export const updateUser = async (userId, updateData) => {
     throw new ApiError(400, 'Only existing email-verified users can be promoted to admin');
   }
 
+  // Protect super admin from being demoted
+  if (user.email === process.env.SUPER_ADMIN_EMAIL && updateData.role && updateData.role !== 'admin') {
+    throw new ApiError(403, 'The super admin account cannot be demoted');
+  }
+
   // Check for email uniqueness if email is being changed
   if (updateData.email && updateData.email !== user.email) {
     const existingUser = await User.findOne({ email: updateData.email });
@@ -85,13 +90,31 @@ export const updateUser = async (userId, updateData) => {
 /**
  * Delete a user by ID.
  * @param {string} userId
+ * @param {Object} requester - The user performing the deletion
  * @returns {Promise<Object>} Deleted user document
  */
-export const deleteUser = async (userId) => {
-  const user = await User.findByIdAndDelete(userId);
+export const deleteUser = async (userId, requester) => {
+  const user = await User.findById(userId);
   if (!user) {
     throw new ApiError(404, 'User not found');
   }
+
+  // Protect super admin account
+  if (user.email === process.env.SUPER_ADMIN_EMAIL) {
+    throw new ApiError(403, 'The super admin account cannot be deleted');
+  }
+
+  // Prevent users from deleting themselves
+  if (user._id.toString() === requester?.id?.toString()) {
+    throw new ApiError(400, 'You cannot delete your own account');
+  }
+
+  // Only super admin can delete other admins
+  if (user.role === 'admin' && requester?.email !== process.env.SUPER_ADMIN_EMAIL) {
+    throw new ApiError(403, 'Only the Super Admin can delete other admins');
+  }
+
+  await User.findByIdAndDelete(userId);
   return user;
 };
 

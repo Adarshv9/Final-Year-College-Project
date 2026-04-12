@@ -1,6 +1,7 @@
 // Business logic for job search, recruiter CRUD, and recommendations.
 import Job from '../models/Job.js';
 import Resume from '../models/Resume.js';
+import JobSeekerProfile from '../models/JobSeekerProfile.js';
 import ApiError from '../utils/ApiError.js';
 import normalizeSkills from '../utils/normalizeSkills.js';
 import { rankJobsWithAI } from '../utils/jobRecommendations.js';
@@ -125,33 +126,36 @@ export const getPublicJobById = async (jobId) => {
 };
 
 export const getRecommendedJobs = async (userId) => {
-  const resume = await Resume.findOne({ user: userId }).select('skills').lean();
+  // Fetch skills from BOTH sources in parallel for best coverage.
+  // A user may have only a Profile, only a Resume, or both — we handle all cases.
+  const [resume, profile] = await Promise.all([
+    Resume.findOne({ user: userId }).select('skills').lean(),
+    JobSeekerProfile.findOne({ user: userId }).select('skills').lean(),
+  ]);
 
-  if (!resume) {
+  const resumeSkills  = normalizeSkills(resume?.skills  || []);
+  const profileSkills = normalizeSkills(profile?.skills || []);
+
+  // Merge and deduplicate skill sets.
+  const mergedSkills = [...new Set([...resumeSkills, ...profileSkills])];
+
+  if (mergedSkills.length === 0) {
+    // User has set up neither source yet — return empty so the UI can guide them.
     return [];
   }
 
-  const resumeSkills = normalizeSkills(resume.skills || []);
-
-  if (resumeSkills.length === 0) {
-    return [];
-  }
-
+  // Match jobs on skill overlap only (experience is NOT a filter).
   const jobs = await Job.find({
     isActive: true,
-    requiredSkills: { $in: resumeSkills },
+    requiredSkills: { $in: mergedSkills },
   })
     .select(publicJobFields)
     .sort({ createdAt: -1 })
     .limit(20)
     .lean();
 
-  // Keep the candidate set small before sending it to AI so recommendations
-  // stay fast and grounded in obvious skill overlap.
-  return rankJobsWithAI({
-    resumeSkills,
-    jobs,
-  });
+  // AI ranking re-orders the candidate set by relevance before returning.
+  return rankJobsWithAI(mergedSkills, jobs);
 };
 
 export const updateJob = async (jobId, recruiterId, updateData) => {

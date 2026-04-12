@@ -1,8 +1,8 @@
 // Public job listing page with search, filters, and pagination.
 import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { Link, useNavigate } from 'react-router-dom';
-import { Search, MapPin, Briefcase, Filter, X, Clock, Building2, ChevronRight, DollarSign } from 'lucide-react';
+import { Link, useNavigate, useSearchParams } from 'react-router-dom';
+import { Search, MapPin, Briefcase, Filter, X, Building2, ChevronRight, DollarSign } from 'lucide-react';
 import { jobsApi } from '../../lib/api';
 import { useAuth } from '../../context/AuthContext';
 import Badge from '../../shared/ui/Badge';
@@ -10,9 +10,21 @@ import Pagination from '../../shared/ui/Pagination';
 import { SkeletonCard } from '../../shared/ui/Skeleton';
 import EmptyState from '../../shared/ui/EmptyState';
 import Button from '../../shared/ui/Button';
+import BrandLogo from '../../shared/ui/BrandLogo';
 
 const JOB_TYPES = ['full-time', 'part-time', 'internship', 'contract'];
 const LOCATION_TYPES = ['remote', 'onsite', 'hybrid'];
+
+function getFiltersFromParams(searchParams) {
+  const page = Number.parseInt(searchParams.get('page') || '1', 10);
+
+  return {
+    search: searchParams.get('search') || '',
+    jobType: searchParams.get('jobType') || '',
+    locationType: searchParams.get('locationType') || '',
+    page: Number.isNaN(page) || page < 1 ? 1 : page,
+  };
+}
 
 function JobCard({ job }) {
   const { isAuthenticated } = useAuth();
@@ -85,9 +97,25 @@ function JobCard({ job }) {
 export default function JobsPage() {
   // Filters double as the React Query key so changing any control naturally
   // triggers a refetch and resets pagination together.
-  const [filters, setFilters] = useState({ search: '', jobType: '', locationType: '', page: 1 });
+  const [searchParams, setSearchParams] = useSearchParams();
   const [showFilters, setShowFilters] = useState(false);
   const { isAuthenticated } = useAuth();
+  const filters = getFiltersFromParams(searchParams);
+
+  const updateFilters = (updates) => {
+    const nextParams = new URLSearchParams(searchParams);
+
+    Object.entries(updates).forEach(([key, value]) => {
+      const normalizedValue = typeof value === 'string' ? value.trim() : value;
+      if (normalizedValue === '' || normalizedValue == null || (key === 'page' && Number(normalizedValue) === 1)) {
+        nextParams.delete(key);
+      } else {
+        nextParams.set(key, String(normalizedValue));
+      }
+    });
+
+    setSearchParams(nextParams);
+  };
 
   const { data, isLoading } = useQuery({
     queryKey: ['jobs', filters],
@@ -98,8 +126,8 @@ export default function JobsPage() {
   const jobs = data?.data || [];
   const pagination = data?.pagination;
 
-  const setFilter = (key, value) => setFilters(f => ({ ...f, [key]: value, page: 1 }));
-  const clearFilters = () => setFilters({ search: '', jobType: '', locationType: '', page: 1 });
+  const setFilter = (key, value) => updateFilters({ [key]: value, page: key === 'page' ? value : 1 });
+  const clearFilters = () => setSearchParams(new URLSearchParams());
   const hasFilters = filters.search || filters.jobType || filters.locationType;
 
   return (
@@ -108,8 +136,7 @@ export default function JobsPage() {
       <div className="bg-gradient-to-r from-indigo-600/20 to-emerald-600/10 border-b border-[#1e2a3d]">
         <div className="max-w-7xl mx-auto px-4 py-10">
           <div className="flex items-center gap-3 mb-2">
-            <Briefcase size={24} className="text-indigo-400" />
-            <span className="text-sm font-semibold text-indigo-400 uppercase tracking-wider">TalentBridge</span>
+            <BrandLogo imageClassName="h-8 w-auto" />
           </div>
           <h1 className="text-3xl font-bold text-[#e2e8f0] mb-2">Find Your Next Role</h1>
           <p className="text-[#94a3b8] mb-6">Discover opportunities that match your skills and ambitions</p>
@@ -201,7 +228,7 @@ export default function JobsPage() {
               <Pagination
                 page={filters.page}
                 totalPages={pagination.totalPages}
-                onPageChange={p => setFilters(f => ({ ...f, page: p }))}
+                onPageChange={(page) => setFilter('page', page)}
               />
             )}
           </>

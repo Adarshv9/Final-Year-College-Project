@@ -480,8 +480,12 @@ export default function ResumePage() {
     <div className="max-w-2xl mx-auto space-y-6 animate-fade-in">
       <div>
         <h1 className="text-2xl font-bold text-[#e2e8f0]">My Resume</h1>
-        <p className="text-sm text-[#94a3b8] mt-1">Upload a PDF or build your resume manually</p>
+        <p className="text-sm text-[#94a3b8] mt-1">This is the resume document shown to recruiters when you apply for jobs.</p>
       </div>
+
+      <Alert type="info">
+        This page manages the actual document recruiters see.
+      </Alert>
 
       {/* Tabs */}
       <div className="flex gap-1 border-b border-[#1e2a3d]">

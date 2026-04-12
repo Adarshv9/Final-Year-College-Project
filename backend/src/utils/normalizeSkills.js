@@ -14,7 +14,11 @@ const normalizeSkills = (skills = []) => {
     ...new Set(
       skills
         .filter(Boolean)
-        .map((skill) => String(skill).trim().toLowerCase())
+        .flatMap((skill) =>
+          String(skill)
+            .split(/[,;\n]+/)
+            .map((part) => part.trim().toLowerCase())
+        )
         .filter(Boolean)
     ),
   ];

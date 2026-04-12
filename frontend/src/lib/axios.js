@@ -21,7 +21,8 @@ const shouldSkipRefresh = (url = '') =>
   String(url).includes('/auth/register') ||
   String(url).includes('/auth/verify-otp') ||
   String(url).includes('/auth/resend-otp') ||
-  String(url).includes('/auth/refresh-token');
+  String(url).includes('/auth/refresh-token') ||
+  String(url).includes('/auth/me');
 
 const refreshSession = async () => {
   if (!refreshRequest) {
@@ -62,8 +63,9 @@ api.interceptors.response.use(
       }
     }
 
-    // If the request was not recoverable, fall back to the login screen.
-    if (status === 401 && !isAuthPage()) {
+    // For non-retried 401s, only redirect if we're in an authenticated section.
+    // Unauthenticated routes (landing page, /jobs) intentionally get 401 on /auth/me.
+    if (status === 401 && !isAuthPage() && !shouldSkipRefresh(requestUrl)) {
       window.location.href = '/login';
     }
 

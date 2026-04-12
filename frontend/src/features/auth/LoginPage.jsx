@@ -4,11 +4,12 @@ import { Link, useNavigate } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod/v4';
-import { Briefcase, Mail, Lock, Eye, EyeOff, AlertTriangle } from 'lucide-react';
+import { Mail, Lock, Eye, EyeOff, AlertTriangle } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { useAuth } from '../../context/AuthContext';
 import { authApi } from '../../lib/api';
 import Button from '../../shared/ui/Button';
+import BrandLogo from '../../shared/ui/BrandLogo';
 
 const schema = z.object({
   email: z.string().email('Enter a valid email'),
@@ -58,10 +59,7 @@ export default function LoginPage() {
       <div className="relative w-full max-w-[440px] bg-[#131929] border border-[#1e2a3d] rounded-2xl p-8 shadow-2xl animate-fade-in">
         {/* Logo */}
         <div className="flex items-center gap-3 mb-8">
-          <div className="w-10 h-10 bg-indigo-500 rounded-xl flex items-center justify-center">
-            <Briefcase size={20} className="text-white" />
-          </div>
-          <span className="text-xl font-bold text-[#e2e8f0]">TalentBridge</span>
+          <BrandLogo imageClassName="h-10 w-auto" />
         </div>
 
         <h1 className="text-2xl font-bold text-[#e2e8f0] mb-1">Welcome back</h1>

@@ -7,6 +7,7 @@ import {
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import toast from 'react-hot-toast';
+import BrandLogo from '../ui/BrandLogo';
 
 const NAV = {
   // The sidebar is configuration-driven so role menus stay centralized in one
@@ -77,10 +78,7 @@ export default function Sidebar({ mobileOpen, onClose }) {
       >
         {/* Logo */}
         <div className="flex items-center gap-3 px-5 h-[60px] border-b border-[#1e2a3d] flex-shrink-0">
-          <div className="w-8 h-8 bg-indigo-500 rounded-lg flex items-center justify-center flex-shrink-0">
-            <Briefcase size={16} className="text-white" />
-          </div>
-          <span className="text-base font-bold text-[#e2e8f0]">TalentBridge</span>
+          <BrandLogo imageClassName="h-7 w-auto" />
         </div>
 
         {/* Nav */}

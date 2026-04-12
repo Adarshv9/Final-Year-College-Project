@@ -23,9 +23,9 @@ export default function AdminDashboard() {
     queryFn: () => adminApi.getResumes({ limit: 100 }).then(r => r.data),
   });
 
-  const users = usersData?.data || usersData?.users || [];
-  const pendingRecruiters = recData?.data || [];
-  const resumes = resumesData?.data || [];
+  const users = usersData?.data?.users || usersData?.users || [];
+  const pendingRecruiters = recData?.data?.recruiters || recData?.recruiters || [];
+  const resumes = resumesData?.data?.resumes || resumesData?.resumes || [];
 
   const seekers = users.filter(u => u.role === 'job_seeker').length;
   const recruiters = users.filter(u => u.role === 'recruiter').length;

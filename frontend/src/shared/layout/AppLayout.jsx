@@ -31,7 +31,7 @@ export default function AppLayout() {
 
   // Prefix matching keeps nested routes such as edit/detail pages under the
   // nearest section title without passing a title prop through every screen.
-  const title = Object.entries(PAGE_TITLES).find(([path]) => pathname.startsWith(path))?.[1] || 'TalentBridge';
+  const title = Object.entries(PAGE_TITLES).find(([path]) => pathname.startsWith(path))?.[1] || 'CompasX';
 
   return (
     <div className="flex min-h-screen bg-[#0b0f1a]">

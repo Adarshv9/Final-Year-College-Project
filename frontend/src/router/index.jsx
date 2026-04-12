@@ -3,6 +3,7 @@ import { createElement, lazy, Suspense } from 'react';
 import { createBrowserRouter, RouterProvider, Navigate, Outlet } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import AppLayout from '../shared/layout/AppLayout';
+import PublicLayout from '../shared/layout/PublicLayout';
 import { PageLoader } from '../shared/ui/Spinner';
 
 // ── Page skeleton fallback ──
@@ -20,6 +21,7 @@ const PageSkeleton = () => (
 const LoginPage        = lazy(() => import('../features/auth/LoginPage'));
 const RegisterPage     = lazy(() => import('../features/auth/RegisterPage'));
 const OTPVerifyPage    = lazy(() => import('../features/auth/OTPVerifyPage'));
+const LandingPage      = lazy(() => import('../features/public/LandingPage'));
 const JobsPage         = lazy(() => import('../features/jobs/JobsPage'));
 const JobDetailPage    = lazy(() => import('../features/jobs/JobDetailPage'));
 
@@ -32,12 +34,12 @@ const JobSeekerProfile    = lazy(() => import('../features/jobseeker/ProfilePage
 const ChangePasswordPage  = lazy(() => import('../features/jobseeker/ChangePasswordPage'));
 
 // Recruiter
-const RecruiterDashboard   = lazy(() => import('../features/recruiter/DashboardPage'));
-const MyJobsPage           = lazy(() => import('../features/recruiter/MyJobsPage'));
-const JobFormPage          = lazy(() => import('../features/recruiter/JobFormPage'));
-const JobApplicationsPage  = lazy(() => import('../features/recruiter/JobApplicationsPage'));
+const RecruiterDashboard        = lazy(() => import('../features/recruiter/DashboardPage'));
+const MyJobsPage                = lazy(() => import('../features/recruiter/MyJobsPage'));
+const JobFormPage               = lazy(() => import('../features/recruiter/JobFormPage'));
+const JobApplicationsPage       = lazy(() => import('../features/recruiter/JobApplicationsPage'));
 const RecruiterApplicationsPage = lazy(() => import('../features/recruiter/RecruiterApplicationsPage'));
-const RecruiterProfile     = lazy(() => import('../features/recruiter/ProfilePage'));
+const RecruiterProfile          = lazy(() => import('../features/recruiter/ProfilePage'));
 
 // Admin
 const AdminDashboard        = lazy(() => import('../features/admin/DashboardPage'));
@@ -53,12 +55,6 @@ function getRoleDashboard(role) {
 }
 
 // ── Guards ──
-function AuthGate({ children }) {
-  const { loading } = useAuth();
-  if (loading) return <PageLoader />;
-  return children;
-}
-
 function PublicRoute() {
   const { isAuthenticated, user, loading } = useAuth();
   if (loading) return <PageLoader />;
@@ -83,7 +79,7 @@ function JobsLayout() {
   if (loading) return <PageLoader />;
   // Jobs stay public, but signed-in users should browse them inside the shared
   // application shell so their role sidebar remains available.
-  return isAuthenticated ? <AppLayout /> : <Outlet />;
+  return isAuthenticated ? <AppLayout /> : <PublicLayout />;
 }
 
 const S = (Component) => (
@@ -101,15 +97,20 @@ const SNull = (Component) => (
 
 // ── Router ──
 const router = createBrowserRouter([
-  // Route groups mirror the product areas: public browsing first, then
-  // role-locked spaces wrapped in the shared application shell.
-  // Public routes (no auth required), with the shared shell layered in when a
-  // session already exists.
+  // Landing page served via PublicLayout
+  {
+    element: <PublicLayout />,
+    children: [
+      { path: '/', element: S(LandingPage) },
+    ],
+  },
+
+  // Public job browsing – uses PublicLayout for guests, AppLayout for logged-in users
   {
     element: <JobsLayout />,
     children: [
-      { path: '/jobs', element: S(JobsPage) },
-      { path: '/jobs/:jobId', element: S(JobDetailPage) },
+      { path: '/jobs',         element: S(JobsPage) },
+      { path: '/jobs/:jobId',  element: S(JobDetailPage) },
     ],
   },
 
@@ -130,12 +131,12 @@ const router = createBrowserRouter([
       {
         element: <AppLayout />,
         children: [
-          { path: '/dashboard',        element: S(JobSeekerDashboard) },
-          { path: '/recommended',      element: S(RecommendedJobsPage) },
-          { path: '/my-applications',  element: S(MyApplicationsPage) },
-          { path: '/resume',           element: S(ResumePage) },
-          { path: '/profile',          element: S(JobSeekerProfile) },
-          { path: '/change-password',  element: S(ChangePasswordPage) },
+          { path: '/dashboard',       element: S(JobSeekerDashboard) },
+          { path: '/recommended',     element: S(RecommendedJobsPage) },
+          { path: '/my-applications', element: S(MyApplicationsPage) },
+          { path: '/resume',          element: S(ResumePage) },
+          { path: '/profile',         element: S(JobSeekerProfile) },
+          { path: '/change-password', element: S(ChangePasswordPage) },
         ],
       },
     ],
@@ -176,9 +177,8 @@ const router = createBrowserRouter([
     ],
   },
 
-  // Redirects
-  { path: '/', element: <Navigate to="/jobs" replace /> },
-  { path: '*', element: <Navigate to="/jobs" replace /> },
+  // Catch-all redirect
+  { path: '*', element: <Navigate to="/" replace /> },
 ]);
 
 export default function AppRouter() {

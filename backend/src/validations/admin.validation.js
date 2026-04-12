@@ -9,7 +9,7 @@ const pendingRecruiters = Joi.object({
   query: Joi.object({
     page: Joi.number().integer().min(1).default(1),
     limit: Joi.number().integer().min(1).max(100).default(10),
-    search: Joi.string().trim().max(100),
+    search: Joi.string().trim().allow('').max(100),
   }),
 });
 
@@ -38,8 +38,8 @@ const users = Joi.object({
   query: Joi.object({
     page: Joi.number().integer().min(1).default(1),
     limit: Joi.number().integer().min(1).max(100).default(10),
-    role: Joi.string().valid('job_seeker', 'recruiter', 'admin'),
-    search: Joi.string().trim().max(100),
+    role: Joi.string().valid('job_seeker', 'recruiter', 'admin').allow(''),
+    search: Joi.string().trim().allow('').max(100),
   }),
 });
 

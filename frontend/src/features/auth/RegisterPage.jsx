@@ -1,13 +1,14 @@
 // Registration page for job seekers and recruiters with initial account setup.
-import { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
-import { useForm } from 'react-hook-form';
+import { createElement, useEffect, useState } from 'react';
+import { Link, useNavigate, useSearchParams } from 'react-router-dom';
+import { useForm, useWatch } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod/v4';
-import { Briefcase, Mail, Lock, Eye, EyeOff, User, Briefcase as BriefIcon, Info } from 'lucide-react';
+import { Mail, Lock, Eye, EyeOff, User, Briefcase as BriefIcon, Info } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { authApi } from '../../lib/api';
 import Button from '../../shared/ui/Button';
+import BrandLogo from '../../shared/ui/BrandLogo';
 
 const schema = z.object({
   name: z.string().min(2, 'Name must be at least 2 characters'),
@@ -19,13 +20,19 @@ const schema = z.object({
 export default function RegisterPage() {
   const [showPass, setShowPass] = useState(false);
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const initialRole = searchParams.get('role') === 'recruiter' ? 'recruiter' : 'job_seeker';
 
-  const { register, handleSubmit, watch, setValue, formState: { errors, isSubmitting } } = useForm({
+  const { register, handleSubmit, control, setValue, formState: { errors, isSubmitting } } = useForm({
     resolver: zodResolver(schema),
-    defaultValues: { role: 'job_seeker' },
+    defaultValues: { role: initialRole },
   });
 
-  const selectedRole = watch('role');
+  const selectedRole = useWatch({ control, name: 'role' });
+
+  useEffect(() => {
+    setValue('role', initialRole);
+  }, [initialRole, setValue]);
 
   const onSubmit = async (data) => {
     try {
@@ -52,14 +59,11 @@ export default function RegisterPage() {
       <div className="relative w-full max-w-[480px] bg-[#131929] border border-[#1e2a3d] rounded-2xl p-8 shadow-2xl animate-fade-in">
         {/* Logo */}
         <div className="flex items-center gap-3 mb-8">
-          <div className="w-10 h-10 bg-indigo-500 rounded-xl flex items-center justify-center">
-            <Briefcase size={20} className="text-white" />
-          </div>
-          <span className="text-xl font-bold text-[#e2e8f0]">TalentBridge</span>
+          <BrandLogo imageClassName="h-10 w-auto" />
         </div>
 
         <h1 className="text-2xl font-bold text-[#e2e8f0] mb-1">Create an account</h1>
-        <p className="text-sm text-[#94a3b8] mb-8">Join TalentBridge and start your journey</p>
+        <p className="text-sm text-[#94a3b8] mb-8">Join CompasX and start your journey</p>
 
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
           {/* Role Selection */}
@@ -69,7 +73,7 @@ export default function RegisterPage() {
               {[
                 { value: 'job_seeker', label: 'Job Seeker', icon: User, desc: 'Find your dream job' },
                 { value: 'recruiter', label: 'Recruiter', icon: BriefIcon, desc: 'Hire top talent' },
-              ].map(({ value, label, icon: Icon, desc }) => (
+              ].map(({ value, label, icon, desc }) => (
                 <button
                   key={value}
                   type="button"
@@ -81,7 +85,7 @@ export default function RegisterPage() {
                       : 'border-[#1e2a3d] bg-[#0b0f1a] hover:border-[#243047]',
                   ].join(' ')}
                 >
-                  <Icon size={20} className={selectedRole === value ? 'text-indigo-400' : 'text-[#64748b]'} />
+                  {createElement(icon, { size: 20, className: selectedRole === value ? 'text-indigo-400' : 'text-[#64748b]' })}
                   <div>
                     <div className={`text-sm font-semibold ${selectedRole === value ? 'text-indigo-400' : 'text-[#e2e8f0]'}`}>{label}</div>
                     <div className="text-xs text-[#64748b]">{desc}</div>

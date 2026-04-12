@@ -1,6 +1,7 @@
 // ── Admin Controller ──
 import asyncHandler from '../utils/asyncHandler.js';
 import ApiResponse from '../utils/ApiResponse.js';
+import ApiError from '../utils/ApiError.js';
 import * as adminService from '../services/admin.service.js';
 
 // Fetch pending recruiter registrations for admin verification
@@ -32,6 +33,10 @@ export const rejectRecruiter = asyncHandler(async (req, res) => {
 
 // Promote an existing verified user to admin
 export const promoteUserToAdmin = asyncHandler(async (req, res) => {
+  if (req.user.email !== process.env.SUPER_ADMIN_EMAIL) {
+    throw new ApiError(403, 'Only the Super Admin can promote users to admin');
+  }
+
   const user = await adminService.promoteUserToAdmin(req.params.id);
 
   res

@@ -19,7 +19,6 @@ export default function PendingRecruitersPage() {
   const { data, isLoading } = useQuery({
     queryKey: ['pending-recruiters', search, page],
     queryFn: () => adminApi.pendingRecruiters({ search, page, limit: 10 }).then(r => r.data),
-    staleTime: 10000,
   });
 
   const verifyMutation = useMutation({
@@ -50,8 +49,8 @@ export default function PendingRecruitersPage() {
     },
   });
 
-  const recruiters = data?.data || [];
-  const pagination = data?.pagination;
+  const recruiters = data?.data?.recruiters || [];
+  const pagination = data?.data?.pagination;
 
   return (
     <div className="max-w-4xl mx-auto space-y-6 animate-fade-in">
