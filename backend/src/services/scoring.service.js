@@ -28,6 +28,9 @@ export const computeHybridScore = ({
   const matchingSkills = normalizedCandidateSkills.filter((s) =>
     normalizedJobSkills.includes(s)
   );
+  const missingSkills = normalizedJobSkills.filter((s) =>
+    !normalizedCandidateSkills.includes(s)
+  );
   const skillScore =
     normalizedJobSkills.length > 0 ? matchingSkills.length / normalizedJobSkills.length : 1;
 
@@ -53,6 +56,7 @@ export const computeHybridScore = ({
       expScore: Math.round(expScore * 100),
       aiScore: Math.round(aiNormalized * 100),
       matchingSkills,
+      missingSkills,
     },
   };
 };

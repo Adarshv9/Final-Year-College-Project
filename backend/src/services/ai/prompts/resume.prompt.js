@@ -70,7 +70,7 @@ export const buildResumeParseMessages = (rawText) => [
   },
   {
     role: 'user',
-    content: `You are a resume parsing expert. Extract all relevant information from the following resume text and return it as a valid JSON object that strictly matches this schema:\n\n${JSON.stringify(JSON_SCHEMA, null, 2)}\n\nImportant instructions:\n1. Return ONLY valid JSON (no markdown, no explanation)\n2. Ensure all arrays exist (use [] if empty)\n3. Skills must be lowercase\n4. Use "present" for current roles\n5. Dates should be YYYY-MM-DD if possible\n\nResume:\n${rawText}`,
+    content: `You are a resume parsing expert. Extract all relevant information from the following resume text and return it as a valid JSON object that strictly matches this schema:\n\n${JSON.stringify(JSON_SCHEMA, null, 2)}\n\nImportant instructions:\n1. Return ONLY valid JSON (no markdown, no explanation)\n2. Ensure all arrays exist (use [] if empty)\n3. Skills must be lowercase\n4. Use "present" for current roles\n5. Dates should be YYYY-MM-DD if possible\n6. Standardize common technology names (e.g., use "express" instead of "express.js" or "expressjs", "mongoose" instead of "mongoose odm")\n\nResume:\n${rawText}`,
   },
 ];
 

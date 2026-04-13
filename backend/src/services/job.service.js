@@ -5,6 +5,8 @@ import JobSeekerProfile from '../models/JobSeekerProfile.js';
 import ApiError from '../utils/ApiError.js';
 import normalizeSkills from '../utils/normalizeSkills.js';
 import { rankJobsWithAI } from '../utils/jobRecommendations.js';
+import { scoreApplication } from './ai/ai.service.js';
+import { computeHybridScore } from './scoring.service.js';
 
 const publicJobFields =
   '_id title companyName location description requiredSkills minExperience jobType salary createdAt updatedAt';
@@ -123,6 +125,63 @@ export const getPublicJobById = async (jobId) => {
   }
 
   return job;
+};
+
+const buildAtsResumeSnapshot = (resume) => {
+  const firstEducation =
+    Array.isArray(resume.education) && resume.education.length > 0
+      ? resume.education[0]
+      : {};
+
+  return {
+    name: resume.name || '',
+    skills: normalizeSkills(resume.skills || []),
+    experienceYears: resume.experienceYears || 0,
+    education: {
+      degree: firstEducation.degree || '',
+      institution: firstEducation.institution || '',
+      year: firstEducation.year ?? null,
+    },
+  };
+};
+
+export const getAtsScoreForJob = async (userId, jobId) => {
+  const [job, resume] = await Promise.all([
+    Job.findOne({ _id: jobId, isActive: true }).select(publicJobFields).lean(),
+    Resume.findOne({ user: userId }).select('name skills experienceYears education').lean(),
+  ]);
+
+  if (!job) {
+    throw new ApiError(404, 'Job not found');
+  }
+
+  if (!resume) {
+    throw new ApiError(404, 'Upload or create your resume before checking ATS score', [], false);
+  }
+
+  const resumeSnapshot = buildAtsResumeSnapshot(resume);
+  const aiResult = await scoreApplication(job, resumeSnapshot);
+  const { hybridScore, breakdown } = computeHybridScore({
+    jobSkills: job.requiredSkills || [],
+    minExp: job.minExperience || 0,
+    candidateSkills: resumeSnapshot.skills || [],
+    candidateExp: resumeSnapshot.experienceYears || 0,
+    aiScore: aiResult.matchScore,
+  });
+
+  return {
+    jobId: String(job._id),
+    atsScore: hybridScore,
+    aiScore: aiResult.matchScore,
+    reason: aiResult.reason,
+    breakdown: {
+      skillScore: breakdown.skillScore,
+      experienceScore: breakdown.expScore,
+      aiScore: breakdown.aiScore,
+      matchingSkills: breakdown.matchingSkills,
+      missingSkills: breakdown.missingSkills,
+    },
+  };
 };
 
 export const getRecommendedJobs = async (userId) => {

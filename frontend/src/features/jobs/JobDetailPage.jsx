@@ -52,6 +52,13 @@ export default function JobDetailPage() {
   const myApps = myAppsData?.data || [];
   const myApplication = myApps.find((application) => getApplicationJobId(application) === String(jobId));
 
+  const atsMutation = useMutation({
+    mutationFn: () => jobsApi.atsScore(jobId).then(r => r.data.data),
+    onError: (err) => {
+      toast.error(err.response?.data?.message || 'Failed to generate ATS score');
+    },
+  });
+
   const applyMutation = useMutation({
     mutationFn: async () => {
       const latest = await refetchMyApplications();
@@ -111,6 +118,13 @@ export default function JobDetailPage() {
     setApplyModal(true);
   };
 
+  const handleCheckAtsScore = () => {
+    if (!isAuthenticated) { navigate('/login'); return; }
+    if (user?.role !== 'job_seeker') { toast.error('Only job seekers can check ATS score'); return; }
+    if (!jobId) return;
+    atsMutation.mutate();
+  };
+
   if (!jobId) {
     return (
       <div className="min-h-screen bg-[#0b0f1a] flex items-center justify-center">
@@ -150,6 +164,9 @@ export default function JobDetailPage() {
   }
 
   const job = data;
+  const atsResult = atsMutation.data;
+  const matchingSkills = atsResult?.breakdown?.matchingSkills || [];
+  const missingSkills = atsResult?.breakdown?.missingSkills || [];
 
   return (
     <div className="min-h-screen bg-[#0b0f1a] py-8 px-4">
@@ -269,6 +286,72 @@ export default function JobDetailPage() {
                   </div>
                 </>
               )}
+
+              {isAuthenticated && user?.role === 'job_seeker' ? (
+                <div className="mt-4 border-t border-[#1e2a3d] pt-4">
+                  <div className="mb-3 flex items-center justify-between gap-3">
+                    <div>
+                      <h3 className="text-sm font-semibold text-[#e2e8f0]">ATS score</h3>
+                      <p className="mt-0.5 text-xs text-[#64748b]">Compare your resume with this role.</p>
+                    </div>
+                    {atsResult ? <Badge variant="accent">{atsResult.atsScore}%</Badge> : null}
+                  </div>
+
+                  {atsResult ? (
+                    <div className="mb-4 space-y-3 rounded-lg bg-[#0b0f1a] p-3">
+                      <div className="grid grid-cols-3 gap-2 text-center">
+                        <div>
+                          <div className="text-sm font-semibold text-[#e2e8f0]">{atsResult.breakdown?.skillScore ?? 0}%</div>
+                          <div className="text-[11px] text-[#64748b]">Skills</div>
+                        </div>
+                        <div>
+                          <div className="text-sm font-semibold text-[#e2e8f0]">{atsResult.breakdown?.experienceScore ?? 0}%</div>
+                          <div className="text-[11px] text-[#64748b]">Experience</div>
+                        </div>
+                        <div>
+                          <div className="text-sm font-semibold text-[#e2e8f0]">{atsResult.aiScore ?? 0}%</div>
+                          <div className="text-[11px] text-[#64748b]">AI fit</div>
+                        </div>
+                      </div>
+
+                      {atsResult.reason ? (
+                        <p className="text-xs leading-5 text-[#94a3b8]">{atsResult.reason}</p>
+                      ) : null}
+
+                      {matchingSkills.length > 0 ? (
+                        <div>
+                          <div className="mb-1 text-[11px] font-semibold uppercase text-[#64748b]">Matched skills</div>
+                          <div className="flex flex-wrap gap-1.5">
+                            {matchingSkills.slice(0, 5).map(skill => (
+                              <Badge key={`match-${skill}`} variant="success">{skill}</Badge>
+                            ))}
+                          </div>
+                        </div>
+                      ) : null}
+
+                      {missingSkills.length > 0 ? (
+                        <div>
+                          <div className="mb-1 text-[11px] font-semibold uppercase text-[#64748b]">Skills to improve</div>
+                          <div className="flex flex-wrap gap-1.5">
+                            {missingSkills.slice(0, 5).map(skill => (
+                              <Badge key={`missing-${skill}`} variant="warning">{skill}</Badge>
+                            ))}
+                          </div>
+                        </div>
+                      ) : null}
+                    </div>
+                  ) : null}
+
+                  <Button
+                    full
+                    variant="secondary"
+                    loading={atsMutation.isPending}
+                    onClick={handleCheckAtsScore}
+                  >
+                    <Star size={15} /> {atsResult ? 'Refresh ATS Score' : 'Check ATS Score'}
+                  </Button>
+                </div>
+              ) : null}
             </div>
 
             {/* Job summary */}

@@ -31,6 +31,14 @@ router.get(
   jobController.getMyJobs
 );
 
+router.get(
+  '/:jobId/ats-score',
+  authenticateJWT,
+  authorizeRole('job_seeker'),
+  validate(jobValidation.atsScore),
+  jobController.getAtsScore
+);
+
 router.get('/:jobId', validate(jobValidation.getJob), jobController.getJob);
 
 router.post(

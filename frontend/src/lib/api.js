@@ -32,6 +32,7 @@ export const jobsApi = {
   recommended: (params) => api.get('/jobs/recommended', { params }),
   myJobs: (params) => api.get('/jobs/my', { params }),
   get: (jobId) => api.get(`/jobs/${jobId}`),
+  atsScore: (jobId) => api.get(`/jobs/${jobId}/ats-score`),
   create: (data) => api.post('/jobs', data),
   update: (jobId, data) => api.patch(`/jobs/${jobId}`, data),
   delete: (jobId) => api.delete(`/jobs/${jobId}`),

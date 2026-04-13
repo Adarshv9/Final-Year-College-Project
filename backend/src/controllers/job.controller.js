@@ -46,6 +46,17 @@ export const getJob = asyncHandler(async (req, res) => {
   });
 });
 
+export const getAtsScore = asyncHandler(async (req, res) => {
+  const score = await jobService.getAtsScoreForJob(req.user.id, req.params.jobId);
+
+  res.status(200).json({
+    success: true,
+    statusCode: 200,
+    message: 'ATS score generated successfully',
+    data: score,
+  });
+});
+
 export const updateJob = asyncHandler(async (req, res) => {
   await jobService.updateJob(req.params.jobId, req.user.id, req.body);
 

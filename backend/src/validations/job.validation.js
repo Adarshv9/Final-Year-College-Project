@@ -48,6 +48,15 @@ export const getJob = Joi.object({
   }).required(),
 });
 
+export const atsScore = Joi.object({
+  params: Joi.object({
+    jobId: objectId.required().messages({
+      'string.pattern.base': 'Invalid job ID format',
+      'any.required': 'Job ID is required',
+    }),
+  }).required(),
+});
+
 export const updateJob = Joi.object({
   params: Joi.object({
     jobId: objectId.required().messages({
