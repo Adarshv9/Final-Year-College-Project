@@ -4,13 +4,16 @@ import toast from 'react-hot-toast';
 import { usersApi } from '../../lib/api';
 import { useAuth } from '../../context/AuthContext';
 import Button from '../../shared/ui/Button';
+import Modal from '../../shared/ui/Modal';
 
 const cardCls = 'bg-white border border-slate-200 rounded-2xl p-6';
 const labelCls = 'text-sm font-medium text-slate-900';
 const inputCls = 'w-full bg-white border border-slate-200 rounded-lg px-3 py-2.5 text-sm text-slate-900 placeholder-slate-400 outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20';
 
-function roleToAccountType(role) {
-  return role === 'recruiter' ? 'Recruiter' : 'Jobseeker';
+function roleToAccountTypeLabel(role) {
+  if (role === 'recruiter') return 'Recruiter';
+  if (role === 'job_seeker') return 'Jobseeker';
+  return 'Jobseeker';
 }
 
 export default function SettingsPage() {
@@ -18,6 +21,8 @@ export default function SettingsPage() {
   const [email, setEmail] = useState(user?.email || '');
   const [phone, setPhone] = useState(user?.phone || '');
   const [role, setRole] = useState(user?.role || 'job_seeker');
+  const [confirmOpen, setConfirmOpen] = useState(false);
+  const [confirmRole, setConfirmRole] = useState(null);
 
   const canSwitchRole = useMemo(() => user?.role !== 'admin', [user?.role]);
   const recruiterPending = user?.role === 'job_seeker' && user?.pendingRole === 'recruiter' && user?.approvalStatus === 'pending';
@@ -29,6 +34,17 @@ export default function SettingsPage() {
       toast.success('Settings updated');
     },
     onError: (err) => toast.error(err.response?.data?.message || 'Failed to update settings'),
+  });
+
+  const accountTypeMutation = useMutation({
+    mutationFn: (nextRole) => usersApi.updateMe({ role: nextRole }).then(r => r.data.data),
+    onSuccess: (updated) => {
+      updateUser(updated);
+      toast.success(updated?.pendingRole === 'recruiter' ? 'Recruiter request submitted' : 'Account type updated');
+      setConfirmOpen(false);
+      setConfirmRole(null);
+    },
+    onError: (err) => toast.error(err.response?.data?.message || 'Failed to update account type'),
   });
 
   const closeAccountMutation = useMutation({
@@ -59,12 +75,8 @@ export default function SettingsPage() {
       toast('No changes to account type');
       return;
     }
-
-    if (role === 'recruiter') {
-      toast('Recruiter accounts require admin approval.');
-    }
-
-    updateMutation.mutate({ role });
+    setConfirmRole(role);
+    setConfirmOpen(true);
   };
 
   const handleCancelRecruiterRequest = () => {
@@ -89,11 +101,70 @@ export default function SettingsPage() {
         <p className="text-sm text-slate-600 mt-1">Manage your account type, contact info, and security actions.</p>
       </div>
 
+      <Modal
+        isOpen={confirmOpen}
+        onClose={() => {
+          if (accountTypeMutation.isPending) return;
+          setConfirmOpen(false);
+        }}
+        title="Confirm account type change"
+        size="sm"
+        footer={(
+          <>
+            <Button
+              type="button"
+              variant="secondary"
+              onClick={() => {
+                if (accountTypeMutation.isPending) return;
+                setConfirmOpen(false);
+                setConfirmRole(null);
+              }}
+              disabled={accountTypeMutation.isPending}
+            >
+              Cancel
+            </Button>
+            <Button
+              type="button"
+              loading={accountTypeMutation.isPending}
+              onClick={() => {
+                if (!confirmRole) return;
+                accountTypeMutation.mutate(confirmRole);
+              }}
+            >
+              Confirm change
+            </Button>
+          </>
+        )}
+      >
+        <div className="space-y-4">
+          <div className="rounded-2xl border border-slate-200 overflow-hidden">
+            <div className="px-4 py-3 flex items-center justify-between bg-slate-50">
+              <span className="text-sm text-slate-600">Current</span>
+              <span className="text-sm font-semibold text-slate-900">{roleToAccountTypeLabel(user?.role)}</span>
+            </div>
+            <div className="px-4 py-3 flex items-center justify-between">
+              <span className="text-sm text-slate-600">New</span>
+              <span className="text-sm font-semibold text-slate-900">{roleToAccountTypeLabel(confirmRole)}</span>
+            </div>
+          </div>
+
+          {confirmRole === 'recruiter' && (
+            <div className="rounded-2xl bg-amber-500/10 border border-amber-200 px-4 py-3 text-sm text-amber-900 leading-relaxed">
+              Recruiter accounts require <span className="font-semibold">admin approval</span>. Your account will stay <span className="font-semibold">Jobseeker</span> until approved.
+            </div>
+          )}
+
+          <p className="text-xs text-slate-500">
+            You can change this later in Settings.
+          </p>
+        </div>
+      </Modal>
+
       <section className={cardCls}>
         <div className="flex items-start justify-between gap-4">
           <div>
             <h2 className="text-base font-semibold text-slate-900">Account type</h2>
-            <p className="text-sm text-slate-600 mt-1">Current: {roleToAccountType(user?.role)}</p>
+            <p className="text-sm text-slate-600 mt-1">Current: {roleToAccountTypeLabel(user?.role)}</p>
           </div>
         </div>
 

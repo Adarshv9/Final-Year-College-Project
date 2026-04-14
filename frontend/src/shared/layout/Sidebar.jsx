@@ -1,9 +1,10 @@
 // Sidebar navigation that adapts links to the signed-in user role.
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
 import {
   Briefcase, LayoutDashboard, Star, FileText, User,
-  Plus, List, Users, ShieldCheck, LogOut, Building2,
-  Settings,
+  Plus, List, Users, ShieldCheck, ChevronDown, Building2,
+  Settings, Shield,
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import toast from 'react-hot-toast';
@@ -18,9 +19,6 @@ const NAV = {
     { to: '/recommended', icon: Star, label: 'Recommended' },
     { to: '/my-applications', icon: List, label: 'My Applications' },
     { to: '/resume', icon: FileText, label: 'My Resume' },
-    { to: '/profile', icon: User, label: 'Profile' },
-    { to: '/settings', icon: Settings, label: 'Settings' },
-    { to: '/change-password', icon: ShieldCheck, label: 'Security' },
   ],
   recruiter: [
     { to: '/recruiter/dashboard', icon: LayoutDashboard, label: 'Dashboard' },
@@ -28,16 +26,12 @@ const NAV = {
     { to: '/recruiter/applications', icon: Users, label: 'Applications' },
     { to: '/recruiter/jobs/new', icon: Plus, label: 'Post a Job' },
     { to: '/recruiter/profile', icon: Building2, label: 'Company Profile' },
-    { to: '/settings', icon: Settings, label: 'Settings' },
-    { to: '/change-password', icon: ShieldCheck, label: 'Security' },
   ],
   admin: [
     { to: '/admin/dashboard', icon: LayoutDashboard, label: 'Dashboard' },
     { to: '/admin/recruiters', icon: ShieldCheck, label: 'Pending Recruiters' },
     { to: '/admin/users', icon: Users, label: 'Users' },
     { to: '/admin/resumes', icon: FileText, label: 'Resumes' },
-    { to: '/settings', icon: Settings, label: 'Settings' },
-    { to: '/change-password', icon: ShieldCheck, label: 'Security' },
     { to: '/jobs', icon: Briefcase, label: 'All Jobs' },
   ],
 };
@@ -52,12 +46,33 @@ export default function Sidebar({ mobileOpen, onClose }) {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
   const links = NAV[user?.role] || [];
+  const [menuOpen, setMenuOpen] = useState(false);
+  const menuRef = useRef(null);
 
   const handleLogout = async () => {
     await logout();
     toast.success('Logged out successfully');
     navigate('/login');
   };
+
+  const profileTo = useMemo(() => {
+    if (user?.role === 'recruiter') return '/recruiter/profile';
+    if (user?.role === 'job_seeker') return '/profile';
+    return null; // admin: hide profile link
+  }, [user?.role]);
+
+  useEffect(() => {
+    if (!menuOpen) return;
+
+    const onPointerDown = (e) => {
+      if (!menuRef.current) return;
+      if (menuRef.current.contains(e.target)) return;
+      setMenuOpen(false);
+    };
+
+    window.addEventListener('pointerdown', onPointerDown);
+    return () => window.removeEventListener('pointerdown', onPointerDown);
+  }, [menuOpen]);
 
   const initials = user?.name
     // Fallback avatar keeps the footer usable even without uploaded photos.
@@ -120,23 +135,79 @@ export default function Sidebar({ mobileOpen, onClose }) {
 
         {/* User footer */}
         <div className="px-3 pb-4 pt-3 border-t border-slate-200">
-          <div className="flex items-center gap-3 w-full px-3 py-2.5 rounded-lg">
-            <div className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0 ${ROLE_BADGE[user?.role] || 'bg-slate-100 text-slate-600'}`}>
-              {initials}
-            </div>
-            <div className="flex-1 min-w-0 text-left">
-              <div className="text-sm font-semibold text-slate-900 truncate">{user?.name || 'User'}</div>
-              <div className="text-xs text-slate-500 capitalize">{user?.role?.replace('_', ' ')}</div>
-            </div>
+          <div className="relative" ref={menuRef}>
             <button
               type="button"
-              onClick={handleLogout}
-              className="h-9 w-9 inline-flex items-center justify-center rounded-lg text-slate-500 hover:text-rose-600 hover:bg-rose-50 transition-colors flex-shrink-0"
-              aria-label="Logout"
-              title="Logout"
+              onClick={() => setMenuOpen((v) => !v)}
+              className="flex items-center gap-3 w-full px-3 py-2.5 rounded-lg hover:bg-slate-100 transition-colors"
+              aria-haspopup="menu"
+              aria-expanded={menuOpen}
             >
-              <LogOut size={14} />
+              <div className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0 ${ROLE_BADGE[user?.role] || 'bg-slate-100 text-slate-600'}`}>
+                {initials}
+              </div>
+              <div className="flex-1 min-w-0 text-left">
+                <div className="text-sm font-semibold text-slate-900 truncate">{user?.name || 'User'}</div>
+                <div className="text-xs text-slate-500 capitalize">{user?.role?.replace('_', ' ')}</div>
+              </div>
+              <ChevronDown size={16} className={`text-slate-400 transition-transform ${menuOpen ? 'rotate-180' : ''}`} />
             </button>
+
+            {menuOpen && (
+              <div
+                role="menu"
+                className="absolute left-0 right-0 bottom-full mb-2 rounded-2xl border border-slate-200 bg-white shadow-2xl overflow-hidden"
+              >
+                <div className="px-4 py-3 border-b border-slate-200">
+                  <div className="text-sm font-semibold text-slate-900 truncate">{user?.email || ''}</div>
+                </div>
+
+                <div className="py-2">
+                  {profileTo && (
+                    <NavLink
+                      to={profileTo}
+                      onClick={() => { setMenuOpen(false); onClose?.(); }}
+                      className="px-4 py-2.5 text-sm text-slate-700 hover:bg-slate-50 flex items-center gap-3"
+                      role="menuitem"
+                    >
+                      <User size={16} className="text-slate-500" />
+                      Profile
+                    </NavLink>
+                  )}
+
+                  <NavLink
+                    to="/settings"
+                    onClick={() => { setMenuOpen(false); onClose?.(); }}
+                    className="px-4 py-2.5 text-sm text-slate-700 hover:bg-slate-50 flex items-center gap-3"
+                    role="menuitem"
+                  >
+                    <Settings size={16} className="text-slate-500" />
+                    Settings
+                  </NavLink>
+
+                  <NavLink
+                    to="/change-password"
+                    onClick={() => { setMenuOpen(false); onClose?.(); }}
+                    className="px-4 py-2.5 text-sm text-slate-700 hover:bg-slate-50 flex items-center gap-3"
+                    role="menuitem"
+                  >
+                    <Shield size={16} className="text-slate-500" />
+                    Security
+                  </NavLink>
+                </div>
+
+                <div className="border-t border-slate-200 p-2">
+                  <button
+                    type="button"
+                    onClick={() => { setMenuOpen(false); void handleLogout(); }}
+                    className="w-full px-3 py-2.5 rounded-xl text-sm font-semibold text-indigo-600 hover:bg-indigo-500/10 transition-colors"
+                    role="menuitem"
+                  >
+                    Sign out
+                  </button>
+                </div>
+              </div>
+            )}
           </div>
         </div>
       </aside>
