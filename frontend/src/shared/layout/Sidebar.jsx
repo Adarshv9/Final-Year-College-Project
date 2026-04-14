@@ -27,12 +27,14 @@ const NAV = {
     { to: '/recruiter/applications', icon: Users, label: 'Applications' },
     { to: '/recruiter/jobs/new', icon: Plus, label: 'Post a Job' },
     { to: '/recruiter/profile', icon: Building2, label: 'Company Profile' },
+    { to: '/change-password', icon: ShieldCheck, label: 'Security' },
   ],
   admin: [
     { to: '/admin/dashboard', icon: LayoutDashboard, label: 'Dashboard' },
     { to: '/admin/recruiters', icon: ShieldCheck, label: 'Pending Recruiters' },
     { to: '/admin/users', icon: Users, label: 'Users' },
     { to: '/admin/resumes', icon: FileText, label: 'Resumes' },
+    { to: '/change-password', icon: ShieldCheck, label: 'Security' },
     { to: '/jobs', icon: Briefcase, label: 'All Jobs' },
   ],
 };

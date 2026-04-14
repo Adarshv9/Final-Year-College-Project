@@ -136,6 +136,18 @@ const router = createBrowserRouter([
           { path: '/my-applications', element: S(MyApplicationsPage) },
           { path: '/resume',          element: S(ResumePage) },
           { path: '/profile',         element: S(JobSeekerProfile) },
+        ],
+      },
+    ],
+  },
+
+  // Shared authenticated routes (all roles)
+  {
+    element: <ProtectedRoute />,
+    children: [
+      {
+        element: <AppLayout />,
+        children: [
           { path: '/change-password', element: S(ChangePasswordPage) },
         ],
       },
