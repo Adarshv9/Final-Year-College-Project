@@ -103,119 +103,123 @@ function UploadTab({ resume, file, setFile, uploadMutation, uploadProgress, uplo
         </div>
       ) : null}
 
-      {/* Drop zone */}
-      <div
-        className={`border-2 border-dashed rounded-xl p-8 text-center transition-all ${isUploading ? 'opacity-60 cursor-not-allowed border-slate-200' : dragging ? 'border-indigo-500 bg-indigo-500/5 cursor-pointer' : 'border-slate-200 hover:border-slate-300 cursor-pointer'}`}
-        onClick={() => { if (!isUploading) fileRef.current?.click(); }}
-        onDragOver={(e) => {
-          e.preventDefault();
-          if (isUploading) return;
-          setDragging(true);
-        }}
-        onDragLeave={() => setDragging(false)}
-        onDrop={handleDrop}
-      >
-        <Upload size={28} className={`mx-auto mb-3 ${dragging && !isUploading ? 'text-indigo-400' : 'text-slate-500'}`} />
-        <p className="text-sm font-medium text-slate-900 mb-1">
-          {file ? file.name : 'Drop your resume here or click to browse'}
-        </p>
-        <p className="text-xs text-slate-500">
-          {isUploading ? statusText : 'PDF only, max 2 MB'}
-        </p>
-        <input
-          ref={fileRef}
-          type="file"
-          accept="application/pdf"
-          className="hidden"
-          disabled={isUploading}
-          onChange={e => handleFile(e.target.files[0])}
-        />
-      </div>
-
-      {isUploading && (
-        <Alert type="info">
-          <div className="space-y-4">
-            <div>
-              <div className="font-semibold text-slate-900">Processing your resume</div>
-              <p className="mt-1 text-xs text-indigo-200/80">
-                We upload the PDF, extract the text, parse it with AI, and then save the structured resume.
-              </p>
-            </div>
-
-            {/* Slow AI warning */}
-            {aiSlow && uploadStep === 2 && (
-              <div className="text-xs text-amber-300/90 bg-amber-500/10 border border-amber-500/20 rounded-lg px-3 py-2 flex items-center gap-2">
-                <Clock size={13} className="flex-shrink-0 text-amber-400" />
-                The AI is taking longer than usual — free models can queue. Please keep the tab open and wait.
-              </div>
-            )}
-
-            <div className="space-y-3">
-              {RESUME_PROCESS_STEPS.map((step, index) => {
-                const isCompleted = index < uploadStep;
-                const isActive = index === uploadStep;
-                const title =
-                  index === 0 && isActive && uploadProgress > 0 && uploadProgress < 100
-                    ? `${step.title} (${uploadProgress}%)`
-                    : step.title;
-
-                return (
-                  <div key={step.title} className="flex items-start gap-3">
-                    <div className="mt-0.5 flex-shrink-0">
-                      {isCompleted ? (
-                        <CheckCircle2 size={16} className="text-emerald-300" />
-                      ) : (
-                        <span
-                          className={[
-                            'block h-3 w-3 rounded-full border',
-                            isActive
-                              ? 'border-indigo-200 bg-indigo-300 animate-pulse'
-                              : 'border-indigo-200/40 bg-transparent',
-                          ].join(' ')}
-                        />
-                      )}
-                    </div>
-                    <div className="min-w-0">
-                      <div className={isActive ? 'text-slate-900 font-medium' : 'text-slate-600'}>
-                        {title}
-                      </div>
-                      <div className="text-xs text-slate-500">{step.description}</div>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-        </Alert>
-      )}
-
-      {file && (
-        isUploading ? (
-          <div className="flex gap-3">
-            <Button
-              className="flex-1"
-              loading={uploadMutation.isPending}
-              onClick={() => uploadMutation.mutate(file)}
-            >
-              <Upload size={14} /> {statusText}
-            </Button>
-            <Button
-              variant="secondary"
-              onClick={onCancelUpload}
-            >
-              Cancel Upload
-            </Button>
-          </div>
-        ) : (
-          <Button
-            full
-            loading={uploadMutation.isPending}
-            onClick={() => uploadMutation.mutate(file)}
+      {!resume ? (
+        <>
+          {/* Drop zone */}
+          <div
+            className={`border-2 border-dashed rounded-xl p-8 text-center transition-all ${isUploading ? 'opacity-60 cursor-not-allowed border-slate-200' : dragging ? 'border-indigo-500 bg-indigo-500/5 cursor-pointer' : 'border-slate-200 hover:border-slate-300 cursor-pointer'}`}
+            onClick={() => { if (!isUploading) fileRef.current?.click(); }}
+            onDragOver={(e) => {
+              e.preventDefault();
+              if (isUploading) return;
+              setDragging(true);
+            }}
+            onDragLeave={() => setDragging(false)}
+            onDrop={handleDrop}
           >
-            <Upload size={14} /> Upload Resume
-          </Button>
-        )
-      )}
+            <Upload size={28} className={`mx-auto mb-3 ${dragging && !isUploading ? 'text-indigo-400' : 'text-slate-500'}`} />
+            <p className="text-sm font-medium text-slate-900 mb-1">
+              {file ? file.name : 'Drop your resume here or click to browse'}
+            </p>
+            <p className="text-xs text-slate-500">
+              {isUploading ? statusText : 'PDF only, max 2 MB'}
+            </p>
+            <input
+              ref={fileRef}
+              type="file"
+              accept="application/pdf"
+              className="hidden"
+              disabled={isUploading}
+              onChange={e => handleFile(e.target.files[0])}
+            />
+          </div>
+
+          {isUploading && (
+            <Alert type="info">
+              <div className="space-y-4">
+                <div>
+                  <div className="font-semibold text-slate-900">Processing your resume</div>
+                  <p className="mt-1 text-xs text-indigo-200/80">
+                    We upload the PDF, extract the text, parse it with AI, and then save the structured resume.
+                  </p>
+                </div>
+
+                {/* Slow AI warning */}
+                {aiSlow && uploadStep === 2 && (
+                  <div className="text-xs text-amber-300/90 bg-amber-500/10 border border-amber-500/20 rounded-lg px-3 py-2 flex items-center gap-2">
+                    <Clock size={13} className="flex-shrink-0 text-amber-400" />
+                    The AI is taking longer than usual — free models can queue. Please keep the tab open and wait.
+                  </div>
+                )}
+
+                <div className="space-y-3">
+                  {RESUME_PROCESS_STEPS.map((step, index) => {
+                    const isCompleted = index < uploadStep;
+                    const isActive = index === uploadStep;
+                    const title =
+                      index === 0 && isActive && uploadProgress > 0 && uploadProgress < 100
+                        ? `${step.title} (${uploadProgress}%)`
+                        : step.title;
+
+                    return (
+                      <div key={step.title} className="flex items-start gap-3">
+                        <div className="mt-0.5 flex-shrink-0">
+                          {isCompleted ? (
+                            <CheckCircle2 size={16} className="text-emerald-300" />
+                          ) : (
+                            <span
+                              className={[
+                                'block h-3 w-3 rounded-full border',
+                                isActive
+                                  ? 'border-indigo-200 bg-indigo-300 animate-pulse'
+                                  : 'border-indigo-200/40 bg-transparent',
+                              ].join(' ')}
+                            />
+                          )}
+                        </div>
+                        <div className="min-w-0">
+                          <div className={isActive ? 'text-slate-900 font-medium' : 'text-slate-600'}>
+                            {title}
+                          </div>
+                          <div className="text-xs text-slate-500">{step.description}</div>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            </Alert>
+          )}
+
+          {file && (
+            isUploading ? (
+              <div className="flex gap-3">
+                <Button
+                  className="flex-1"
+                  loading={uploadMutation.isPending}
+                  onClick={() => uploadMutation.mutate(file)}
+                >
+                  <Upload size={14} /> {statusText}
+                </Button>
+                <Button
+                  variant="secondary"
+                  onClick={onCancelUpload}
+                >
+                  Cancel Upload
+                </Button>
+              </div>
+            ) : (
+              <Button
+                full
+                loading={uploadMutation.isPending}
+                onClick={() => uploadMutation.mutate(file)}
+              >
+                <Upload size={14} /> Upload Resume
+              </Button>
+            )
+          )}
+        </>
+      ) : null}
     </div>
   );
 }
