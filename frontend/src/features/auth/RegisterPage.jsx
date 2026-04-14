@@ -59,7 +59,9 @@ export default function RegisterPage() {
       <div className="relative w-full max-w-[480px] bg-white border border-slate-200 rounded-2xl p-8 shadow-2xl animate-fade-in">
         {/* Logo */}
         <div className="flex items-center gap-3 mb-8">
-          <BrandLogo imageClassName="h-10 w-auto" />
+          <Link to="/" aria-label="Go to home" className="inline-flex items-center gap-2.5">
+            <BrandLogo imageClassName="h-10 w-auto" />
+          </Link>
         </div>
 
         <h1 className="text-2xl font-bold text-slate-900 mb-1">Create an account</h1>

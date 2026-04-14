@@ -136,7 +136,9 @@ export default function JobsPage() {
       <div className="bg-gradient-to-r from-indigo-600/10 to-emerald-600/5 border-b border-slate-200">
         <div className="max-w-7xl mx-auto px-4 py-10">
           <div className="flex items-center gap-3 mb-2">
-            <BrandLogo imageClassName="h-8 w-auto" />
+            <Link to="/" aria-label="Go to home" className="inline-flex items-center gap-2.5">
+              <BrandLogo imageClassName="h-8 w-auto" />
+            </Link>
           </div>
           <h1 className="text-3xl font-bold text-slate-900 mb-2">Find Your Next Role</h1>
           <p className="text-slate-600 mb-6">Discover opportunities that match your skills and ambitions</p>

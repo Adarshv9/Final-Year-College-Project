@@ -80,7 +80,14 @@ export default function Sidebar({ mobileOpen, onClose }) {
       >
         {/* Logo */}
         <div className="flex items-center gap-3 px-5 h-[60px] border-b border-slate-200 flex-shrink-0">
-          <BrandLogo imageClassName="h-7 w-auto" />
+          <NavLink
+            to="/"
+            onClick={onClose}
+            className="inline-flex items-center gap-2.5"
+            aria-label="Go to home"
+          >
+            <BrandLogo imageClassName="h-7 w-auto" />
+          </NavLink>
         </div>
 
         {/* Nav */}
