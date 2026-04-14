@@ -7,8 +7,13 @@ import ApiError from '../utils/ApiError.js';
 // Fetch all pending recruiter registrations with their profiles
 export const getPendingRecruiters = async ({ page = 1, limit = 10, search }) => {
   const filter = {
-    role: 'recruiter',
     approvalStatus: 'pending',
+    $or: [
+      // Legacy: recruiter role set at signup
+      { role: 'recruiter' },
+      // New: role change requests
+      { pendingRole: 'recruiter' },
+    ],
   };
 
   if (search) {
@@ -49,9 +54,14 @@ export const getPendingRecruiters = async ({ page = 1, limit = 10, search }) => 
 
 // Verify a recruiter and activate their account
 export const verifyRecruiter = async (recruiterId) => {
-  const recruiter = await User.findOne({ _id: recruiterId, role: 'recruiter' });
+  const recruiter = await User.findById(recruiterId);
   if (!recruiter) {
     throw new ApiError(404, 'Recruiter not found');
+  }
+
+  if (recruiter.pendingRole === 'recruiter') {
+    recruiter.role = 'recruiter';
+    recruiter.pendingRole = null;
   }
 
   recruiter.isVerified = true;
@@ -64,9 +74,19 @@ export const verifyRecruiter = async (recruiterId) => {
 
 // Reject a recruiter by deactivating their account
 export const rejectRecruiter = async (recruiterId) => {
-  const recruiter = await User.findOne({ _id: recruiterId, role: 'recruiter' });
+  const recruiter = await User.findById(recruiterId);
   if (!recruiter) {
     throw new ApiError(404, 'Recruiter not found');
+  }
+
+  // If this was a pending role-change request, keep them as job seeker and just mark rejected.
+  if (recruiter.pendingRole === 'recruiter') {
+    recruiter.pendingRole = null;
+    recruiter.approvalStatus = 'rejected';
+    recruiter.isVerified = false;
+    recruiter.isActive = true;
+    await recruiter.save();
+    return recruiter;
   }
 
   recruiter.isVerified = false;

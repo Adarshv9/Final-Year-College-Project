@@ -3,6 +3,30 @@ import asyncHandler from '../utils/asyncHandler.js';
 import ApiResponse from '../utils/ApiResponse.js';
 import * as userService from '../services/user.service.js';
 
+/**
+ * PATCH /api/v1/users/me
+ * Update authenticated user's own account fields.
+ */
+export const updateMe = asyncHandler(async (req, res) => {
+  const allowed = (({ name, phone, location, email, role }) => ({ name, phone, location, email, role }))(req.body || {});
+  // Strip undefined keys so we don't overwrite with undefined.
+  Object.keys(allowed).forEach((k) => allowed[k] === undefined && delete allowed[k]);
+
+  const user = await userService.updateUser(req.user.id, allowed, { self: true });
+  const response = new ApiResponse(200, 'Account updated successfully', user);
+  res.status(response.statusCode).json(response);
+});
+
+/**
+ * DELETE /api/v1/users/me
+ * Close authenticated user's account.
+ */
+export const deleteMe = asyncHandler(async (req, res) => {
+  await userService.deleteSelf(req.user.id, req.user);
+  const response = new ApiResponse(200, 'Account closed successfully');
+  res.status(response.statusCode).json(response);
+});
+
 // Fetch all users with pagination and filtering
 /**
  * GET /api/v1/users

@@ -19,6 +19,8 @@ export const usersApi = {
       oldPassword: data.oldPassword ?? data.currentPassword,
       newPassword: data.newPassword,
     }),
+  updateMe: (data) => api.patch('/users/me', data),
+  deleteMe: () => api.delete('/users/me'),
   list: (params) => api.get('/users', { params }),
   get: (id) => api.get(`/users/${id}`),
   update: (id, data) => api.put(`/users/${id}`, data),

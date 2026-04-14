@@ -9,6 +9,10 @@ import { authenticateJWT, authorizeRole } from '../middlewares/auth.js';
 // All user routes require authentication
 router.use(authenticateJWT);
 
+// Self-service account endpoints
+router.patch('/me', validate(userValidation.updateMe), userController.updateMe);
+router.delete('/me', userController.deleteMe);
+
 // Public endpoints - any authenticated user can view users
 router.get('/', validate(userValidation.listUsers), userController.getUsers);
 router.get('/:id', validate(userValidation.getUser), userController.getUser);

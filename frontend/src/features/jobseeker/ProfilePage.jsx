@@ -4,13 +4,15 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useForm, useFieldArray } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod/v4';
-import { Plus, Trash2, Save, User, Download } from 'lucide-react';
+import { Plus, Trash2, Save, User, Download, MapPin, Pencil, Check, X } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { jobSeekerApi, resumeApi } from '../../lib/api';
 import Button from '../../shared/ui/Button';
 import { Skeleton } from '../../shared/ui/Skeleton';
 import TagInput from '../../shared/ui/TagInput';
 import Alert from '../../shared/ui/Alert';
+import { usersApi } from '../../lib/api';
+import { useAuth } from '../../context/AuthContext';
 
 const schema = z.object({
   headline: z.string().optional(),
@@ -30,6 +32,11 @@ const schema = z.object({
 export default function JobSeekerProfilePage() {
   const qc = useQueryClient();
   const [skills, setSkills] = useState([]);
+  const { user: authUser, updateUser } = useAuth();
+  const [editingName, setEditingName] = useState(false);
+  const [editingLocation, setEditingLocation] = useState(false);
+  const [draftName, setDraftName] = useState(authUser?.name || '');
+  const [draftLocation, setDraftLocation] = useState(authUser?.location || '');
 
   const { data, isLoading } = useQuery({
     queryKey: ['jobseeker-profile'],
@@ -38,10 +45,11 @@ export default function JobSeekerProfilePage() {
 
   // Sync skills state when profile data loads (TanStack Query v5 removed onSuccess from useQuery).
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     if (data?.skills) setSkills(data.skills);
   }, [data]);
 
-  const { register, handleSubmit, control, reset, formState: { errors, isDirty, isSubmitting } } = useForm({
+  const { register, handleSubmit, control, formState: { errors, isSubmitting } } = useForm({
     resolver: zodResolver(schema),
     values: data ? {
       headline: data.headline || '',
@@ -95,6 +103,21 @@ export default function JobSeekerProfilePage() {
     mutation.mutate({ ...values, skills });
   };
 
+  const accountMutation = useMutation({
+    mutationFn: (payload) => usersApi.updateMe(payload).then(r => r.data.data),
+    onSuccess: (updated) => {
+      updateUser(updated);
+      toast.success('Account updated');
+      setEditingName(false);
+      setEditingLocation(false);
+    },
+    onError: (err) => toast.error(err.response?.data?.message || 'Failed to update account'),
+  });
+
+  const initials = authUser?.name
+    ? authUser.name.split(' ').filter(Boolean).map(w => w[0]).join('').slice(0, 2).toUpperCase()
+    : '?';
+
   if (isLoading) {
     return (
       <div className="max-w-2xl mx-auto space-y-4">
@@ -108,6 +131,111 @@ export default function JobSeekerProfilePage() {
       <div>
         <h1 className="text-2xl font-bold text-slate-900">My Profile</h1>
         <p className="text-sm text-slate-600 mt-1">This information powers your AI job matching and personalised recommendations — it is not your resume document.</p>
+      </div>
+
+      {/* Account */}
+      <div className="bg-white border border-slate-200 rounded-xl p-5">
+        <div className="flex items-center gap-4">
+          <div className="w-12 h-12 rounded-full bg-indigo-500/10 text-indigo-700 flex items-center justify-center font-bold">
+            {initials}
+          </div>
+          <div className="flex-1 min-w-0">
+            <div className="flex items-center justify-between gap-3">
+              <div className="min-w-0">
+                {editingName ? (
+                  <div className="flex items-center gap-2">
+                    <input
+                      className="w-full bg-white border border-slate-200 rounded-lg px-3 py-2 text-sm text-slate-900 outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20"
+                      value={draftName}
+                      onChange={(e) => setDraftName(e.target.value)}
+                      placeholder="Add name"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => accountMutation.mutate({ name: draftName.trim() })}
+                      className="h-9 w-9 inline-flex items-center justify-center rounded-lg text-emerald-600 hover:bg-emerald-50"
+                      aria-label="Save name"
+                      title="Save"
+                    >
+                      <Check size={16} />
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => { setDraftName(authUser?.name || ''); setEditingName(false); }}
+                      className="h-9 w-9 inline-flex items-center justify-center rounded-lg text-slate-500 hover:bg-slate-100"
+                      aria-label="Cancel"
+                      title="Cancel"
+                    >
+                      <X size={16} />
+                    </button>
+                  </div>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={() => setEditingName(true)}
+                    className="text-left w-full"
+                  >
+                    <div className="text-sm font-semibold text-slate-900 truncate underline underline-offset-4">
+                      {authUser?.name?.trim() ? authUser.name : 'Add name'}
+                    </div>
+                  </button>
+                )}
+                <div className="text-sm text-slate-600 truncate mt-1">{authUser?.email}</div>
+              </div>
+              {!editingName && (
+                <button
+                  type="button"
+                  onClick={() => setEditingName(true)}
+                  className="h-9 w-9 inline-flex items-center justify-center rounded-lg text-slate-500 hover:bg-slate-100"
+                  aria-label="Edit name"
+                  title="Edit"
+                >
+                  <Pencil size={14} />
+                </button>
+              )}
+            </div>
+
+            <div className="mt-3 flex items-start gap-2">
+              <MapPin size={16} className="text-slate-400 mt-0.5" />
+              <div className="flex-1">
+                {editingLocation ? (
+                  <div className="flex items-center gap-2">
+                    <input
+                      className="w-full bg-white border border-slate-200 rounded-lg px-3 py-2 text-sm text-slate-900 outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20"
+                      value={draftLocation}
+                      onChange={(e) => setDraftLocation(e.target.value)}
+                      placeholder="Add location"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => accountMutation.mutate({ location: draftLocation.trim() })}
+                      className="h-9 w-9 inline-flex items-center justify-center rounded-lg text-emerald-600 hover:bg-emerald-50"
+                      aria-label="Save location"
+                      title="Save"
+                    >
+                      <Check size={16} />
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => { setDraftLocation(authUser?.location || ''); setEditingLocation(false); }}
+                      className="h-9 w-9 inline-flex items-center justify-center rounded-lg text-slate-500 hover:bg-slate-100"
+                      aria-label="Cancel"
+                      title="Cancel"
+                    >
+                      <X size={16} />
+                    </button>
+                  </div>
+                ) : (
+                  <button type="button" onClick={() => setEditingLocation(true)} className="text-left">
+                    <span className="text-sm text-slate-600 underline underline-offset-4">
+                      {authUser?.location?.trim() ? authUser.location : 'Add location'}
+                    </span>
+                  </button>
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
 
       {isNew ? (

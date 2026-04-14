@@ -56,6 +56,7 @@ export default function JobFormPage() {
         minExperience: jobData.minExperience ?? '',
         salary: jobData.salary || '',
       });
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setSkills(jobData.requiredSkills || []);
     }
   }, [jobData, reset]);

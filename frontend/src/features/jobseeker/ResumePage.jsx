@@ -431,6 +431,7 @@ export default function ResumePage() {
   useEffect(() => {
     if (!uploadMutation.isPending) return undefined;
     if (uploadProgress < 100) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setUploadStep(0);
       return undefined;
     }
@@ -455,6 +456,7 @@ export default function ResumePage() {
   // When the mutation finally resolves (AI done + saved), bump to the last step briefly
   useEffect(() => {
     if (uploadMutation.isSuccess) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setUploadStep(3);
     }
   }, [uploadMutation.isSuccess]);

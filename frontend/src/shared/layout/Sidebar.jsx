@@ -3,7 +3,7 @@ import { NavLink, useNavigate } from 'react-router-dom';
 import {
   Briefcase, LayoutDashboard, Star, FileText, User,
   Plus, List, Users, ShieldCheck, LogOut, Building2,
-  BookOpen,
+  Settings,
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import toast from 'react-hot-toast';
@@ -19,6 +19,7 @@ const NAV = {
     { to: '/my-applications', icon: List, label: 'My Applications' },
     { to: '/resume', icon: FileText, label: 'My Resume' },
     { to: '/profile', icon: User, label: 'Profile' },
+    { to: '/settings', icon: Settings, label: 'Settings' },
     { to: '/change-password', icon: ShieldCheck, label: 'Security' },
   ],
   recruiter: [
@@ -27,6 +28,7 @@ const NAV = {
     { to: '/recruiter/applications', icon: Users, label: 'Applications' },
     { to: '/recruiter/jobs/new', icon: Plus, label: 'Post a Job' },
     { to: '/recruiter/profile', icon: Building2, label: 'Company Profile' },
+    { to: '/settings', icon: Settings, label: 'Settings' },
     { to: '/change-password', icon: ShieldCheck, label: 'Security' },
   ],
   admin: [
@@ -34,6 +36,7 @@ const NAV = {
     { to: '/admin/recruiters', icon: ShieldCheck, label: 'Pending Recruiters' },
     { to: '/admin/users', icon: Users, label: 'Users' },
     { to: '/admin/resumes', icon: FileText, label: 'Resumes' },
+    { to: '/settings', icon: Settings, label: 'Settings' },
     { to: '/change-password', icon: ShieldCheck, label: 'Security' },
     { to: '/jobs', icon: Briefcase, label: 'All Jobs' },
   ],

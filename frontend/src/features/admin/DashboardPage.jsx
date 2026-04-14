@@ -1,4 +1,5 @@
 // Admin dashboard page showing high-level platform metrics and recent activity.
+import { createElement } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { Shield, Users, Briefcase, FileText, TrendingUp } from 'lucide-react';
 import { Link } from 'react-router-dom';
@@ -57,7 +58,7 @@ export default function AdminDashboard() {
             const c = (
               <div className={`bg-white border border-slate-200 rounded-xl p-5 flex items-center gap-4 hover:border-slate-300 transition-all ${to ? 'cursor-pointer hover:-translate-y-0.5' : ''}`}>
                 <div className={`w-11 h-11 rounded-xl flex items-center justify-center flex-shrink-0 ${color}`}>
-                  <Icon size={20} />
+                  {createElement(Icon, { size: 20 })}
                 </div>
                 <div>
                   <div className="text-2xl font-bold text-slate-900">{value ?? '–'}</div>

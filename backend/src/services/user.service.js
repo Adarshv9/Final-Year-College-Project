@@ -53,16 +53,17 @@ export const getUserById = async (userId) => {
 };
 
 /**
- * Update a user by ID.
+ * Update a user by ID, with optional self-service rules.
  * @param {string} userId
  * @param {Object} updateData
- * @returns {Promise<Object>} Updated user document
+ * @param {Object} options
+ * @param {boolean} options.self - When true, restrict fields/role transitions.
  */
-export const updateUser = async (userId, updateData) => {
+export const updateUser = async (userId, updateData, options = {}) => {
+  const { self = false } = options;
+
   const user = await User.findById(userId);
-  if (!user) {
-    throw new ApiError(404, 'User not found');
-  }
+  if (!user) throw new ApiError(404, 'User not found');
 
   if (updateData.role === 'admin' && !user.emailVerified) {
     throw new ApiError(400, 'Only existing email-verified users can be promoted to admin');
@@ -71,6 +72,30 @@ export const updateUser = async (userId, updateData) => {
   // Protect super admin from being demoted
   if (user.email === process.env.SUPER_ADMIN_EMAIL && updateData.role && updateData.role !== 'admin') {
     throw new ApiError(403, 'The super admin account cannot be demoted');
+  }
+
+  // Self-service: disallow admin role changes and enforce recruiter approval flow.
+  if (self && updateData.role) {
+    if (updateData.role === 'admin') {
+      throw new ApiError(403, 'You cannot change your account type to admin');
+    }
+    if (!['job_seeker', 'recruiter'].includes(updateData.role)) {
+      throw new ApiError(400, 'Account type must be job_seeker or recruiter');
+    }
+    if (updateData.role === 'recruiter' && user.role !== 'recruiter') {
+      // Request recruiter role: keep existing role until admin approval.
+      updateData.pendingRole = 'recruiter';
+      updateData.approvalStatus = 'pending';
+      delete updateData.role;
+    }
+
+    if (updateData.role === 'job_seeker') {
+      // Allow switching back/cancelling any pending request.
+      updateData.role = 'job_seeker';
+      updateData.pendingRole = null;
+      updateData.approvalStatus = null;
+      updateData.isVerified = false;
+    }
   }
 
   // Check for email uniqueness if email is being changed
@@ -83,8 +108,25 @@ export const updateUser = async (userId, updateData) => {
 
   Object.assign(user, updateData);
   await user.save();
-
   return user;
+};
+
+/**
+ * Delete the authenticated user's own account.
+ */
+export const deleteSelf = async (userId, requester) => {
+  const user = await User.findById(userId);
+  if (!user) throw new ApiError(404, 'User not found');
+
+  if (user.email === process.env.SUPER_ADMIN_EMAIL) {
+    throw new ApiError(403, 'The super admin account cannot be deleted');
+  }
+
+  if (requester?.id?.toString() !== user._id.toString()) {
+    throw new ApiError(403, 'Forbidden');
+  }
+
+  await User.findByIdAndDelete(userId);
 };
 
 /**

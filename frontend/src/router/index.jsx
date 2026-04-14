@@ -32,6 +32,7 @@ const MyApplicationsPage  = lazy(() => import('../features/jobseeker/MyApplicati
 const ResumePage          = lazy(() => import('../features/jobseeker/ResumePage'));
 const JobSeekerProfile    = lazy(() => import('../features/jobseeker/ProfilePage'));
 const ChangePasswordPage  = lazy(() => import('../features/jobseeker/ChangePasswordPage'));
+const SettingsPage        = lazy(() => import('../features/account/SettingsPage'));
 
 // Recruiter
 const RecruiterDashboard        = lazy(() => import('../features/recruiter/DashboardPage'));
@@ -149,6 +150,7 @@ const router = createBrowserRouter([
         element: <AppLayout />,
         children: [
           { path: '/change-password', element: S(ChangePasswordPage) },
+          { path: '/settings',        element: S(SettingsPage) },
         ],
       },
     ],

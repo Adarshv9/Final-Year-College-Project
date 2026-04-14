@@ -38,6 +38,17 @@ const updateUser = Joi.object({
   }).min(1), // at least one field must be provided
 });
 
+// Self-service update validation (no admin-only fields)
+const updateMe = Joi.object({
+  body: Joi.object({
+    name: Joi.string().trim().min(2).max(50),
+    email: Joi.string().email(),
+    phone: Joi.string().trim().max(30).allow(''),
+    location: Joi.string().trim().max(80).allow(''),
+    role: Joi.string().valid('job_seeker', 'recruiter'),
+  }).min(1),
+});
+
 // Delete user validation
 const deleteUser = Joi.object({
   params: Joi.object({
@@ -73,4 +84,4 @@ const changePassword = Joi.object({
   }),
 });
 
-export { getUser, updateUser, deleteUser, listUsers, changePassword };
+export { getUser, updateUser, updateMe, deleteUser, listUsers, changePassword };

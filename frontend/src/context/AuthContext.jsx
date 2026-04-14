@@ -1,3 +1,4 @@
+/* eslint-disable react-refresh/only-export-components */
 // React context that restores the session and exposes auth helpers to the app.
 import { createContext, useContext, useEffect, useState, useCallback } from 'react';
 import api from '../lib/axios';
@@ -28,7 +29,7 @@ export function AuthProvider({ children }) {
   const logout = useCallback(async () => {
     // Even if the API call fails, clear local auth state so the UI does not
     // keep rendering a stale signed-in session.
-    try { await api.post('/auth/logout'); } catch (_) { /* ignore */ }
+    try { await api.post('/auth/logout'); } catch { /* ignore */ }
     setUser(null);
   }, []);
 

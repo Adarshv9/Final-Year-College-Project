@@ -128,7 +128,7 @@ function Navbar() {
                   <Button variant="primary" size="sm" className="px-5">Register</Button>
                 </Link>
                 <Link to="/register?role=recruiter" className="text-sm font-medium text-indigo-400 hover:text-indigo-300 transition-colors">
-                  Employer sign up
+                  Recruiter sign up
                 </Link>
               </>
             )}
@@ -194,7 +194,7 @@ function Navbar() {
                     onClick={() => setMobileOpen(false)}
                     className="rounded-xl px-3 py-2 text-sm font-medium text-indigo-400 hover:bg-indigo-500/10 transition-colors"
                   >
-                    Employer sign up
+                    Recruiter sign up
                   </Link>
                 </>
               )}

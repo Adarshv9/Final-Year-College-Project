@@ -12,6 +12,7 @@ const PAGE_TITLES = {
   '/my-applications': 'My Applications',
   '/resume': 'My Resume',
   '/profile': 'Profile',
+  '/settings': 'Account Settings',
   '/change-password': 'Change Password',
   '/recruiter/dashboard': 'Recruiter Dashboard',
   '/recruiter/applications': 'All Applications',

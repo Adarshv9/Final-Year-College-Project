@@ -37,6 +37,18 @@ const userSchema = new mongoose.Schema(
       lowercase: true,
       match: [/^\S+@\S+\.\S+$/, 'Please provide a valid email address'],
     },
+    phone: {
+      type: String,
+      trim: true,
+      maxlength: [30, 'Phone number must be at most 30 characters'],
+      default: '',
+    },
+    location: {
+      type: String,
+      trim: true,
+      maxlength: [80, 'Location must be at most 80 characters'],
+      default: '',
+    },
     password: {
       type: String,
       required: [true, 'Password is required'],
@@ -55,6 +67,16 @@ const userSchema = new mongoose.Schema(
         message: '{VALUE} is not a valid role',
       },
       default: 'job_seeker',
+    },
+    pendingRole: {
+      // Used when a user requests a role change that requires approval.
+      // For example: job_seeker -> recruiter should remain job_seeker until approved.
+      type: String,
+      enum: {
+        values: ['recruiter'],
+        message: '{VALUE} is not a valid pending role',
+      },
+      default: null,
     },
     emailVerified: {
       type: Boolean,

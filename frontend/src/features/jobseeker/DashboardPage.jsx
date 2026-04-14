@@ -1,4 +1,5 @@
 // Job seeker dashboard summarizing profile progress, resume status, and quick actions.
+import { createElement } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { Link } from 'react-router-dom';
 import { Briefcase, Star, FileText, CheckCircle, Clock, XCircle, TrendingUp, ArrowRight } from 'lucide-react';
@@ -13,7 +14,7 @@ function StatCard({ icon: Icon, label, value, color, to }) {
   const content = (
     <div className={`bg-white border border-slate-200 rounded-xl p-5 flex items-center gap-4 hover:border-slate-300 transition-all ${to ? 'cursor-pointer hover:-translate-y-0.5' : ''}`}>
       <div className={`w-11 h-11 rounded-xl flex items-center justify-center flex-shrink-0 ${color}`}>
-        <Icon size={20} />
+        {createElement(Icon, { size: 20 })}
       </div>
       <div>
         <div className="text-2xl font-bold text-slate-900">{value ?? '–'}</div>
@@ -174,7 +175,7 @@ export default function JobSeekerDashboard() {
             className="flex items-center gap-4 p-4 bg-white border border-slate-200 rounded-xl hover:border-slate-300 hover:-translate-y-0.5 transition-all"
           >
             <div className={`w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0 ${color}`}>
-              <Icon size={18} />
+              {createElement(Icon, { size: 18 })}
             </div>
             <div>
               <div className="text-sm font-semibold text-slate-900">{label}</div>

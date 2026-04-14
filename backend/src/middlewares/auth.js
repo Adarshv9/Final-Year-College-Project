@@ -131,8 +131,8 @@ export const checkRecruiterVerified = (req, _res, next) => {
     throw new ApiError(401, 'Authentication required');
   }
 
-  if (req.user.role === 'recruiter' && !req.user.isVerified) {
-    throw new ApiError(403, 'Recruiter account is pending admin verification.');
+  if (req.user.role === 'recruiter' && req.user.approvalStatus !== 'approved') {
+    throw new ApiError(403, 'Recruiter account is pending admin approval.');
   }
 
   next();
