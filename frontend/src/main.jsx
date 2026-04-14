@@ -19,14 +19,14 @@ createRoot(document.getElementById('root')).render(
           position="top-right"
           toastOptions={{
             style: {
-              background: '#131929',
-              color: '#e2e8f0',
-              border: '1px solid #1e2a3d',
+              background: '#ffffff',
+              color: '#0f172a',
+              border: '1px solid #e2e8f0',
               borderRadius: '12px',
               fontSize: '0.875rem',
             },
-            success: { iconTheme: { primary: '#10b981', secondary: '#131929' } },
-            error: { iconTheme: { primary: '#f43f5e', secondary: '#131929' } },
+            success: { iconTheme: { primary: '#10b981', secondary: '#ffffff' } },
+            error: { iconTheme: { primary: '#f43f5e', secondary: '#ffffff' } },
           }}
         />
       </AuthProvider>

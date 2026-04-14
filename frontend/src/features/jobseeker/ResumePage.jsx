@@ -80,7 +80,7 @@ function UploadTab({ resume, file, setFile, uploadMutation, uploadProgress, uplo
           <div className="flex items-center gap-3">
             <CheckCircle2 size={20} className="text-emerald-400" />
             <div>
-              <div className="text-sm font-semibold text-[#e2e8f0]">Resume on file</div>
+              <div className="text-sm font-semibold text-slate-900">Resume on file</div>
               {resume.isVerified && <div className="text-xs text-emerald-400 flex items-center gap-1"><CheckCircle2 size={11} /> Verified by admin</div>}
             </div>
           </div>
@@ -105,7 +105,7 @@ function UploadTab({ resume, file, setFile, uploadMutation, uploadProgress, uplo
 
       {/* Drop zone */}
       <div
-        className={`border-2 border-dashed rounded-xl p-8 text-center transition-all ${isUploading ? 'opacity-60 cursor-not-allowed border-[#1e2a3d]' : dragging ? 'border-indigo-500 bg-indigo-500/5 cursor-pointer' : 'border-[#1e2a3d] hover:border-[#243047] cursor-pointer'}`}
+        className={`border-2 border-dashed rounded-xl p-8 text-center transition-all ${isUploading ? 'opacity-60 cursor-not-allowed border-slate-200' : dragging ? 'border-indigo-500 bg-indigo-500/5 cursor-pointer' : 'border-slate-200 hover:border-slate-300 cursor-pointer'}`}
         onClick={() => { if (!isUploading) fileRef.current?.click(); }}
         onDragOver={(e) => {
           e.preventDefault();
@@ -115,11 +115,11 @@ function UploadTab({ resume, file, setFile, uploadMutation, uploadProgress, uplo
         onDragLeave={() => setDragging(false)}
         onDrop={handleDrop}
       >
-        <Upload size={28} className={`mx-auto mb-3 ${dragging && !isUploading ? 'text-indigo-400' : 'text-[#64748b]'}`} />
-        <p className="text-sm font-medium text-[#e2e8f0] mb-1">
+        <Upload size={28} className={`mx-auto mb-3 ${dragging && !isUploading ? 'text-indigo-400' : 'text-slate-500'}`} />
+        <p className="text-sm font-medium text-slate-900 mb-1">
           {file ? file.name : 'Drop your resume here or click to browse'}
         </p>
-        <p className="text-xs text-[#64748b]">
+        <p className="text-xs text-slate-500">
           {isUploading ? statusText : 'PDF only, max 2 MB'}
         </p>
         <input
@@ -136,7 +136,7 @@ function UploadTab({ resume, file, setFile, uploadMutation, uploadProgress, uplo
         <Alert type="info">
           <div className="space-y-4">
             <div>
-              <div className="font-semibold text-[#e2e8f0]">Processing your resume</div>
+              <div className="font-semibold text-slate-900">Processing your resume</div>
               <p className="mt-1 text-xs text-indigo-200/80">
                 We upload the PDF, extract the text, parse it with AI, and then save the structured resume.
               </p>
@@ -176,10 +176,10 @@ function UploadTab({ resume, file, setFile, uploadMutation, uploadProgress, uplo
                       )}
                     </div>
                     <div className="min-w-0">
-                      <div className={isActive ? 'text-[#e2e8f0] font-medium' : 'text-indigo-100/90'}>
+                      <div className={isActive ? 'text-slate-900 font-medium' : 'text-slate-600'}>
                         {title}
                       </div>
-                      <div className="text-xs text-indigo-200/70">{step.description}</div>
+                      <div className="text-xs text-slate-500">{step.description}</div>
                     </div>
                   </div>
                 );
@@ -254,9 +254,9 @@ function ManualEditTab({ resume }) {
     onError: (err) => toast.error(err.response?.data?.message || 'Failed to save'),
   });
 
-  const inputCls = 'w-full bg-[#0b0f1a] border border-[#1e2a3d] rounded-lg px-3 py-2.5 text-sm text-[#e2e8f0] placeholder-[#64748b] outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20';
-  const labelCls = 'text-sm font-medium text-[#e2e8f0]';
-  const sectionCls = 'bg-[#0b0f1a] rounded-lg border border-[#1e2a3d] p-4 space-y-3';
+  const inputCls = 'w-full bg-white border border-slate-200 rounded-lg px-3 py-2.5 text-sm text-slate-900 placeholder-slate-400 outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20';
+  const labelCls = 'text-sm font-medium text-slate-900';
+  const sectionCls = 'bg-slate-50 rounded-lg border border-slate-200 p-4 space-y-3';
 
   return (
     <form onSubmit={handleSubmit(d => mutation.mutate({ ...d, skills }))} className="space-y-6">
@@ -479,8 +479,8 @@ export default function ResumePage() {
   return (
     <div className="max-w-2xl mx-auto space-y-6 animate-fade-in">
       <div>
-        <h1 className="text-2xl font-bold text-[#e2e8f0]">My Resume</h1>
-        <p className="text-sm text-[#94a3b8] mt-1">This is the resume document shown to recruiters when you apply for jobs.</p>
+        <h1 className="text-2xl font-bold text-slate-900">My Resume</h1>
+        <p className="text-sm text-slate-600 mt-1">This is the resume document shown to recruiters when you apply for jobs.</p>
       </div>
 
       <Alert type="info">
@@ -488,7 +488,7 @@ export default function ResumePage() {
       </Alert>
 
       {/* Tabs */}
-      <div className="flex gap-1 border-b border-[#1e2a3d]">
+      <div className="flex gap-1 border-b border-slate-200">
         {[
           { id: 'upload', label: 'Upload PDF', icon: Paperclip },
           { id: 'manual', label: 'Manual Edit', icon: Edit3 },
@@ -499,7 +499,7 @@ export default function ResumePage() {
             onClick={() => setTab(t.id)}
             className={[
               'flex items-center gap-1.5 px-4 py-2.5 text-sm font-medium border-b-2 -mb-px transition-all disabled:opacity-60 disabled:cursor-not-allowed',
-              tab === t.id ? 'text-indigo-400 border-indigo-500' : 'text-[#64748b] border-transparent hover:text-[#94a3b8]',
+              tab === t.id ? 'text-indigo-600 border-indigo-500' : 'text-slate-500 border-transparent hover:text-slate-700',
             ].join(' ')}
           >
             <t.icon size={14} />

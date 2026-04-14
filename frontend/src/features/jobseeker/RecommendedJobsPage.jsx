@@ -47,10 +47,10 @@ export default function RecommendedJobsPage() {
   return (
     <div className="max-w-5xl mx-auto space-y-6 animate-fade-in">
       <div>
-        <h1 className="text-2xl font-bold text-[#e2e8f0] flex items-center gap-2">
+        <h1 className="text-2xl font-bold text-slate-900 flex items-center gap-2">
           <Star size={22} className="text-amber-400" /> Recommended Jobs
         </h1>
-        <p className="text-sm text-[#94a3b8] mt-1">Jobs matched to your skills and experience</p>
+        <p className="text-sm text-slate-600 mt-1">Jobs matched to your skills and experience</p>
       </div>
 
       {jobs.length === 0 ? (
@@ -67,7 +67,7 @@ export default function RecommendedJobsPage() {
               <Link
                 key={job.jobId || job._id}
                 to={`/jobs/${job.jobId || job._id}`}
-                className="block bg-[#131929] border border-[#1e2a3d] rounded-xl p-5 hover:border-indigo-500/50 hover:shadow-lg hover:-translate-y-0.5 transition-all group"
+                className="block bg-white border border-slate-200 rounded-xl p-5 hover:border-indigo-500/50 hover:shadow-lg hover:-translate-y-0.5 transition-all group"
               >
                 <div className="flex items-start justify-between gap-2 mb-3">
                   <div className="w-10 h-10 bg-indigo-500/10 rounded-lg flex items-center justify-center">
@@ -75,10 +75,10 @@ export default function RecommendedJobsPage() {
                   </div>
                   <Badge variant="accent">{job.jobType}</Badge>
                 </div>
-                <h3 className="text-sm font-semibold text-[#e2e8f0] mb-1 group-hover:text-indigo-400 transition-colors">{job.title}</h3>
-                <p className="text-xs text-[#94a3b8] mb-2">{job.companyName}</p>
+                <h3 className="text-sm font-semibold text-slate-900 mb-1 group-hover:text-indigo-400 transition-colors">{job.title}</h3>
+                <p className="text-xs text-slate-600 mb-2">{job.companyName}</p>
                 {(job.location?.city || job.location?.country) && (
-                  <p className="text-xs text-[#64748b] flex items-center gap-1 mb-3">
+                  <p className="text-xs text-slate-500 flex items-center gap-1 mb-3">
                     <MapPin size={11} />{[job.location?.city, job.location?.country].filter(Boolean).join(', ')}
                   </p>
                 )}

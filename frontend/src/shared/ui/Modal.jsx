@@ -27,16 +27,16 @@ export function Modal({ isOpen, onClose, title, children, footer, size = 'md' })
     >
       <div
         className={[
-          'bg-[#131929] border border-[#243047] rounded-2xl w-full shadow-2xl',
+          'bg-white border border-slate-200 rounded-2xl w-full shadow-2xl',
           'max-h-[90vh] overflow-y-auto',
           sizeClasses[size] || sizeClasses.md,
         ].join(' ')}
       >
-        <div className="flex items-center justify-between px-6 py-4 border-b border-[#1e2a3d]">
-          <h2 className="text-lg font-bold text-[#e2e8f0]">{title}</h2>
+        <div className="flex items-center justify-between px-6 py-4 border-b border-slate-200">
+          <h2 className="text-lg font-bold text-slate-900">{title}</h2>
           <button
             onClick={onClose}
-            className="w-8 h-8 flex items-center justify-center rounded-lg text-[#64748b] hover:text-[#e2e8f0] hover:bg-[#1a2236] transition-colors"
+            className="w-8 h-8 flex items-center justify-center rounded-lg text-slate-500 hover:text-slate-900 hover:bg-slate-100 transition-colors"
           >
             <X size={18} />
           </button>

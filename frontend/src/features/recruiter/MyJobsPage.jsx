@@ -45,8 +45,8 @@ export default function MyJobsPage() {
     <div className="max-w-4xl mx-auto space-y-6 animate-fade-in">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-[#e2e8f0]">My Jobs</h1>
-          <p className="text-sm text-[#94a3b8] mt-1">{jobs.length} job{jobs.length !== 1 ? 's' : ''} posted</p>
+          <h1 className="text-2xl font-bold text-slate-900">My Jobs</h1>
+          <p className="text-sm text-slate-600 mt-1">{jobs.length} job{jobs.length !== 1 ? 's' : ''} posted</p>
         </div>
         <Link to="/recruiter/jobs/new">
           <Button><Plus size={16} /> Post Job</Button>
@@ -65,24 +65,24 @@ export default function MyJobsPage() {
           {jobs.map(job => (
             <div
               key={job._id}
-              className="bg-[#131929] border border-[#1e2a3d] rounded-xl p-5 hover:border-indigo-500/40 transition-all cursor-pointer"
+              className="bg-white border border-slate-200 rounded-xl p-5 hover:border-indigo-500/40 transition-all cursor-pointer"
               onClick={() => navigate(`/recruiter/jobs/${job._id}/applications`)}
             >
               <div className="flex items-start justify-between gap-4">
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2 flex-wrap mb-1">
-                    <h3 className="text-base font-semibold text-[#e2e8f0]">{job.title}</h3>
+                    <h3 className="text-base font-semibold text-slate-900">{job.title}</h3>
                     <Badge variant="accent">{job.jobType}</Badge>
                     {job.location?.type && <Badge variant={job.location.type}>{job.location.type}</Badge>}
                   </div>
-                  <p className="text-sm text-[#94a3b8]">{job.companyName}</p>
+                  <p className="text-sm text-slate-600">{job.companyName}</p>
                   {job.location?.city && (
-                    <p className="text-xs text-[#64748b] mt-1">{job.location.city}{job.location.country ? `, ${job.location.country}` : ''}</p>
+                    <p className="text-xs text-slate-500 mt-1">{job.location.city}{job.location.country ? `, ${job.location.country}` : ''}</p>
                   )}
                 </div>
                 <div className="flex items-center gap-2 flex-shrink-0">
-                  <div className="inline-flex items-center gap-1.5 px-2.5 py-1.5 bg-[#1e2a3d] rounded-lg text-sm">
-                    <Users size={13} className="text-[#94a3b8]" />
+                  <div className="inline-flex items-center gap-1.5 px-2.5 py-1.5 bg-slate-100 rounded-lg text-sm">
+                    <Users size={13} className="text-slate-600" />
                     <span className="text-emerald-400 font-bold">{job.applicationsCount || 0}</span>
                   </div>
                   <Link to={`/recruiter/jobs/${job._id}/edit`} onClick={(e) => e.stopPropagation()}>
@@ -101,7 +101,7 @@ export default function MyJobsPage() {
               </div>
 
               {job.requiredSkills?.length > 0 && (
-                <div className="flex flex-wrap gap-1.5 mt-3 pt-3 border-t border-[#1e2a3d]">
+                <div className="flex flex-wrap gap-1.5 mt-3 pt-3 border-t border-slate-200">
                   {job.requiredSkills.slice(0, 5).map(s => (
                     <span key={s} className="px-2 py-0.5 bg-indigo-500/10 text-indigo-400 rounded-full text-xs">{s}</span>
                   ))}
@@ -126,7 +126,7 @@ export default function MyJobsPage() {
           </>
         }
       >
-        <p className="text-sm text-[#94a3b8]">Are you sure you want to delete this job? This action cannot be undone and all applications will be permanently removed.</p>
+        <p className="text-sm text-slate-600">Are you sure you want to delete this job? This action cannot be undone and all applications will be permanently removed.</p>
       </Modal>
     </div>
   );

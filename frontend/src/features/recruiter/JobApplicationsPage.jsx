@@ -55,16 +55,16 @@ export default function JobApplicationsPage() {
   return (
     <div className="mx-auto max-w-5xl space-y-6 animate-fade-in">
       <div className="flex items-center gap-3">
-        <Link to="/recruiter/jobs" className="text-[#64748b] transition-colors hover:text-[#e2e8f0]">
+        <Link to="/recruiter/jobs" className="text-slate-500 transition-colors hover:text-slate-900">
           <ArrowLeft size={18} />
         </Link>
         <div>
-          <h1 className="text-2xl font-bold text-[#e2e8f0]">Applications</h1>
-          <p className="text-sm text-[#94a3b8]">{allApps.length} total applicants</p>
+          <h1 className="text-2xl font-bold text-slate-900">Applications</h1>
+          <p className="text-sm text-slate-600">{allApps.length} total applicants</p>
         </div>
       </div>
 
-      <div className="flex gap-1 border-b border-[#1e2a3d]">
+      <div className="flex gap-1 border-b border-slate-200">
         {[
           { id: 'all', label: `All (${allApps.length})` },
           { id: 'recommended', label: 'AI Recommended', icon: Star },
@@ -79,8 +79,8 @@ export default function JobApplicationsPage() {
                 'flex items-center gap-2 px-4 py-2.5 text-sm font-medium transition-all',
                 'border-b-2 -mb-px',
                 tab === item.id
-                  ? 'border-indigo-500 text-indigo-400'
-                  : 'border-transparent text-[#64748b] hover:text-[#94a3b8]',
+                  ? 'border-indigo-500 text-indigo-600'
+                  : 'border-transparent text-slate-500 hover:text-slate-700',
               ].join(' ')}
             >
               {Icon ? <Icon size={14} /> : null}
@@ -143,14 +143,14 @@ export default function JobApplicationsPage() {
           </>
         )}
       >
-        <p className="text-sm text-[#94a3b8]">
+        <p className="text-sm text-slate-600">
           {confirmModal?.action === 'pending' ? (
             <>
-              This will move the application back to <strong className="text-[#e2e8f0]">pending</strong> and cancel any scheduled decision email.
+              This will move the application back to <strong className="text-slate-900">pending</strong> and cancel any scheduled decision email.
             </>
           ) : (
             <>
-              Are you sure you want to <strong className="text-[#e2e8f0]">{confirmModal?.action}</strong> this application? The applicant will be notified after 15 seconds.
+              Are you sure you want to <strong className="text-slate-900">{confirmModal?.action}</strong> this application? The applicant will be notified after 15 seconds.
             </>
           )}
         </p>

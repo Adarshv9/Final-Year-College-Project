@@ -97,18 +97,18 @@ export default function OTPVerifyPage() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-[#0b0f1a] p-4">
-      <div className="w-full max-w-[440px] bg-[#131929] border border-[#1e2a3d] rounded-2xl p-8 shadow-2xl animate-fade-in">
+    <div className="min-h-screen flex items-center justify-center bg-slate-50 p-4">
+      <div className="w-full max-w-[440px] bg-white border border-slate-200 rounded-2xl p-8 shadow-2xl animate-fade-in">
         {/* Logo */}
         <div className="flex items-center gap-3 mb-8">
           <BrandLogo imageClassName="h-10 w-auto" />
         </div>
 
         <div className="text-center mb-8">
-          <h1 className="text-2xl font-bold text-[#e2e8f0] mb-2">Verify your email</h1>
-          <p className="text-sm text-[#94a3b8]">
+          <h1 className="text-2xl font-bold text-slate-900 mb-2">Verify your email</h1>
+          <p className="text-sm text-slate-600">
             We sent a 6-digit code to{' '}
-            <span className="font-semibold text-[#e2e8f0]">{email}</span>
+            <span className="font-semibold text-slate-900">{email}</span>
           </p>
         </div>
 
@@ -125,9 +125,9 @@ export default function OTPVerifyPage() {
               onChange={(e) => handleChange(e.target.value, idx)}
               onKeyDown={(e) => handleKeyDown(e, idx)}
               className={[
-                'w-12 h-14 text-center text-xl font-bold bg-[#0b0f1a] border rounded-xl',
-                'text-[#e2e8f0] outline-none transition-all duration-150',
-                val ? 'border-indigo-500 bg-indigo-500/5' : 'border-[#1e2a3d]',
+                'w-12 h-14 text-center text-xl font-bold bg-white border rounded-xl',
+                'text-slate-900 outline-none transition-all duration-150',
+                val ? 'border-indigo-500 bg-indigo-500/5' : 'border-slate-200',
                 'focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20',
               ].join(' ')}
             />
@@ -146,14 +146,14 @@ export default function OTPVerifyPage() {
 
         {/* Resend */}
         <div className="flex items-center justify-center gap-2 mt-6">
-          <span className="text-sm text-[#64748b]">Didn&apos;t receive it?</span>
+          <span className="text-sm text-slate-500">Didn&apos;t receive it?</span>
           {countdown > 0 ? (
-            <span className="text-sm text-[#94a3b8]">Resend in {countdown}s</span>
+            <span className="text-sm text-slate-600">Resend in {countdown}s</span>
           ) : (
             <button
               onClick={handleResend}
               disabled={resending}
-              className="flex items-center gap-1.5 text-sm font-semibold text-indigo-400 hover:text-indigo-300 disabled:opacity-50 transition-colors"
+              className="flex items-center gap-1.5 text-sm font-semibold text-indigo-600 hover:text-indigo-700 disabled:opacity-50 transition-colors"
             >
               <RefreshCcw size={13} className={resending ? 'animate-spin' : ''} />
               Resend OTP
@@ -161,8 +161,8 @@ export default function OTPVerifyPage() {
           )}
         </div>
 
-        <p className="text-center text-sm text-[#64748b] mt-4">
-          <Link to="/login" className="text-indigo-400 hover:underline">← Back to login</Link>
+        <p className="text-center text-sm text-slate-500 mt-4">
+          <Link to="/login" className="text-indigo-600 hover:underline">← Back to login</Link>
         </p>
       </div>
     </div>

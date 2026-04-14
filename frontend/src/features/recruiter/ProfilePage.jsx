@@ -54,37 +54,37 @@ export default function RecruiterProfilePage() {
     );
   }
 
-  const inputCls = (hasError) => `w-full bg-[#0b0f1a] border rounded-lg px-3 py-2.5 text-sm text-[#e2e8f0] placeholder-[#64748b] outline-none focus:ring-2 transition-all ${hasError ? 'border-rose-500 focus:ring-rose-500/20' : 'border-[#1e2a3d] focus:border-indigo-500 focus:ring-indigo-500/20'}`;
+  const inputCls = (hasError) => `w-full bg-white border rounded-lg px-3 py-2.5 text-sm text-slate-900 placeholder-slate-400 outline-none focus:ring-2 transition-all ${hasError ? 'border-rose-500 focus:ring-rose-500/20' : 'border-slate-200 focus:border-indigo-500 focus:ring-indigo-500/20'}`;
 
   return (
     <div className="max-w-2xl mx-auto space-y-6 animate-fade-in">
       <div>
-        <h1 className="text-2xl font-bold text-[#e2e8f0] flex items-center gap-2">
+        <h1 className="text-2xl font-bold text-slate-900 flex items-center gap-2">
           <Building2 size={22} className="text-indigo-400" /> Company Profile
         </h1>
-        <p className="text-sm text-[#94a3b8] mt-1">{isNew ? 'Set up your company profile to start posting jobs' : 'Update your company information'}</p>
+        <p className="text-sm text-slate-600 mt-1">{isNew ? 'Set up your company profile to start posting jobs' : 'Update your company information'}</p>
       </div>
 
       {isNew && (
         <Alert type="info">Create your company profile to start posting jobs and attracting top talent.</Alert>
       )}
 
-      <div className="bg-[#131929] border border-[#1e2a3d] rounded-2xl p-6">
+      <div className="bg-white border border-slate-200 rounded-2xl p-6">
         <form onSubmit={handleSubmit(d => mutation.mutate(d))} className="space-y-5">
           <div className="flex flex-col gap-1.5">
-            <label className="text-sm font-medium text-[#e2e8f0]">Company Name <span className="text-rose-400">*</span></label>
+            <label className="text-sm font-medium text-slate-900">Company Name <span className="text-rose-400">*</span></label>
             <input className={inputCls(!!errors.companyName)} placeholder="Acme Corp" {...register('companyName')} />
             {errors.companyName && <p className="text-xs text-rose-400">{errors.companyName.message}</p>}
           </div>
 
           <div className="flex flex-col gap-1.5">
-            <label className="text-sm font-medium text-[#e2e8f0]">Website</label>
+            <label className="text-sm font-medium text-slate-900">Website</label>
             <input className={inputCls(!!errors.companyWebsite)} placeholder="https://acme.com" type="url" {...register('companyWebsite')} />
             {errors.companyWebsite && <p className="text-xs text-rose-400">{errors.companyWebsite.message}</p>}
           </div>
 
           <div className="flex flex-col gap-1.5">
-            <label className="text-sm font-medium text-[#e2e8f0]">Company Size</label>
+            <label className="text-sm font-medium text-slate-900">Company Size</label>
             <select
               className={`${inputCls(false)} cursor-pointer`}
               style={{ appearance: 'none', backgroundImage: "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%2364748b' d='M6 8L1 3h10z'/%3E%3C/svg%3E\")", backgroundRepeat: 'no-repeat', backgroundPosition: 'right 12px center', paddingRight: '2rem' }}
@@ -100,7 +100,7 @@ export default function RecruiterProfilePage() {
           </div>
 
           <div className="flex flex-col gap-1.5">
-            <label className="text-sm font-medium text-[#e2e8f0]">Company Description</label>
+            <label className="text-sm font-medium text-slate-900">Company Description</label>
             <textarea
               rows={4}
               className={`${inputCls(false)} resize-y`}

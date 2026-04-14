@@ -34,25 +34,25 @@ export default function AppLayout() {
   const title = Object.entries(PAGE_TITLES).find(([path]) => pathname.startsWith(path))?.[1] || 'CompasX';
 
   return (
-    <div className="flex min-h-screen bg-[#0b0f1a]">
+    <div className="flex min-h-screen bg-slate-50">
       <Sidebar mobileOpen={mobileOpen} onClose={() => setMobileOpen(false)} />
 
       {/* Main content - offset by sidebar on large screens */}
       <div className="flex-1 flex flex-col min-h-screen lg:ml-[240px]">
         {/* Topbar */}
-        <header className="h-[60px] bg-[#0f1525] border-b border-[#1e2a3d] flex items-center justify-between px-4 lg:px-6 sticky top-0 z-50">
+        <header className="h-[60px] bg-white border-b border-slate-200 flex items-center justify-between px-4 lg:px-6 sticky top-0 z-50">
           <div className="flex items-center gap-3">
             <button
               onClick={() => setMobileOpen(prev => !prev)}
-              className="lg:hidden h-9 w-9 flex items-center justify-center rounded-lg text-[#94a3b8] hover:bg-[#1a2236] hover:text-[#e2e8f0] transition-colors"
+              className="lg:hidden h-9 w-9 flex items-center justify-center rounded-lg text-slate-600 hover:bg-slate-100 hover:text-slate-900 transition-colors"
               aria-label="Toggle menu"
             >
               <Menu size={20} />
             </button>
-            <span className="text-base font-semibold text-[#e2e8f0]">{title}</span>
+            <span className="text-base font-semibold text-slate-900">{title}</span>
           </div>
           <div className="flex items-center gap-2">
-            <div className="text-xs text-[#64748b] hidden sm:block">
+            <div className="text-xs text-slate-500 hidden sm:block">
               {user?.name}
             </div>
           </div>

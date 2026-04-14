@@ -45,18 +45,18 @@ export function TagInput({ value = [], onChange, placeholder = 'Add item…', la
 
   return (
     <div className="flex flex-col gap-1.5">
-      {label && <label className="text-sm font-medium text-[#e2e8f0]">{label}</label>}
+      {label && <label className="text-sm font-medium text-slate-900">{label}</label>}
       <div
         className={[
-          'flex flex-wrap gap-1.5 p-2 min-h-[42px] bg-[#0b0f1a] border rounded-lg cursor-text transition-all duration-150',
-          error ? 'border-rose-500' : 'border-[#1e2a3d] focus-within:border-indigo-500 focus-within:ring-2 focus-within:ring-indigo-500/20',
+          'flex flex-wrap gap-1.5 p-2 min-h-[42px] bg-white border rounded-lg cursor-text transition-all duration-150',
+          error ? 'border-rose-500' : 'border-slate-200 focus-within:border-indigo-500 focus-within:ring-2 focus-within:ring-indigo-500/20',
         ].join(' ')}
         onClick={() => inputRef.current?.focus()}
       >
         {value.map((tag) => (
           <span
             key={tag}
-            className="inline-flex items-center gap-1 px-2.5 py-0.5 bg-indigo-500/15 text-indigo-400 rounded-full text-xs font-medium"
+            className="inline-flex items-center gap-1 px-2.5 py-0.5 bg-indigo-500/10 text-indigo-700 rounded-full text-xs font-medium"
           >
             {tag}
             <button
@@ -76,11 +76,11 @@ export function TagInput({ value = [], onChange, placeholder = 'Add item…', la
           onPaste={handlePaste}
           onBlur={() => input && addTag(input)}
           placeholder={value.length === 0 ? placeholder : ''}
-          className="flex-1 min-w-[120px] bg-transparent text-sm text-[#e2e8f0] placeholder-[#64748b] outline-none py-0.5 px-1"
+          className="flex-1 min-w-[120px] bg-transparent text-sm text-slate-900 placeholder-slate-400 outline-none py-0.5 px-1"
         />
       </div>
       {error && <p className="text-xs text-rose-400">{error}</p>}
-      <p className="text-xs text-[#64748b]">Press Enter or comma to add · Paste a comma-separated list to bulk-add</p>
+      <p className="text-xs text-slate-500">Press Enter or comma to add · Paste a comma-separated list to bulk-add</p>
     </div>
   );
 }

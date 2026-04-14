@@ -40,10 +40,10 @@ export default function AdminDashboard() {
   return (
     <div className="max-w-5xl mx-auto space-y-8 animate-fade-in">
       <div>
-        <h1 className="text-2xl font-bold text-[#e2e8f0] flex items-center gap-2">
+        <h1 className="text-2xl font-bold text-slate-900 flex items-center gap-2">
           <Shield size={22} className="text-amber-400" /> Admin Dashboard
         </h1>
-        <p className="text-sm text-[#94a3b8] mt-1">Platform overview and moderation tools</p>
+        <p className="text-sm text-slate-600 mt-1">Platform overview and moderation tools</p>
       </div>
 
       {usersLoading ? <SkeletonStats count={4} /> : (
@@ -55,13 +55,13 @@ export default function AdminDashboard() {
             { icon: FileText, label: 'Resumes', value: resumes.length, color: 'bg-emerald-500/15 text-emerald-400', to: '/admin/resumes' },
           ].map(({ icon: Icon, label, value, color, to }) => {
             const c = (
-              <div className={`bg-[#131929] border border-[#1e2a3d] rounded-xl p-5 flex items-center gap-4 hover:border-[#243047] transition-all ${to ? 'cursor-pointer hover:-translate-y-0.5' : ''}`}>
+              <div className={`bg-white border border-slate-200 rounded-xl p-5 flex items-center gap-4 hover:border-slate-300 transition-all ${to ? 'cursor-pointer hover:-translate-y-0.5' : ''}`}>
                 <div className={`w-11 h-11 rounded-xl flex items-center justify-center flex-shrink-0 ${color}`}>
                   <Icon size={20} />
                 </div>
                 <div>
-                  <div className="text-2xl font-bold text-[#e2e8f0]">{value ?? '–'}</div>
-                  <div className="text-xs text-[#94a3b8]">{label}</div>
+                  <div className="text-2xl font-bold text-slate-900">{value ?? '–'}</div>
+                  <div className="text-xs text-slate-600">{label}</div>
                 </div>
               </div>
             );
@@ -72,15 +72,15 @@ export default function AdminDashboard() {
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Chart */}
-        <div className="bg-[#131929] border border-[#1e2a3d] rounded-xl p-5">
-          <h2 className="text-base font-semibold text-[#e2e8f0] mb-4 flex items-center gap-2">
+        <div className="bg-white border border-slate-200 rounded-xl p-5">
+          <h2 className="text-base font-semibold text-slate-900 mb-4 flex items-center gap-2">
             <TrendingUp size={16} className="text-indigo-400" /> Platform Overview
           </h2>
           <ResponsiveContainer width="100%" height={200}>
             <BarChart data={chartData} margin={{ left: -20 }}>
               <XAxis dataKey="name" tick={{ fill: '#64748b', fontSize: 11 }} axisLine={false} tickLine={false} />
               <YAxis tick={{ fill: '#64748b', fontSize: 11 }} axisLine={false} tickLine={false} allowDecimals={false} />
-              <Tooltip contentStyle={{ background: '#0f1525', border: '1px solid #1e2a3d', borderRadius: 8, color: '#e2e8f0' }} cursor={{ fill: 'rgba(99,102,241,0.05)' }} />
+              <Tooltip contentStyle={{ background: '#ffffff', border: '1px solid #e2e8f0', borderRadius: 8, color: '#0f172a' }} cursor={{ fill: 'rgba(99,102,241,0.05)' }} />
               <Bar dataKey="count" radius={[6, 6, 0, 0]}>
                 {chartData.map((entry, i) => (
                   <rect key={i} fill={entry.fill} fillOpacity={0.85} />
@@ -91,35 +91,35 @@ export default function AdminDashboard() {
         </div>
 
         {/* Quick actions */}
-        <div className="bg-[#131929] border border-[#1e2a3d] rounded-xl p-5">
-          <h2 className="text-base font-semibold text-[#e2e8f0] mb-4">Moderation Tools</h2>
+        <div className="bg-white border border-slate-200 rounded-xl p-5">
+          <h2 className="text-base font-semibold text-slate-900 mb-4">Moderation Tools</h2>
           <div className="space-y-3">
-            <Link to="/admin/recruiters" className="flex items-center justify-between p-3 rounded-lg hover:bg-[#1a2236] transition-colors">
+            <Link to="/admin/recruiters" className="flex items-center justify-between p-3 rounded-lg hover:bg-slate-50 transition-colors">
               <div className="flex items-center gap-3">
                 <div className="w-8 h-8 bg-amber-500/15 rounded-lg flex items-center justify-center"><Shield size={15} className="text-amber-400" /></div>
                 <div>
-                  <div className="text-sm font-medium text-[#e2e8f0]">Pending Recruiters</div>
+                  <div className="text-sm font-medium text-slate-900">Pending Recruiters</div>
                   <div className="text-xs text-amber-400">{pendingRecruiters.length} awaiting review</div>
                 </div>
               </div>
               <Button size="sm" variant="secondary">Review</Button>
             </Link>
-            <Link to="/admin/users" className="flex items-center justify-between p-3 rounded-lg hover:bg-[#1a2236] transition-colors">
+            <Link to="/admin/users" className="flex items-center justify-between p-3 rounded-lg hover:bg-slate-50 transition-colors">
               <div className="flex items-center gap-3">
                 <div className="w-8 h-8 bg-indigo-500/15 rounded-lg flex items-center justify-center"><Users size={15} className="text-indigo-400" /></div>
                 <div>
-                  <div className="text-sm font-medium text-[#e2e8f0]">User Management</div>
-                  <div className="text-xs text-[#64748b]">{users.length} total users</div>
+                  <div className="text-sm font-medium text-slate-900">User Management</div>
+                  <div className="text-xs text-slate-500">{users.length} total users</div>
                 </div>
               </div>
               <Button size="sm" variant="secondary">Manage</Button>
             </Link>
-            <Link to="/admin/resumes" className="flex items-center justify-between p-3 rounded-lg hover:bg-[#1a2236] transition-colors">
+            <Link to="/admin/resumes" className="flex items-center justify-between p-3 rounded-lg hover:bg-slate-50 transition-colors">
               <div className="flex items-center gap-3">
                 <div className="w-8 h-8 bg-emerald-500/15 rounded-lg flex items-center justify-center"><FileText size={15} className="text-emerald-400" /></div>
                 <div>
-                  <div className="text-sm font-medium text-[#e2e8f0]">Resume Moderation</div>
-                  <div className="text-xs text-[#64748b]">{resumes.filter(r => !r.isVerified).length} unverified</div>
+                  <div className="text-sm font-medium text-slate-900">Resume Moderation</div>
+                  <div className="text-xs text-slate-500">{resumes.filter(r => !r.isVerified).length} unverified</div>
                 </div>
               </div>
               <Button size="sm" variant="secondary">Verify</Button>

@@ -38,9 +38,9 @@ const NAV = {
 };
 
 const ROLE_BADGE = {
-  job_seeker: 'bg-indigo-500/15 text-indigo-400',
-  recruiter: 'bg-emerald-500/15 text-emerald-400',
-  admin: 'bg-amber-500/15 text-amber-400',
+  job_seeker: 'bg-indigo-500/10 text-indigo-700',
+  recruiter: 'bg-emerald-500/10 text-emerald-700',
+  admin: 'bg-amber-500/15 text-amber-800',
 };
 
 export default function Sidebar({ mobileOpen, onClose }) {
@@ -71,13 +71,13 @@ export default function Sidebar({ mobileOpen, onClose }) {
 
       <aside
         className={[
-          'fixed top-0 left-0 h-screen w-[240px] bg-[#0f1525] border-r border-[#1e2a3d] z-[100]',
+          'fixed top-0 left-0 h-screen w-[240px] bg-white border-r border-slate-200 z-[100]',
           'flex flex-col transition-transform duration-300',
           mobileOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0',
         ].join(' ')}
       >
         {/* Logo */}
-        <div className="flex items-center gap-3 px-5 h-[60px] border-b border-[#1e2a3d] flex-shrink-0">
+        <div className="flex items-center gap-3 px-5 h-[60px] border-b border-slate-200 flex-shrink-0">
           <BrandLogo imageClassName="h-7 w-auto" />
         </div>
 
@@ -95,8 +95,8 @@ export default function Sidebar({ mobileOpen, onClose }) {
                 className={({ isActive }) => [
                   'flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-150',
                   isActive
-                    ? 'bg-indigo-500/15 text-indigo-400'
-                    : 'text-[#94a3b8] hover:bg-[#1a2236] hover:text-[#e2e8f0]',
+                    ? 'bg-indigo-500/10 text-indigo-700'
+                    : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900',
                 ].join(' ')}
               >
                 <Icon size={17} className="flex-shrink-0" />
@@ -107,20 +107,20 @@ export default function Sidebar({ mobileOpen, onClose }) {
         </nav>
 
         {/* User footer */}
-        <div className="px-3 pb-4 pt-3 border-t border-[#1e2a3d]">
+        <div className="px-3 pb-4 pt-3 border-t border-slate-200">
           <button
             onClick={handleLogout}
-            className="flex items-center gap-3 w-full px-3 py-2.5 rounded-lg hover:bg-[#1a2236] transition-colors group"
+            className="flex items-center gap-3 w-full px-3 py-2.5 rounded-lg hover:bg-slate-100 transition-colors group"
             title="Logout"
           >
-            <div className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0 ${ROLE_BADGE[user?.role] || 'bg-[#1a2236] text-[#94a3b8]'}`}>
+            <div className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0 ${ROLE_BADGE[user?.role] || 'bg-slate-100 text-slate-600'}`}>
               {initials}
             </div>
             <div className="flex-1 min-w-0 text-left">
-              <div className="text-sm font-semibold text-[#e2e8f0] truncate">{user?.name || 'User'}</div>
-              <div className="text-xs text-[#64748b] capitalize">{user?.role?.replace('_', ' ')}</div>
+              <div className="text-sm font-semibold text-slate-900 truncate">{user?.name || 'User'}</div>
+              <div className="text-xs text-slate-500 capitalize">{user?.role?.replace('_', ' ')}</div>
             </div>
-            <LogOut size={14} className="text-[#64748b] group-hover:text-[#94a3b8] flex-shrink-0" />
+            <LogOut size={14} className="text-slate-500 group-hover:text-slate-700 flex-shrink-0" />
           </button>
         </div>
       </aside>

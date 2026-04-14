@@ -99,7 +99,7 @@ export default function JobFormPage() {
     );
   }
 
-  const inputCls = (hasError) => `w-full bg-[#0b0f1a] border rounded-lg px-3 py-2.5 text-sm text-[#e2e8f0] placeholder-[#64748b] outline-none focus:ring-2 transition-all ${hasError ? 'border-rose-500 focus:ring-rose-500/20' : 'border-[#1e2a3d] focus:border-indigo-500 focus:ring-indigo-500/20'}`;
+  const inputCls = (hasError) => `w-full bg-white border rounded-lg px-3 py-2.5 text-sm text-slate-900 placeholder-slate-400 outline-none focus:ring-2 transition-all ${hasError ? 'border-rose-500 focus:ring-rose-500/20' : 'border-slate-200 focus:border-indigo-500 focus:ring-indigo-500/20'}`;
   const selectCls = `${inputCls(false)} cursor-pointer`;
   // Draw a custom chevron so native selects match the rest of the form styling.
   const selectStyle = { appearance: 'none', backgroundImage: "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%2364748b' d='M6 8L1 3h10z'/%3E%3C/svg%3E\")", backgroundRepeat: 'no-repeat', backgroundPosition: 'right 12px center', paddingRight: '2rem' };
@@ -107,46 +107,46 @@ export default function JobFormPage() {
   return (
     <div className="max-w-2xl mx-auto space-y-6 animate-fade-in">
       <div>
-        <h1 className="text-2xl font-bold text-[#e2e8f0] flex items-center gap-2">
+        <h1 className="text-2xl font-bold text-slate-900 flex items-center gap-2">
           <Briefcase size={22} className="text-indigo-400" />
           {isEdit ? 'Edit Job' : 'Post a New Job'}
         </h1>
-        <p className="text-sm text-[#94a3b8] mt-1">
+        <p className="text-sm text-slate-600 mt-1">
           {isEdit ? 'Update the job details below' : 'Fill in the details to attract the right candidates'}
         </p>
       </div>
 
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
         {/* Basic info */}
-        <div className="bg-[#131929] border border-[#1e2a3d] rounded-xl p-5 space-y-4">
-          <h2 className="text-sm font-semibold text-[#e2e8f0] uppercase tracking-wide text-[#64748b]">Basic Information</h2>
+        <div className="bg-white border border-slate-200 rounded-xl p-5 space-y-4">
+          <h2 className="text-sm font-semibold text-slate-900 uppercase tracking-wide text-slate-500">Basic Information</h2>
 
           <div className="flex flex-col gap-1.5">
-            <label className="text-sm font-medium text-[#e2e8f0]">Job Title <span className="text-rose-400">*</span></label>
+            <label className="text-sm font-medium text-slate-900">Job Title <span className="text-rose-400">*</span></label>
             <input className={inputCls(!!errors.title)} placeholder="Senior React Developer" {...register('title')} />
             {errors.title && <p className="text-xs text-rose-400">{errors.title.message}</p>}
           </div>
 
           <div className="flex flex-col gap-1.5">
-            <label className="text-sm font-medium text-[#e2e8f0]">Company Name <span className="text-rose-400">*</span></label>
+            <label className="text-sm font-medium text-slate-900">Company Name <span className="text-rose-400">*</span></label>
             <input className={inputCls(!!errors.companyName)} placeholder="Acme Corp" {...register('companyName')} />
             {errors.companyName && <p className="text-xs text-rose-400">{errors.companyName.message}</p>}
           </div>
 
           <div className="flex flex-col gap-1.5">
-            <label className="text-sm font-medium text-[#e2e8f0]">Description <span className="text-rose-400">*</span></label>
+            <label className="text-sm font-medium text-slate-900">Description <span className="text-rose-400">*</span></label>
             <textarea rows={5} className={`${inputCls(!!errors.description)} resize-y`} placeholder="Describe the role, responsibilities, and what you're looking for…" {...register('description')} />
             {errors.description && <p className="text-xs text-rose-400">{errors.description.message}</p>}
           </div>
         </div>
 
         {/* Type & Location */}
-        <div className="bg-[#131929] border border-[#1e2a3d] rounded-xl p-5 space-y-4">
-          <h2 className="text-sm font-semibold uppercase tracking-wide text-[#64748b]">Job Type & Location</h2>
+        <div className="bg-white border border-slate-200 rounded-xl p-5 space-y-4">
+          <h2 className="text-sm font-semibold uppercase tracking-wide text-slate-500">Job Type & Location</h2>
 
           <div className="grid grid-cols-2 gap-4">
             <div className="flex flex-col gap-1.5">
-              <label className="text-sm font-medium text-[#e2e8f0]">Job Type</label>
+              <label className="text-sm font-medium text-slate-900">Job Type</label>
               <select className={selectCls} style={selectStyle} {...register('jobType')}>
                 <option value="full-time">Full-time</option>
                 <option value="part-time">Part-time</option>
@@ -155,7 +155,7 @@ export default function JobFormPage() {
               </select>
             </div>
             <div className="flex flex-col gap-1.5">
-              <label className="text-sm font-medium text-[#e2e8f0]">Work Mode</label>
+              <label className="text-sm font-medium text-slate-900">Work Mode</label>
               <select className={selectCls} style={selectStyle} {...register('locationType')}>
                 <option value="remote">Remote</option>
                 <option value="onsite">On-site</option>
@@ -166,27 +166,27 @@ export default function JobFormPage() {
 
           <div className="grid grid-cols-2 gap-4">
             <div className="flex flex-col gap-1.5">
-              <label className="text-sm font-medium text-[#e2e8f0]">City</label>
+              <label className="text-sm font-medium text-slate-900">City</label>
               <input className={inputCls(false)} placeholder="Mumbai" {...register('city')} />
             </div>
             <div className="flex flex-col gap-1.5">
-              <label className="text-sm font-medium text-[#e2e8f0]">Country</label>
+              <label className="text-sm font-medium text-slate-900">Country</label>
               <input className={inputCls(false)} placeholder="India" {...register('country')} />
             </div>
           </div>
         </div>
 
         {/* Skills & Experience */}
-        <div className="bg-[#131929] border border-[#1e2a3d] rounded-xl p-5 space-y-4">
-          <h2 className="text-sm font-semibold uppercase tracking-wide text-[#64748b]">Requirements</h2>
+        <div className="bg-white border border-slate-200 rounded-xl p-5 space-y-4">
+          <h2 className="text-sm font-semibold uppercase tracking-wide text-slate-500">Requirements</h2>
           <TagInput value={skills} onChange={setSkills} placeholder="Add required skill…" label="Required Skills" />
           <div className="grid grid-cols-2 gap-4">
             <div className="flex flex-col gap-1.5">
-              <label className="text-sm font-medium text-[#e2e8f0]">Min. Experience (years)</label>
+              <label className="text-sm font-medium text-slate-900">Min. Experience (years)</label>
               <input type="number" min="0" className={inputCls(false)} placeholder="2" {...register('minExperience')} />
             </div>
             <div className="flex flex-col gap-1.5">
-              <label className="text-sm font-medium text-[#e2e8f0]">Salary / Range</label>
+              <label className="text-sm font-medium text-slate-900">Salary / Range</label>
               <input className={inputCls(false)} placeholder="₹15-25 LPA" {...register('salary')} />
             </div>
           </div>

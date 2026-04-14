@@ -55,19 +55,19 @@ export default function PendingRecruitersPage() {
   return (
     <div className="max-w-4xl mx-auto space-y-6 animate-fade-in">
       <div>
-        <h1 className="text-2xl font-bold text-[#e2e8f0]">Pending Recruiters</h1>
-        <p className="text-sm text-[#94a3b8] mt-1">Review and approve recruiter account requests</p>
+        <h1 className="text-2xl font-bold text-slate-900">Pending Recruiters</h1>
+        <p className="text-sm text-slate-600 mt-1">Review and approve recruiter account requests</p>
       </div>
 
       {/* Search */}
       <div className="relative">
-        <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-[#64748b]" />
+        <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
         <input
           type="text"
           value={search}
           onChange={e => { setSearch(e.target.value); setPage(1); }}
           placeholder="Search by name or email…"
-          className="w-full bg-[#131929] border border-[#1e2a3d] rounded-xl pl-9 pr-4 py-2.5 text-sm text-[#e2e8f0] placeholder-[#64748b] outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 transition-all"
+          className="w-full bg-white border border-slate-200 rounded-xl pl-9 pr-4 py-2.5 text-sm text-slate-900 placeholder-slate-400 outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 transition-all"
         />
       </div>
 
@@ -82,25 +82,25 @@ export default function PendingRecruitersPage() {
       ) : (
         <div className="space-y-4">
           {recruiters.map(recruiter => (
-            <div key={recruiter._id} className="bg-[#131929] border border-[#1e2a3d] rounded-xl p-5 hover:border-[#243047] transition-all">
+            <div key={recruiter._id} className="bg-white border border-slate-200 rounded-xl p-5 hover:border-slate-300 transition-all">
               <div className="flex items-start justify-between gap-4">
                 <div className="flex items-start gap-3">
                   <div className="w-10 h-10 bg-amber-500/10 rounded-full flex items-center justify-center font-bold text-amber-400 text-sm flex-shrink-0">
                     {recruiter.name?.[0]?.toUpperCase() || '?'}
                   </div>
                   <div>
-                    <h3 className="text-sm font-semibold text-[#e2e8f0]">{recruiter.name}</h3>
+                    <h3 className="text-sm font-semibold text-slate-900">{recruiter.name}</h3>
                     <p className="text-xs text-indigo-400 flex items-center gap-1">
                       <Mail size={11} /> {recruiter.email}
                     </p>
                     {recruiter.createdAt && (
-                      <p className="text-xs text-[#64748b] flex items-center gap-1 mt-0.5">
+                      <p className="text-xs text-slate-500 flex items-center gap-1 mt-0.5">
                         <Clock size={11} />
                         Registered {new Date(recruiter.createdAt).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}
                       </p>
                     )}
                     {recruiter.profile?.companyName && (
-                      <p className="text-xs text-[#94a3b8] mt-1 flex items-center gap-1">
+                      <p className="text-xs text-slate-600 mt-1 flex items-center gap-1">
                         <Building2 size={11} /> {recruiter.profile.companyName}
                       </p>
                     )}

@@ -9,7 +9,7 @@ export const Select = forwardRef(function Select(
   return (
     <div className="flex flex-col gap-1.5">
       {label && (
-        <label htmlFor={id} className="text-sm font-medium text-[#e2e8f0]">
+        <label htmlFor={id} className="text-sm font-medium text-slate-900">
           {label}{required && <span className="text-rose-400 ml-0.5">*</span>}
         </label>
       )}
@@ -35,7 +35,7 @@ export const Select = forwardRef(function Select(
         {children}
       </select>
       {error && <p className="text-xs text-rose-400">{error}</p>}
-      {hint && !error && <p className="text-xs text-[#64748b]">{hint}</p>}
+      {hint && !error && <p className="text-xs text-slate-500">{hint}</p>}
     </div>
   );
 });

@@ -106,8 +106,8 @@ export default function JobSeekerProfilePage() {
   return (
     <div className="max-w-2xl mx-auto space-y-6 animate-fade-in">
       <div>
-        <h1 className="text-2xl font-bold text-[#e2e8f0]">My Profile</h1>
-        <p className="text-sm text-[#94a3b8] mt-1">This information powers your AI job matching and personalised recommendations — it is not your resume document.</p>
+        <h1 className="text-2xl font-bold text-slate-900">My Profile</h1>
+        <p className="text-sm text-slate-600 mt-1">This information powers your AI job matching and personalised recommendations — it is not your resume document.</p>
       </div>
 
       {isNew ? (
@@ -122,24 +122,24 @@ export default function JobSeekerProfilePage() {
 
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
         {/* Headline */}
-        <div className="bg-[#131929] border border-[#1e2a3d] rounded-xl p-5">
-          <h2 className="text-base font-semibold text-[#e2e8f0] mb-4 flex items-center gap-2">
+        <div className="bg-white border border-slate-200 rounded-xl p-5">
+          <h2 className="text-base font-semibold text-slate-900 mb-4 flex items-center gap-2">
             <User size={16} /> Basic Info
           </h2>
           <div className="flex flex-col gap-1.5">
-            <label className="text-sm font-medium text-[#e2e8f0]">Professional Headline</label>
+            <label className="text-sm font-medium text-slate-900">Professional Headline</label>
             <input
               placeholder="e.g. Full Stack Developer | 3+ Years Experience"
-              className="w-full bg-[#0b0f1a] border border-[#1e2a3d] rounded-lg px-3 py-2.5 text-sm text-[#e2e8f0] placeholder-[#64748b] outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20"
+              className="w-full bg-white border border-slate-200 rounded-lg px-3 py-2.5 text-sm text-slate-900 placeholder-slate-400 outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20"
               {...register('headline')}
             />
           </div>
         </div>
 
         {/* Skills */}
-        <div className="bg-[#131929] border border-[#1e2a3d] rounded-xl p-5">
+        <div className="bg-white border border-slate-200 rounded-xl p-5">
           <div className="flex items-center justify-between mb-4">
-            <h2 className="text-base font-semibold text-[#e2e8f0]">Skills</h2>
+            <h2 className="text-base font-semibold text-slate-900">Skills</h2>
             {resumeData?.skills?.length > 0 && (
               <Button
                 type="button"
@@ -160,9 +160,9 @@ export default function JobSeekerProfilePage() {
         </div>
 
         {/* Experience */}
-        <div className="bg-[#131929] border border-[#1e2a3d] rounded-xl p-5">
+        <div className="bg-white border border-slate-200 rounded-xl p-5">
           <div className="flex items-center justify-between mb-4">
-            <h2 className="text-base font-semibold text-[#e2e8f0]">Work Experience</h2>
+            <h2 className="text-base font-semibold text-slate-900">Work Experience</h2>
             <Button
               type="button"
               variant="secondary"
@@ -174,41 +174,41 @@ export default function JobSeekerProfilePage() {
           </div>
           <div className="space-y-4">
             {expFields.map((field, idx) => (
-              <div key={field.id} className="p-4 bg-[#0b0f1a] rounded-lg border border-[#1e2a3d] space-y-3">
+              <div key={field.id} className="p-4 bg-slate-50 rounded-lg border border-slate-200 space-y-3">
                 <div className="flex items-center justify-between">
-                  <span className="text-xs font-semibold text-[#64748b] uppercase">Experience {idx + 1}</span>
+                  <span className="text-xs font-semibold text-slate-500 uppercase">Experience {idx + 1}</span>
                   <button type="button" onClick={() => removeExp(idx)} className="text-rose-400 hover:text-rose-300 transition-colors">
                     <Trash2 size={14} />
                   </button>
                 </div>
                 <div className="grid grid-cols-2 gap-3">
                   <div className="flex flex-col gap-1.5">
-                    <label className="text-xs font-medium text-[#94a3b8]">Company</label>
-                    <input className="bg-[#131929] border border-[#1e2a3d] rounded-lg px-3 py-2 text-sm text-[#e2e8f0] placeholder-[#64748b] outline-none focus:border-indigo-500" placeholder="Company name" {...register(`experience.${idx}.company`)} />
+                    <label className="text-xs font-medium text-slate-600">Company</label>
+                    <input className="bg-white border border-slate-200 rounded-lg px-3 py-2 text-sm text-slate-900 placeholder-slate-400 outline-none focus:border-indigo-500" placeholder="Company name" {...register(`experience.${idx}.company`)} />
                     {errors.experience?.[idx]?.company && <p className="text-xs text-rose-400">{errors.experience[idx].company.message}</p>}
                   </div>
                   <div className="flex flex-col gap-1.5">
-                    <label className="text-xs font-medium text-[#94a3b8]">Role</label>
-                    <input className="bg-[#131929] border border-[#1e2a3d] rounded-lg px-3 py-2 text-sm text-[#e2e8f0] placeholder-[#64748b] outline-none focus:border-indigo-500" placeholder="Your role" {...register(`experience.${idx}.role`)} />
+                    <label className="text-xs font-medium text-slate-600">Role</label>
+                    <input className="bg-white border border-slate-200 rounded-lg px-3 py-2 text-sm text-slate-900 placeholder-slate-400 outline-none focus:border-indigo-500" placeholder="Your role" {...register(`experience.${idx}.role`)} />
                     {errors.experience?.[idx]?.role && <p className="text-xs text-rose-400">{errors.experience[idx].role.message}</p>}
                   </div>
                 </div>
                 <div className="flex flex-col gap-1.5">
-                  <label className="text-xs font-medium text-[#94a3b8]">Years</label>
-                  <input type="number" min="0" className="bg-[#131929] border border-[#1e2a3d] rounded-lg px-3 py-2 text-sm text-[#e2e8f0] placeholder-[#64748b] outline-none focus:border-indigo-500 w-24" placeholder="2" {...register(`experience.${idx}.years`)} />
+                  <label className="text-xs font-medium text-slate-600">Years</label>
+                  <input type="number" min="0" className="bg-white border border-slate-200 rounded-lg px-3 py-2 text-sm text-slate-900 placeholder-slate-400 outline-none focus:border-indigo-500 w-24" placeholder="2" {...register(`experience.${idx}.years`)} />
                 </div>
               </div>
             ))}
             {expFields.length === 0 && (
-              <p className="text-sm text-[#64748b] text-center py-4">No experience added yet</p>
+              <p className="text-sm text-slate-500 text-center py-4">No experience added yet</p>
             )}
           </div>
         </div>
 
         {/* Education */}
-        <div className="bg-[#131929] border border-[#1e2a3d] rounded-xl p-5">
+        <div className="bg-white border border-slate-200 rounded-xl p-5">
           <div className="flex items-center justify-between mb-4">
-            <h2 className="text-base font-semibold text-[#e2e8f0]">Education</h2>
+            <h2 className="text-base font-semibold text-slate-900">Education</h2>
             <Button
               type="button"
               variant="secondary"
@@ -220,31 +220,31 @@ export default function JobSeekerProfilePage() {
           </div>
           <div className="space-y-4">
             {eduFields.map((field, idx) => (
-              <div key={field.id} className="p-4 bg-[#0b0f1a] rounded-lg border border-[#1e2a3d] space-y-3">
+              <div key={field.id} className="p-4 bg-slate-50 rounded-lg border border-slate-200 space-y-3">
                 <div className="flex items-center justify-between">
-                  <span className="text-xs font-semibold text-[#64748b] uppercase">Education {idx + 1}</span>
+                  <span className="text-xs font-semibold text-slate-500 uppercase">Education {idx + 1}</span>
                   <button type="button" onClick={() => removeEdu(idx)} className="text-rose-400 hover:text-rose-300 transition-colors">
                     <Trash2 size={14} />
                   </button>
                 </div>
                 <div className="grid grid-cols-2 gap-3">
                   <div className="flex flex-col gap-1.5">
-                    <label className="text-xs font-medium text-[#94a3b8]">Degree</label>
-                    <input className="bg-[#131929] border border-[#1e2a3d] rounded-lg px-3 py-2 text-sm text-[#e2e8f0] placeholder-[#64748b] outline-none focus:border-indigo-500" placeholder="B.Tech, MBA…" {...register(`education.${idx}.degree`)} />
+                    <label className="text-xs font-medium text-slate-600">Degree</label>
+                    <input className="bg-white border border-slate-200 rounded-lg px-3 py-2 text-sm text-slate-900 placeholder-slate-400 outline-none focus:border-indigo-500" placeholder="B.Tech, MBA…" {...register(`education.${idx}.degree`)} />
                   </div>
                   <div className="flex flex-col gap-1.5">
-                    <label className="text-xs font-medium text-[#94a3b8]">Institution</label>
-                    <input className="bg-[#131929] border border-[#1e2a3d] rounded-lg px-3 py-2 text-sm text-[#e2e8f0] placeholder-[#64748b] outline-none focus:border-indigo-500" placeholder="University name" {...register(`education.${idx}.institution`)} />
+                    <label className="text-xs font-medium text-slate-600">Institution</label>
+                    <input className="bg-white border border-slate-200 rounded-lg px-3 py-2 text-sm text-slate-900 placeholder-slate-400 outline-none focus:border-indigo-500" placeholder="University name" {...register(`education.${idx}.institution`)} />
                   </div>
                 </div>
                 <div className="flex flex-col gap-1.5">
-                  <label className="text-xs font-medium text-[#94a3b8]">Graduation Year</label>
-                  <input type="number" className="bg-[#131929] border border-[#1e2a3d] rounded-lg px-3 py-2 text-sm text-[#e2e8f0] placeholder-[#64748b] outline-none focus:border-indigo-500 w-28" placeholder="2024" {...register(`education.${idx}.year`)} />
+                  <label className="text-xs font-medium text-slate-600">Graduation Year</label>
+                  <input type="number" className="bg-white border border-slate-200 rounded-lg px-3 py-2 text-sm text-slate-900 placeholder-slate-400 outline-none focus:border-indigo-500 w-28" placeholder="2024" {...register(`education.${idx}.year`)} />
                 </div>
               </div>
             ))}
             {eduFields.length === 0 && (
-              <p className="text-sm text-[#64748b] text-center py-4">No education added yet</p>
+              <p className="text-sm text-slate-500 text-center py-4">No education added yet</p>
             )}
           </div>
         </div>

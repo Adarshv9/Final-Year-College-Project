@@ -127,10 +127,10 @@ export default function JobDetailPage() {
 
   if (!jobId) {
     return (
-      <div className="min-h-screen bg-[#0b0f1a] flex items-center justify-center">
+      <div className="min-h-screen bg-slate-50 flex items-center justify-center">
         <div className="text-center">
           <AlertTriangle size={40} className="text-amber-400 mx-auto mb-4" />
-          <h2 className="text-xl font-bold text-[#e2e8f0] mb-2">Job not found</h2>
+          <h2 className="text-xl font-bold text-slate-900 mb-2">Job not found</h2>
           <Link to="/jobs"><Button variant="secondary">← Browse Jobs</Button></Link>
         </div>
       </div>
@@ -139,7 +139,7 @@ export default function JobDetailPage() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-[#0b0f1a] py-10 px-4">
+      <div className="min-h-screen bg-slate-50 py-10 px-4">
         <div className="max-w-3xl mx-auto space-y-6">
           <Skeleton className="h-4 w-24" />
           <Skeleton className="h-8 w-2/3" />
@@ -153,10 +153,10 @@ export default function JobDetailPage() {
 
   if (error || !data) {
     return (
-      <div className="min-h-screen bg-[#0b0f1a] flex items-center justify-center">
+      <div className="min-h-screen bg-slate-50 flex items-center justify-center">
         <div className="text-center">
           <AlertTriangle size={40} className="text-amber-400 mx-auto mb-4" />
-          <h2 className="text-xl font-bold text-[#e2e8f0] mb-2">Job not found</h2>
+          <h2 className="text-xl font-bold text-slate-900 mb-2">Job not found</h2>
           <Link to="/jobs"><Button variant="secondary">← Browse Jobs</Button></Link>
         </div>
       </div>
@@ -169,15 +169,15 @@ export default function JobDetailPage() {
   const missingSkills = atsResult?.breakdown?.missingSkills || [];
 
   return (
-    <div className="min-h-screen bg-[#0b0f1a] py-8 px-4">
+    <div className="min-h-screen bg-slate-50 py-8 px-4">
       <div className="max-w-3xl mx-auto">
         {/* Back */}
-        <Link to="/jobs" className="inline-flex items-center gap-2 text-sm text-[#94a3b8] hover:text-[#e2e8f0] transition-colors mb-6">
+        <Link to="/jobs" className="inline-flex items-center gap-2 text-sm text-slate-600 hover:text-slate-900 transition-colors mb-6">
           <ArrowLeft size={16} /> Back to jobs
         </Link>
 
         {/* Header card */}
-        <div className="bg-[#131929] border border-[#1e2a3d] rounded-2xl p-6 mb-5">
+        <div className="bg-white border border-slate-200 rounded-2xl p-6 mb-5">
           <div className="flex items-start justify-between gap-4 mb-4">
             <div className="w-14 h-14 bg-indigo-500/10 rounded-xl flex items-center justify-center flex-shrink-0">
               <Building2 size={24} className="text-indigo-400" />
@@ -188,10 +188,10 @@ export default function JobDetailPage() {
             </div>
           </div>
 
-          <h1 className="text-2xl font-bold text-[#e2e8f0] mb-1">{job.title}</h1>
-          <p className="text-[#94a3b8] font-medium mb-3">{job.companyName}</p>
+          <h1 className="text-2xl font-bold text-slate-900 mb-1">{job.title}</h1>
+          <p className="text-slate-600 font-medium mb-3">{job.companyName}</p>
 
-          <div className="flex flex-wrap gap-4 text-sm text-[#64748b]">
+          <div className="flex flex-wrap gap-4 text-sm text-slate-500">
             {(job.location?.city || job.location?.country) && (
               <span className="flex items-center gap-1.5">
                 <MapPin size={14} />
@@ -216,18 +216,18 @@ export default function JobDetailPage() {
           {/* Main content */}
           <div className="lg:col-span-2 space-y-5">
             {/* Description */}
-            <div className="bg-[#131929] border border-[#1e2a3d] rounded-2xl p-6">
-              <h2 className="text-base font-semibold text-[#e2e8f0] mb-4">Job Description</h2>
-              <div className="text-sm text-[#94a3b8] leading-relaxed whitespace-pre-line">{job.description}</div>
+            <div className="bg-white border border-slate-200 rounded-2xl p-6">
+              <h2 className="text-base font-semibold text-slate-900 mb-4">Job Description</h2>
+              <div className="text-sm text-slate-600 leading-relaxed whitespace-pre-line">{job.description}</div>
             </div>
 
             {/* Skills */}
             {job.requiredSkills?.length > 0 && (
-              <div className="bg-[#131929] border border-[#1e2a3d] rounded-2xl p-6">
-                <h2 className="text-base font-semibold text-[#e2e8f0] mb-4">Required Skills</h2>
+              <div className="bg-white border border-slate-200 rounded-2xl p-6">
+                <h2 className="text-base font-semibold text-slate-900 mb-4">Required Skills</h2>
                 <div className="flex flex-wrap gap-2">
                   {job.requiredSkills.map(skill => (
-                    <span key={skill} className="px-3 py-1.5 bg-indigo-500/10 text-indigo-400 border border-indigo-500/20 rounded-full text-sm font-medium">
+                    <span key={skill} className="px-3 py-1.5 bg-indigo-500/10 text-indigo-700 border border-indigo-500/20 rounded-full text-sm font-medium">
                       {skill}
                     </span>
                   ))}
@@ -239,20 +239,20 @@ export default function JobDetailPage() {
           {/* Sidebar */}
           <div className="space-y-5">
             {/* Apply card */}
-            <div className="bg-[#131929] border border-[#1e2a3d] rounded-2xl p-5">
+            <div className="bg-white border border-slate-200 rounded-2xl p-5">
               {isAuthenticated && user?.role === 'job_seeker' ? (
                 authLoading || myAppsLoading ? (
-                  <p className="text-sm text-[#64748b] text-center py-2">Loading your application…</p>
+                  <p className="text-sm text-slate-500 text-center py-2">Loading your application…</p>
                 ) : myApplication ? (
                   <>
-                    <h3 className="text-sm font-semibold text-[#e2e8f0] mb-3">Your application</h3>
+                    <h3 className="text-sm font-semibold text-slate-900 mb-3">Your application</h3>
                     <div className="flex flex-col gap-3">
                       <div className="flex items-center justify-between gap-2">
-                        <span className="text-xs text-[#64748b]">Status</span>
+                        <span className="text-xs text-slate-500">Status</span>
                         <Badge variant={myApplication.status}>{myApplication.status}</Badge>
                       </div>
                       {(myApplication.appliedAt || myApplication.createdAt) && (
-                        <p className="text-xs text-[#94a3b8]">
+                        <p className="text-xs text-slate-600">
                           Applied {formatAppliedDate(myApplication.appliedAt || myApplication.createdAt)}
                         </p>
                       )}
@@ -266,20 +266,20 @@ export default function JobDetailPage() {
                   </>
                 ) : (
                   <>
-                    <h3 className="text-sm font-semibold text-[#e2e8f0] mb-3">Ready to apply?</h3>
+                    <h3 className="text-sm font-semibold text-slate-900 mb-3">Ready to apply?</h3>
                     <Button full onClick={handleApply}>
                       <Send size={15} /> Apply Now
                     </Button>
                   </>
                 )
               ) : isAuthenticated ? (
-                <div className="text-sm text-[#64748b] text-center py-2">
+                <div className="text-sm text-slate-500 text-center py-2">
                   Only job seekers can apply to jobs.
                 </div>
               ) : (
                 <>
-                  <h3 className="text-sm font-semibold text-[#e2e8f0] mb-2">Interested in this role?</h3>
-                  <p className="text-xs text-[#64748b] mb-4">Create a free account to apply in seconds</p>
+                  <h3 className="text-sm font-semibold text-slate-900 mb-2">Interested in this role?</h3>
+                  <p className="text-xs text-slate-500 mb-4">Create a free account to apply in seconds</p>
                   <div className="space-y-2">
                     <Link to="/login"><Button full variant="primary">Sign In to Apply</Button></Link>
                     <Link to="/register"><Button full variant="secondary">Create Account</Button></Link>
@@ -288,39 +288,39 @@ export default function JobDetailPage() {
               )}
 
               {isAuthenticated && user?.role === 'job_seeker' ? (
-                <div className="mt-4 border-t border-[#1e2a3d] pt-4">
+                <div className="mt-4 border-t border-slate-200 pt-4">
                   <div className="mb-3 flex items-center justify-between gap-3">
                     <div>
-                      <h3 className="text-sm font-semibold text-[#e2e8f0]">ATS score</h3>
-                      <p className="mt-0.5 text-xs text-[#64748b]">Compare your resume with this role.</p>
+                      <h3 className="text-sm font-semibold text-slate-900">ATS score</h3>
+                      <p className="mt-0.5 text-xs text-slate-500">Compare your resume with this role.</p>
                     </div>
                     {atsResult ? <Badge variant="accent">{atsResult.atsScore}%</Badge> : null}
                   </div>
 
                   {atsResult ? (
-                    <div className="mb-4 space-y-3 rounded-lg bg-[#0b0f1a] p-3">
+                    <div className="mb-4 space-y-3 rounded-lg bg-slate-50 p-3">
                       <div className="grid grid-cols-3 gap-2 text-center">
                         <div>
-                          <div className="text-sm font-semibold text-[#e2e8f0]">{atsResult.breakdown?.skillScore ?? 0}%</div>
-                          <div className="text-[11px] text-[#64748b]">Skills</div>
+                          <div className="text-sm font-semibold text-slate-900">{atsResult.breakdown?.skillScore ?? 0}%</div>
+                          <div className="text-[11px] text-slate-500">Skills</div>
                         </div>
                         <div>
-                          <div className="text-sm font-semibold text-[#e2e8f0]">{atsResult.breakdown?.experienceScore ?? 0}%</div>
-                          <div className="text-[11px] text-[#64748b]">Experience</div>
+                          <div className="text-sm font-semibold text-slate-900">{atsResult.breakdown?.experienceScore ?? 0}%</div>
+                          <div className="text-[11px] text-slate-500">Experience</div>
                         </div>
                         <div>
-                          <div className="text-sm font-semibold text-[#e2e8f0]">{atsResult.aiScore ?? 0}%</div>
-                          <div className="text-[11px] text-[#64748b]">AI fit</div>
+                          <div className="text-sm font-semibold text-slate-900">{atsResult.aiScore ?? 0}%</div>
+                          <div className="text-[11px] text-slate-500">AI fit</div>
                         </div>
                       </div>
 
                       {atsResult.reason ? (
-                        <p className="text-xs leading-5 text-[#94a3b8]">{atsResult.reason}</p>
+                        <p className="text-xs leading-5 text-slate-600">{atsResult.reason}</p>
                       ) : null}
 
                       {matchingSkills.length > 0 ? (
                         <div>
-                          <div className="mb-1 text-[11px] font-semibold uppercase text-[#64748b]">Matched skills</div>
+                          <div className="mb-1 text-[11px] font-semibold uppercase text-slate-500">Matched skills</div>
                           <div className="flex flex-wrap gap-1.5">
                             {matchingSkills.slice(0, 5).map(skill => (
                               <Badge key={`match-${skill}`} variant="success">{skill}</Badge>
@@ -331,7 +331,7 @@ export default function JobDetailPage() {
 
                       {missingSkills.length > 0 ? (
                         <div>
-                          <div className="mb-1 text-[11px] font-semibold uppercase text-[#64748b]">Skills to improve</div>
+                          <div className="mb-1 text-[11px] font-semibold uppercase text-slate-500">Skills to improve</div>
                           <div className="flex flex-wrap gap-1.5">
                             {missingSkills.slice(0, 5).map(skill => (
                               <Badge key={`missing-${skill}`} variant="warning">{skill}</Badge>
@@ -355,27 +355,27 @@ export default function JobDetailPage() {
             </div>
 
             {/* Job summary */}
-            <div className="bg-[#131929] border border-[#1e2a3d] rounded-2xl p-5">
-              <h3 className="text-sm font-semibold text-[#e2e8f0] mb-4">Job Summary</h3>
+            <div className="bg-white border border-slate-200 rounded-2xl p-5">
+              <h3 className="text-sm font-semibold text-slate-900 mb-4">Job Summary</h3>
               <dl className="space-y-3 text-sm">
                 <div>
-                  <dt className="text-[#64748b] text-xs mb-0.5">Job Type</dt>
-                  <dd className="text-[#e2e8f0] font-medium capitalize">{job.jobType}</dd>
+                  <dt className="text-slate-500 text-xs mb-0.5">Job Type</dt>
+                  <dd className="text-slate-900 font-medium capitalize">{job.jobType}</dd>
                 </div>
                 <div>
-                  <dt className="text-[#64748b] text-xs mb-0.5">Work Type</dt>
-                  <dd className="text-[#e2e8f0] font-medium capitalize">{job.location?.type}</dd>
+                  <dt className="text-slate-500 text-xs mb-0.5">Work Type</dt>
+                  <dd className="text-slate-900 font-medium capitalize">{job.location?.type}</dd>
                 </div>
                 {job.minExperience != null && (
                   <div>
-                    <dt className="text-[#64748b] text-xs mb-0.5">Experience</dt>
-                    <dd className="text-[#e2e8f0] font-medium">{job.minExperience}+ years</dd>
+                    <dt className="text-slate-500 text-xs mb-0.5">Experience</dt>
+                    <dd className="text-slate-900 font-medium">{job.minExperience}+ years</dd>
                   </div>
                 )}
                 {job.salary && (
                   <div>
-                    <dt className="text-[#64748b] text-xs mb-0.5">Salary</dt>
-                    <dd className="text-[#e2e8f0] font-medium">{job.salary}</dd>
+                    <dt className="text-slate-500 text-xs mb-0.5">Salary</dt>
+                    <dd className="text-slate-900 font-medium">{job.salary}</dd>
                   </div>
                 )}
               </dl>
@@ -402,20 +402,20 @@ export default function JobDetailPage() {
         }
       >
         <div className="space-y-4">
-          <div className="p-3 bg-[#0b0f1a] rounded-xl">
-            <div className="font-semibold text-[#e2e8f0] text-sm">{job.title}</div>
-            <div className="text-xs text-[#94a3b8]">{job.companyName}</div>
+          <div className="p-3 bg-slate-50 rounded-xl">
+            <div className="font-semibold text-slate-900 text-sm">{job.title}</div>
+            <div className="text-xs text-slate-600">{job.companyName}</div>
           </div>
           <div>
-            <label className="text-sm font-medium text-[#e2e8f0] block mb-1.5">
-              Cover Message <span className="text-[#64748b] font-normal">(optional)</span>
+            <label className="text-sm font-medium text-slate-900 block mb-1.5">
+              Cover Message <span className="text-slate-500 font-normal">(optional)</span>
             </label>
             <textarea
               rows={4}
               value={message}
               onChange={e => setMessage(e.target.value)}
               placeholder="Tell the recruiter why you're a great fit for this role…"
-              className="w-full bg-[#0b0f1a] border border-[#1e2a3d] rounded-lg px-3 py-2.5 text-sm text-[#e2e8f0] placeholder-[#64748b] outline-none resize-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 transition-all"
+              className="w-full bg-white border border-slate-200 rounded-lg px-3 py-2.5 text-sm text-slate-900 placeholder-slate-400 outline-none resize-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 transition-all"
             />
           </div>
         </div>

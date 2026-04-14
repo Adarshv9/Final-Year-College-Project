@@ -58,17 +58,17 @@ export default function RecruiterApplicationsPage() {
   return (
     <div className="mx-auto max-w-5xl space-y-6 animate-fade-in">
       <div className="flex items-center gap-3">
-        <Link to="/recruiter/dashboard" className="text-[#64748b] transition-colors hover:text-[#e2e8f0]">
+        <Link to="/recruiter/dashboard" className="text-slate-500 transition-colors hover:text-slate-900">
           <ArrowLeft size={18} />
         </Link>
         <div>
-          <h1 className="text-2xl font-bold text-[#e2e8f0]">All Applications</h1>
-          <p className="text-sm text-[#94a3b8]">{applications.length} applications in the current view</p>
+          <h1 className="text-2xl font-bold text-slate-900">All Applications</h1>
+          <p className="text-sm text-slate-600">{applications.length} applications in the current view</p>
         </div>
       </div>
 
-      <div className="rounded-2xl border border-[#1e2a3d] bg-[#131929] p-5">
-        <div className="mb-4 flex items-center gap-2 text-sm font-semibold text-[#e2e8f0]">
+      <div className="rounded-2xl border border-slate-200 bg-white p-5">
+        <div className="mb-4 flex items-center gap-2 text-sm font-semibold text-slate-900">
           <Filter size={15} className="text-indigo-400" />
           Filter and sort applications
         </div>
@@ -159,14 +159,14 @@ export default function RecruiterApplicationsPage() {
           </>
         )}
       >
-        <p className="text-sm text-[#94a3b8]">
+        <p className="text-sm text-slate-600">
           {confirmModal?.action === 'pending' ? (
             <>
-              This will move the application back to <strong className="text-[#e2e8f0]">pending</strong> and cancel any scheduled decision email.
+              This will move the application back to <strong className="text-slate-900">pending</strong> and cancel any scheduled decision email.
             </>
           ) : (
             <>
-              Are you sure you want to <strong className="text-[#e2e8f0]">{confirmModal?.action}</strong> this application? The applicant will be notified after 15 seconds.
+              Are you sure you want to <strong className="text-slate-900">{confirmModal?.action}</strong> this application? The applicant will be notified after 15 seconds.
             </>
           )}
         </p>

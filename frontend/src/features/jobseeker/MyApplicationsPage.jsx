@@ -52,15 +52,15 @@ export default function MyApplicationsPage() {
   return (
     <div className="max-w-3xl mx-auto space-y-6 animate-fade-in">
       <div>
-        <h1 className="text-2xl font-bold text-[#e2e8f0]">My Applications</h1>
-        <p className="text-sm text-[#94a3b8] mt-1">{counts.total} total · {counts.pending} pending · {counts.accepted} accepted · {counts.rejected} rejected</p>
+        <h1 className="text-2xl font-bold text-slate-900">My Applications</h1>
+        <p className="text-sm text-slate-600 mt-1">{counts.total} total · {counts.pending} pending · {counts.accepted} accepted · {counts.rejected} rejected</p>
       </div>
 
       <div className="space-y-4">
         {apps.map((app, idx) => (
           <div
             key={app.applicationId || app._id || `app-${idx}`}
-            className="bg-[#131929] border border-[#1e2a3d] rounded-xl p-5 hover:border-[#243047] transition-all"
+            className="bg-white border border-slate-200 rounded-xl p-5 hover:border-slate-300 transition-all"
           >
             <div className="flex items-start justify-between gap-4">
               <div className="flex items-start gap-3">
@@ -68,11 +68,11 @@ export default function MyApplicationsPage() {
                   <Briefcase size={17} className="text-indigo-400" />
                 </div>
                 <div>
-                  <h3 className="text-base font-semibold text-[#e2e8f0]">
+                  <h3 className="text-base font-semibold text-slate-900">
                     {app.jobTitle || app.job?.title || 'Job Position'}
                   </h3>
-                  <p className="text-sm text-[#94a3b8]">{app.companyName || app.job?.companyName}</p>
-                  <div className="flex flex-wrap gap-3 mt-2 text-xs text-[#64748b]">
+                  <p className="text-sm text-slate-600">{app.companyName || app.job?.companyName}</p>
+                  <div className="flex flex-wrap gap-3 mt-2 text-xs text-slate-500">
                     {(app.location?.city || app.job?.location?.city) && (
                       <span className="flex items-center gap-1">
                         <MapPin size={11} />
@@ -96,15 +96,15 @@ export default function MyApplicationsPage() {
                     View job <ChevronRight size={12} />
                   </Link>
                 ) : (
-                  <span className="text-xs text-[#64748b]">Job unavailable</span>
+                  <span className="text-xs text-slate-500">Job unavailable</span>
                 )}
               </div>
             </div>
 
             {app.message && (
-              <div className="mt-4 pt-4 border-t border-[#1e2a3d]">
-                <p className="text-xs font-semibold text-[#64748b] uppercase mb-1">Your message</p>
-                <p className="text-sm text-[#94a3b8]">{app.message}</p>
+              <div className="mt-4 pt-4 border-t border-slate-200">
+                <p className="text-xs font-semibold text-slate-500 uppercase mb-1">Your message</p>
+                <p className="text-sm text-slate-600">{app.message}</p>
               </div>
             )}
 

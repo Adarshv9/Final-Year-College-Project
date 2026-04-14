@@ -3,8 +3,8 @@ export function Card({ children, className = '', hover = false, padding = true }
   return (
     <div
       className={[
-        'bg-[#131929] border border-[#1e2a3d] rounded-xl transition-all duration-200',
-        hover ? 'hover:border-[#243047] hover:shadow-lg cursor-pointer hover:-translate-y-0.5' : '',
+        'bg-white border border-slate-200 rounded-xl transition-all duration-200',
+        hover ? 'hover:border-slate-300 hover:shadow-lg cursor-pointer hover:-translate-y-0.5' : '',
         padding ? 'p-6' : '',
         className,
       ].join(' ')}
@@ -24,7 +24,7 @@ export function CardHeader({ children, className = '' }) {
 
 export function CardTitle({ children, className = '' }) {
   return (
-    <h3 className={`text-base font-semibold text-[#e2e8f0] ${className}`}>
+    <h3 className={`text-base font-semibold text-slate-900 ${className}`}>
       {children}
     </h3>
   );

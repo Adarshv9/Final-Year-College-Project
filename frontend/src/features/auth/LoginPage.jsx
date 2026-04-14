@@ -49,21 +49,21 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-[#0b0f1a] p-4 relative overflow-hidden">
+    <div className="min-h-screen flex items-center justify-center bg-slate-50 p-4 relative overflow-hidden">
       {/* Background glow */}
       <div className="absolute inset-0 pointer-events-none">
         <div className="absolute top-0 left-1/4 w-96 h-96 bg-indigo-500/5 rounded-full blur-3xl" />
         <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-emerald-500/4 rounded-full blur-3xl" />
       </div>
 
-      <div className="relative w-full max-w-[440px] bg-[#131929] border border-[#1e2a3d] rounded-2xl p-8 shadow-2xl animate-fade-in">
+      <div className="relative w-full max-w-[440px] bg-white border border-slate-200 rounded-2xl p-8 shadow-2xl animate-fade-in">
         {/* Logo */}
         <div className="flex items-center gap-3 mb-8">
           <BrandLogo imageClassName="h-10 w-auto" />
         </div>
 
-        <h1 className="text-2xl font-bold text-[#e2e8f0] mb-1">Welcome back</h1>
-        <p className="text-sm text-[#94a3b8] mb-8">Sign in to your account to continue</p>
+        <h1 className="text-2xl font-bold text-slate-900 mb-1">Welcome back</h1>
+        <p className="text-sm text-slate-600 mb-8">Sign in to your account to continue</p>
 
         {pendingApproval && (
           <div className="flex items-start gap-3 p-4 bg-amber-500/10 border border-amber-500/30 rounded-xl text-amber-300 text-sm mb-6">
@@ -78,14 +78,14 @@ export default function LoginPage() {
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
           {/* Email */}
           <div className="flex flex-col gap-1.5">
-            <label className="text-sm font-medium text-[#e2e8f0]">Email address</label>
+            <label className="text-sm font-medium text-slate-900">Email address</label>
             <div className="relative">
-              <Mail size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-[#64748b] pointer-events-none" />
+              <Mail size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
               <input
                 type="email"
                 placeholder="you@example.com"
                 autoComplete="email"
-                className={`w-full bg-[#0b0f1a] border rounded-lg pl-9 pr-3 py-2.5 text-sm text-[#e2e8f0] placeholder-[#64748b] outline-none transition-all focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 ${errors.email ? 'border-rose-500' : 'border-[#1e2a3d]'}`}
+                className={`w-full bg-white border rounded-lg pl-9 pr-3 py-2.5 text-sm text-slate-900 placeholder-slate-400 outline-none transition-all focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 ${errors.email ? 'border-rose-500' : 'border-slate-200'}`}
                 {...register('email')}
               />
             </div>
@@ -94,19 +94,19 @@ export default function LoginPage() {
 
           {/* Password */}
           <div className="flex flex-col gap-1.5">
-            <label className="text-sm font-medium text-[#e2e8f0]">Password</label>
+            <label className="text-sm font-medium text-slate-900">Password</label>
             <div className="relative">
-              <Lock size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-[#64748b] pointer-events-none" />
+              <Lock size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
               <input
                 type={showPass ? 'text' : 'password'}
                 placeholder="••••••••"
                 autoComplete="current-password"
-                className={`w-full bg-[#0b0f1a] border rounded-lg pl-9 pr-10 py-2.5 text-sm text-[#e2e8f0] placeholder-[#64748b] outline-none transition-all focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 ${errors.password ? 'border-rose-500' : 'border-[#1e2a3d]'}`}
+                className={`w-full bg-white border rounded-lg pl-9 pr-10 py-2.5 text-sm text-slate-900 placeholder-slate-400 outline-none transition-all focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 ${errors.password ? 'border-rose-500' : 'border-slate-200'}`}
                 {...register('password')}
               />
               <button
                 type="button"
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-[#64748b] hover:text-[#e2e8f0] transition-colors"
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-900 transition-colors"
                 onClick={() => setShowPass(p => !p)}
                 aria-label={showPass ? 'Hide password' : 'Show password'}
               >
@@ -121,9 +121,9 @@ export default function LoginPage() {
           </Button>
         </form>
 
-        <p className="text-center text-sm text-[#94a3b8] mt-6">
+        <p className="text-center text-sm text-slate-600 mt-6">
           Don&apos;t have an account?{' '}
-          <Link to="/register" className="text-indigo-400 font-medium hover:underline">Create one</Link>
+          <Link to="/register" className="text-indigo-600 font-medium hover:underline">Create one</Link>
         </p>
       </div>
     </div>

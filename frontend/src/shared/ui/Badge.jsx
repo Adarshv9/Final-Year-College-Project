@@ -1,13 +1,13 @@
 // Small badge component for compact status and category labels.
 const variants = {
-  default: 'bg-[#1a2236] text-[#94a3b8]',
-  accent: 'bg-indigo-500/15 text-indigo-400',
-  success: 'bg-emerald-500/15 text-emerald-400',
-  warning: 'bg-amber-500/15 text-amber-400',
-  danger: 'bg-rose-500/15 text-rose-400',
-  pending: 'bg-amber-500/15 text-amber-400',
-  accepted: 'bg-emerald-500/15 text-emerald-400',
-  rejected: 'bg-rose-500/15 text-rose-400',
+  default: 'bg-slate-100 text-slate-700',
+  accent: 'bg-indigo-500/10 text-indigo-700',
+  success: 'bg-emerald-500/10 text-emerald-700',
+  warning: 'bg-amber-500/15 text-amber-800',
+  danger: 'bg-rose-500/10 text-rose-700',
+  pending: 'bg-amber-500/15 text-amber-800',
+  accepted: 'bg-emerald-500/10 text-emerald-700',
+  rejected: 'bg-rose-500/10 text-rose-700',
 };
 
 const statusMap = {

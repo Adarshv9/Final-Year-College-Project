@@ -3,11 +3,11 @@ import { forwardRef } from 'react';
 
 const variants = {
   primary: 'bg-indigo-500 hover:bg-indigo-600 text-white shadow-sm hover:shadow-md active:scale-[0.98]',
-  secondary: 'bg-[#1a2236] hover:bg-[#243047] text-[#e2e8f0] border border-[#1e2a3d] hover:border-[#243047]',
-  ghost: 'bg-transparent hover:bg-[#1a2236] text-[#94a3b8] hover:text-[#e2e8f0]',
+  secondary: 'bg-slate-100 hover:bg-slate-200 text-slate-900 border border-slate-200 hover:border-slate-300',
+  ghost: 'bg-transparent hover:bg-slate-100 text-slate-700 hover:text-slate-900',
   danger: 'bg-rose-500/10 hover:bg-rose-500 text-rose-400 hover:text-white border border-transparent',
   success: 'bg-emerald-500/10 hover:bg-emerald-500 text-emerald-400 hover:text-white border border-transparent',
-  outline: 'bg-transparent border border-indigo-500 text-indigo-400 hover:bg-indigo-500/10',
+  outline: 'bg-transparent border border-indigo-500 text-indigo-600 hover:bg-indigo-500/10',
 };
 
 const sizes = {
