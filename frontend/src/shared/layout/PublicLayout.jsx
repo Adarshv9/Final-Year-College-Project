@@ -127,8 +127,10 @@ function Navbar() {
                 <Link to="/register">
                   <Button variant="primary" size="sm" className="px-5">Register</Button>
                 </Link>
-                <Link to="/register?role=recruiter" className="text-sm font-medium text-indigo-400 hover:text-indigo-300 transition-colors">
-                  Recruiter sign up
+                <Link to="/register?role=recruiter">
+                  <Button variant="outline" size="sm" className="px-5">
+                    Recruiter Sign Up
+                  </Button>
                 </Link>
               </>
             )}
@@ -189,12 +191,8 @@ function Navbar() {
                   <Link to="/register" onClick={() => setMobileOpen(false)}>
                     <Button variant="primary" full>Register</Button>
                   </Link>
-                  <Link
-                    to="/register?role=recruiter"
-                    onClick={() => setMobileOpen(false)}
-                    className="rounded-xl px-3 py-2 text-sm font-medium text-indigo-400 hover:bg-indigo-500/10 transition-colors"
-                  >
-                    Recruiter sign up
+                  <Link to="/register?role=recruiter" onClick={() => setMobileOpen(false)}>
+                    <Button variant="outline" full>Recruiter Sign Up</Button>
                   </Link>
                 </>
               )}
@@ -207,48 +205,98 @@ function Navbar() {
 }
 
 function Footer() {
-  return (
-    <footer className="bg-white border-t border-slate-200 pt-16 pb-8">
-      <div className="max-w-7xl mx-auto px-4">
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-10 mb-12">
-          <div className="col-span-1 md:col-span-2">
-            <Link to="/" className="flex items-center gap-2 mb-4">
-              <BrandLogo imageClassName="h-9 w-auto" />
-            </Link>
-            <p className="text-slate-600 text-sm leading-relaxed max-w-sm mb-6">
-              CompasX is the AI-first hiring platform that connects standout talent with ambitious companies faster and more intelligently.
-            </p>
-            <div className="flex items-center gap-4 text-slate-500">
-              <a href="#" className="hover:text-indigo-400 transition-colors"><TwitterIcon /></a>
-              <a href="#" className="hover:text-indigo-400 transition-colors"><GithubIcon /></a>
-              <a href="#" className="hover:text-indigo-400 transition-colors"><LinkedinIcon /></a>
-            </div>
-          </div>
+  const candidateLinks = [
+    { label: 'Browse Jobs', to: '/jobs' },
+    { label: 'Create Profile', to: '/register' },
+    { label: 'Recommended Jobs', to: '/register' },
+  ];
 
-          <div>
-            <h3 className="text-slate-900 font-semibold mb-4">For Candidates</h3>
-            <ul className="space-y-3 text-sm text-slate-600">
-              <li><Link to="/jobs" className="hover:text-indigo-400 transition-colors">Browse Jobs</Link></li>
-              <li><Link to="/register" className="hover:text-indigo-400 transition-colors">Create Profile</Link></li>
-              <li><a href="#" className="hover:text-indigo-400 transition-colors">Career Advice</a></li>
+  const employerLinks = [
+    { label: 'Post a Job', to: '/register?role=recruiter' },
+    { label: 'Recruiter Sign Up', to: '/register?role=recruiter' },
+    { label: 'Hiring Dashboard', to: '/login' },
+  ];
+
+  const companyLinks = [
+    { label: 'Login', to: '/login' },
+    { label: 'Privacy Policy', href: '#' },
+    { label: 'Terms of Service', href: '#' },
+  ];
+
+  return (
+    <footer className="border-t border-slate-200 bg-white">
+      <div className="max-w-7xl mx-auto px-4 pt-16 pb-8">
+        <div className="grid gap-12 md:grid-cols-2 lg:grid-cols-3">
+          <div className="md:justify-self-start lg:justify-self-center">
+            <h3 className="text-sm font-semibold uppercase tracking-wide text-slate-900">For Candidates</h3>
+            <ul className="mt-5 space-y-3 text-sm text-slate-600">
+              {candidateLinks.map((link) => (
+                <li key={link.label}>
+                  <Link to={link.to} className="transition-colors hover:text-indigo-600">
+                    {link.label}
+                  </Link>
+                </li>
+              ))}
             </ul>
           </div>
 
           <div>
-            <h3 className="text-slate-900 font-semibold mb-4">For Employers</h3>
-            <ul className="space-y-3 text-sm text-slate-600">
-              <li><Link to="/register" className="hover:text-indigo-400 transition-colors">Post a Job</Link></li>
-              <li><a href="#" className="hover:text-indigo-400 transition-colors">Pricing</a></li>
-              <li><a href="#" className="hover:text-indigo-400 transition-colors">Resources</a></li>
+            <h3 className="text-sm font-semibold uppercase tracking-wide text-slate-900">For Employers</h3>
+            <ul className="mt-5 space-y-3 text-sm text-slate-600">
+              {employerLinks.map((link) => (
+                <li key={link.label}>
+                  <Link to={link.to} className="transition-colors hover:text-indigo-600">
+                    {link.label}
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </div>
+
+          <div className="md:justify-self-end lg:justify-self-center">
+            <h3 className="text-sm font-semibold uppercase tracking-wide text-slate-900">Company</h3>
+            <ul className="mt-5 space-y-3 text-sm text-slate-600">
+              {companyLinks.map((link) => (
+                <li key={link.label}>
+                  {'to' in link ? (
+                    <Link to={link.to} className="transition-colors hover:text-indigo-600">
+                      {link.label}
+                    </Link>
+                  ) : (
+                    <a href={link.href} className="transition-colors hover:text-indigo-600">
+                      {link.label}
+                    </a>
+                  )}
+                </li>
+              ))}
             </ul>
           </div>
         </div>
 
-        <div className="border-t border-slate-200 pt-8 flex flex-col md:flex-row items-center justify-between text-xs text-slate-500">
+        <div className="mt-12 flex flex-col gap-6 border-t border-slate-200 pt-8 text-sm text-slate-500 md:flex-row md:items-center md:justify-between">
           <p>&copy; {new Date().getFullYear()} CompasX. All rights reserved.</p>
-          <div className="flex items-center gap-4 mt-4 md:mt-0">
-            <a href="#" className="hover:text-slate-900 transition-colors">Privacy Policy</a>
-            <a href="#" className="hover:text-slate-900 transition-colors">Terms of Service</a>
+          <div className="flex items-center gap-3">
+            <a
+              href="#"
+              className="inline-flex h-10 w-10 items-center justify-center rounded-lg border border-slate-200 text-slate-500 transition-colors hover:border-indigo-200 hover:text-indigo-600"
+              aria-label="CompasX on X"
+            >
+              <TwitterIcon />
+            </a>
+            <a
+              href="#"
+              className="inline-flex h-10 w-10 items-center justify-center rounded-lg border border-slate-200 text-slate-500 transition-colors hover:border-indigo-200 hover:text-indigo-600"
+              aria-label="CompasX on GitHub"
+            >
+              <GithubIcon />
+            </a>
+            <a
+              href="#"
+              className="inline-flex h-10 w-10 items-center justify-center rounded-lg border border-slate-200 text-slate-500 transition-colors hover:border-indigo-200 hover:text-indigo-600"
+              aria-label="CompasX on LinkedIn"
+            >
+              <LinkedinIcon />
+            </a>
           </div>
         </div>
       </div>
