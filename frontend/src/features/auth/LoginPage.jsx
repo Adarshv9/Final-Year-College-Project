@@ -37,10 +37,15 @@ export default function LoginPage() {
       else if (user.role === 'admin') navigate('/admin/dashboard');
       else navigate('/dashboard');
     } catch (err) {
-      const status = err.response?.status;
-      const message = err.response?.data?.message || 'Login failed. Please try again.';
+      const status    = err.response?.status;
+      const message   = err.response?.data?.message || 'Login failed. Please try again.';
+      const errorCode = err.response?.data?.errorCode;
+      // Email not yet verified — backend already sent a fresh OTP
+      if (status === 403 && errorCode === 'EMAIL_NOT_VERIFIED') {
+        toast('Check your inbox — a verification code has been sent.', { icon: '📧' });
+        navigate('/verify-otp', { state: { email: data.email } });
       // Recruiter pending approval 403
-      if (status === 403 && message.toLowerCase().includes('approv')) {
+      } else if (status === 403 && message.toLowerCase().includes('approv')) {
         setPendingApproval(true);
       } else {
         toast.error(message);

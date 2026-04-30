@@ -20,9 +20,9 @@ export default function OTPVerifyPage() {
   const location = useLocation();
   const email = location.state?.email || '';
 
-  // Redirect if no email provided
+  // Redirect if no email provided (can arrive from both register and login flows)
   useEffect(() => {
-    if (!email) navigate('/register');
+    if (!email) navigate('/login');
   }, [email, navigate]);
 
   // Countdown timer
