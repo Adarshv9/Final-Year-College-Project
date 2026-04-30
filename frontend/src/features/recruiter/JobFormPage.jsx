@@ -1,4 +1,5 @@
-// Recruiter form page for creating new job posts and editing existing ones.
+// Recruiter page component for Job Form.
+
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
@@ -21,9 +22,10 @@ const schema = z.object({
   city: z.string().optional(),
   country: z.string().optional(),
   minExperience: z.coerce.number().min(0).optional(),
-  salary: z.string().optional(),
+  salary: z.string().optional()
 });
 
+// Render the job form page.
 export default function JobFormPage() {
   const { jobId } = useParams();
   const navigate = useNavigate();
@@ -33,18 +35,18 @@ export default function JobFormPage() {
 
   const { data: jobData, isLoading } = useQuery({
     queryKey: ['job', jobId],
-    queryFn: () => jobsApi.get(jobId).then(r => r.data.data),
-    enabled: isEdit,
+    queryFn: () => jobsApi.get(jobId).then((r) => r.data.data),
+    enabled: isEdit
   });
 
   const { register, handleSubmit, reset, formState: { errors, isSubmitting } } = useForm({
     resolver: zodResolver(schema),
-    defaultValues: { jobType: 'full-time', locationType: 'remote' },
+    defaultValues: { jobType: 'full-time', locationType: 'remote' }
   });
 
   useEffect(() => {
     if (jobData) {
-      // Reshape the API response into the flat fields controlled by the form.
+
       reset({
         title: jobData.title || '',
         companyName: jobData.companyName || '',
@@ -54,27 +56,28 @@ export default function JobFormPage() {
         city: jobData.location?.city || '',
         country: jobData.location?.country || '',
         minExperience: jobData.minExperience ?? '',
-        salary: jobData.salary || '',
+        salary: jobData.salary || ''
       });
-      // eslint-disable-next-line react-hooks/set-state-in-effect
+
       setSkills(jobData.requiredSkills || []);
     }
   }, [jobData, reset]);
 
   const mutation = useMutation({
-    mutationFn: (payload) => isEdit
-      ? jobsApi.update(jobId, payload)
-      : jobsApi.create(payload),
+    mutationFn: (payload) => isEdit ?
+    jobsApi.update(jobId, payload) :
+    jobsApi.create(payload),
     onSuccess: () => {
       toast.success(isEdit ? 'Job updated!' : 'Job posted!');
       qc.invalidateQueries({ queryKey: ['my-jobs'] });
       navigate('/recruiter/jobs');
     },
-    onError: (err) => toast.error(err.response?.data?.message || 'Failed to save job'),
+    onError: (err) => toast.error(err.response?.data?.message || 'Failed to save job')
   });
 
+  // Handle submit.
   const onSubmit = (data) => {
-    // Convert the flat form values back into the nested payload expected by the API.
+
     const payload = {
       title: data.title,
       companyName: data.companyName,
@@ -83,11 +86,11 @@ export default function JobFormPage() {
       location: {
         type: data.locationType,
         city: data.city,
-        country: data.country,
+        country: data.country
       },
       requiredSkills: skills,
       minExperience: data.minExperience ? Number(data.minExperience) : undefined,
-      salary: data.salary,
+      salary: data.salary
     };
     mutation.mutate(payload);
   };
@@ -96,13 +99,14 @@ export default function JobFormPage() {
     return (
       <div className="max-w-2xl mx-auto space-y-4">
         {Array.from({ length: 6 }).map((_, i) => <Skeleton key={i} className="h-14" />)}
-      </div>
-    );
+      </div>);
+
   }
 
+  // Handle Cls.
   const inputCls = (hasError) => `w-full bg-white border rounded-lg px-3 py-2.5 text-sm text-slate-900 placeholder-slate-400 outline-none focus:ring-2 transition-all ${hasError ? 'border-rose-500 focus:ring-rose-500/20' : 'border-slate-200 focus:border-indigo-500 focus:ring-indigo-500/20'}`;
   const selectCls = `${inputCls(false)} cursor-pointer`;
-  // Draw a custom chevron so native selects match the rest of the form styling.
+
   const selectStyle = { appearance: 'none', backgroundImage: "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%2364748b' d='M6 8L1 3h10z'/%3E%3C/svg%3E\")", backgroundRepeat: 'no-repeat', backgroundPosition: 'right 12px center', paddingRight: '2rem' };
 
   return (
@@ -118,7 +122,7 @@ export default function JobFormPage() {
       </div>
 
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
-        {/* Basic info */}
+        
         <div className="bg-white border border-slate-200 rounded-xl p-5 space-y-4">
           <h2 className="text-sm font-semibold text-slate-900 uppercase tracking-wide text-slate-500">Basic Information</h2>
 
@@ -141,7 +145,7 @@ export default function JobFormPage() {
           </div>
         </div>
 
-        {/* Type & Location */}
+        
         <div className="bg-white border border-slate-200 rounded-xl p-5 space-y-4">
           <h2 className="text-sm font-semibold uppercase tracking-wide text-slate-500">Job Type & Location</h2>
 
@@ -177,7 +181,7 @@ export default function JobFormPage() {
           </div>
         </div>
 
-        {/* Skills & Experience */}
+        
         <div className="bg-white border border-slate-200 rounded-xl p-5 space-y-4">
           <h2 className="text-sm font-semibold uppercase tracking-wide text-slate-500">Requirements</h2>
           <TagInput value={skills} onChange={setSkills} placeholder="Add required skill…" label="Required Skills" />
@@ -202,6 +206,6 @@ export default function JobFormPage() {
           </Button>
         </div>
       </form>
-    </div>
-  );
+    </div>);
+
 }

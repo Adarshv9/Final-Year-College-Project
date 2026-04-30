@@ -1,4 +1,5 @@
-// Small badge component for compact status and category labels.
+// Reusable badge component for compact status labels.
+
 const variants = {
   default: 'bg-slate-100 text-slate-700',
   accent: 'bg-indigo-500/10 text-indigo-700',
@@ -7,7 +8,7 @@ const variants = {
   danger: 'bg-rose-500/10 text-rose-700',
   pending: 'bg-amber-500/15 text-amber-800',
   accepted: 'bg-emerald-500/10 text-emerald-700',
-  rejected: 'bg-rose-500/10 text-rose-700',
+  rejected: 'bg-rose-500/10 text-rose-700'
 };
 
 const statusMap = {
@@ -23,22 +24,23 @@ const statusMap = {
   contract: 'default',
   remote: 'success',
   onsite: 'accent',
-  hybrid: 'warning',
+  hybrid: 'warning'
 };
 
+// Render the badge component.
 export function Badge({ children, variant, className = '' }) {
   const v = variant || statusMap[children?.toString().toLowerCase()] || 'default';
   return (
     <span
       className={[
-        'inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold whitespace-nowrap',
-        variants[v] || variants.default,
-        className,
-      ].join(' ')}
-    >
+      'inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold whitespace-nowrap',
+      variants[v] || variants.default,
+      className].
+      join(' ')}>
+      
       {children}
-    </span>
-  );
+    </span>);
+
 }
 
 export default Badge;

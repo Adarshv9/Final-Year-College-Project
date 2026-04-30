@@ -1,4 +1,5 @@
-// Joi schemas for applying to jobs and recruiter application review endpoints.
+// Defines Joi validation rules for application requests.
+
 import Joi from 'joi';
 
 const objectId = Joi.string().pattern(/^[0-9a-fA-F]{24}$/);
@@ -7,12 +8,12 @@ export const createApplication = Joi.object({
   params: Joi.object({
     jobId: objectId.required().messages({
       'string.pattern.base': 'Invalid job ID format',
-      'any.required': 'Job ID is required',
-    }),
+      'any.required': 'Job ID is required'
+    })
   }).required(),
   body: Joi.object({
-    message: Joi.string().trim().allow('').default(''),
-  }).required(),
+    message: Joi.string().trim().allow('').default('')
+  }).required()
 });
 
 export const myApplications = Joi.object({});
@@ -23,41 +24,41 @@ export const recruiterApplications = Joi.object({
     limit: Joi.number().integer().min(1).max(200).default(100),
     status: Joi.string().valid('pending', 'accepted', 'rejected').optional(),
     jobId: objectId.optional().messages({
-      'string.pattern.base': 'Invalid job ID format',
+      'string.pattern.base': 'Invalid job ID format'
     }),
-    sort: Joi.string().valid('newest', 'oldest').default('newest'),
-  }).default({}),
+    sort: Joi.string().valid('newest', 'oldest').default('newest')
+  }).default({})
 });
 
 export const jobApplications = Joi.object({
   params: Joi.object({
     jobId: objectId.required().messages({
       'string.pattern.base': 'Invalid job ID format',
-      'any.required': 'Job ID is required',
-    }),
-  }).required(),
+      'any.required': 'Job ID is required'
+    })
+  }).required()
 });
 
 export const recommendedApplications = Joi.object({
   params: Joi.object({
     jobId: objectId.required().messages({
       'string.pattern.base': 'Invalid job ID format',
-      'any.required': 'Job ID is required',
-    }),
-  }).required(),
+      'any.required': 'Job ID is required'
+    })
+  }).required()
 });
 
 export const updateApplicationStatus = Joi.object({
   params: Joi.object({
     applicationId: objectId.required().messages({
       'string.pattern.base': 'Invalid application ID format',
-      'any.required': 'Application ID is required',
-    }),
+      'any.required': 'Application ID is required'
+    })
   }).required(),
   body: Joi.object({
     status: Joi.string().valid('pending', 'accepted', 'rejected').required().messages({
       'any.only': 'Status must be pending, accepted, or rejected',
-      'any.required': 'Status is required',
-    }),
-  }).required(),
+      'any.required': 'Status is required'
+    })
+  }).required()
 });

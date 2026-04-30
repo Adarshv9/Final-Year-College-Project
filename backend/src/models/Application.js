@@ -1,4 +1,5 @@
-// Mongoose schema for submitted applications and their frozen resume snapshot.
+// Defines the MongoDB schema for Application data.
+
 import mongoose from 'mongoose';
 
 const educationSnapshotSchema = new mongoose.Schema(
@@ -6,20 +7,20 @@ const educationSnapshotSchema = new mongoose.Schema(
     degree: {
       type: String,
       trim: true,
-      default: '',
+      default: ''
     },
     institution: {
       type: String,
       trim: true,
-      default: '',
+      default: ''
     },
     year: {
       type: Number,
-      default: null,
-    },
+      default: null
+    }
   },
   {
-    _id: false,
+    _id: false
   }
 );
 
@@ -28,57 +29,57 @@ const resumeSnapshotSchema = new mongoose.Schema(
     name: {
       type: String,
       trim: true,
-      default: '',
+      default: ''
     },
     skills: {
       type: [String],
-      default: [],
+      default: []
     },
     experienceYears: {
       type: Number,
       default: 0,
-      min: 0,
+      min: 0
     },
     education: {
       type: educationSnapshotSchema,
-      default: () => ({}),
-    },
+      default: () => ({})
+    }
   },
   {
-    _id: false,
+    _id: false
   }
 );
 
 const decisionEmailSchema = new mongoose.Schema(
   {
-    // `type` stores the intended decision, while `status` tracks email-job
-    // execution so the send pipeline can be retried safely.
+
+
     type: {
       type: String,
       enum: ['accepted', 'rejected', null],
-      default: null,
+      default: null
     },
     status: {
       type: String,
       enum: ['none', 'scheduled', 'processing', 'sent', 'cancelled', 'failed'],
-      default: 'none',
+      default: 'none'
     },
     sendAt: {
       type: Date,
-      default: null,
+      default: null
     },
     sentAt: {
       type: Date,
-      default: null,
+      default: null
     },
     lastError: {
       type: String,
       trim: true,
-      default: '',
-    },
+      default: ''
+    }
   },
   {
-    _id: false,
+    _id: false
   }
 );
 
@@ -89,75 +90,75 @@ const applicationSchema = new mongoose.Schema(
       ref: 'Job',
       required: true,
       index: true,
-      immutable: true,
+      immutable: true
     },
     jobSeekerId: {
       type: mongoose.Schema.Types.ObjectId,
       ref: 'User',
       required: true,
       index: true,
-      immutable: true,
+      immutable: true
     },
     recruiterId: {
       type: mongoose.Schema.Types.ObjectId,
       ref: 'User',
       required: true,
       index: true,
-      immutable: true,
+      immutable: true
     },
     resumeId: {
       type: mongoose.Schema.Types.ObjectId,
       ref: 'Resume',
       required: true,
-      immutable: true,
+      immutable: true
     },
     resumeSnapshot: {
-      // Freeze the submitted resume details at apply-time so future resume
-      // edits do not rewrite historical applications.
+
+
       type: resumeSnapshotSchema,
       required: true,
-      immutable: true,
+      immutable: true
     },
     message: {
       type: String,
       trim: true,
-      default: '',
+      default: ''
     },
     status: {
       type: String,
       enum: ['pending', 'accepted', 'rejected'],
-      default: 'pending',
+      default: 'pending'
     },
     aiScore: {
       type: Number,
       default: null,
       min: 0,
-      max: 100,
+      max: 100
     },
     aiReason: {
       type: String,
       trim: true,
-      default: null,
+      default: null
     },
     hybridScore: {
       type: Number,
       default: null,
       min: 0,
-      max: 100,
+      max: 100
     },
     decisionEmail: {
       type: decisionEmailSchema,
-      default: () => ({}),
-    },
+      default: () => ({})
+    }
   },
   {
-    timestamps: true,
+    timestamps: true
   }
 );
 
 applicationSchema.index({ jobId: 1, jobSeekerId: 1 }, { unique: true });
-// Prevent duplicate applications for the same job even if two apply requests
-// race each other.
+
+
 
 const Application = mongoose.model('Application', applicationSchema);
 

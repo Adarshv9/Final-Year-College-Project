@@ -1,11 +1,12 @@
-// Express routes for job seeker applications and recruiter-side review actions.
+// Registers API routes for application features.
+
 import express from 'express';
 import * as applicationController from '../controllers/application.controller.js';
 import {
   authenticateJWT,
   authorizeRole,
-  checkRecruiterVerified,
-} from '../middlewares/auth.js';
+  checkRecruiterVerified } from
+'../middlewares/auth.js';
 import validate from '../middlewares/validate.js';
 import * as applicationValidation from '../validations/application.validation.js';
 

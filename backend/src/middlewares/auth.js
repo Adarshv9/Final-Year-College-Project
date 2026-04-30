@@ -1,4 +1,5 @@
-// JWT authentication helpers plus role and recruiter-verification guards.
+// Protects routes by validating tokens and user roles.
+
 import jwt from 'jsonwebtoken';
 import { env } from '../config/env.js';
 import User from '../models/User.js';
@@ -6,7 +7,7 @@ import ApiError from '../utils/ApiError.js';
 import asyncHandler from '../utils/asyncHandler.js';
 
 export const authenticateJWT = asyncHandler(async (req, _res, next) => {
-  // Check for token in cookies first, then Authorization header
+
   let token = req.cookies?.authToken;
 
   if (!token) {
@@ -42,7 +43,7 @@ export const authenticateJWT = asyncHandler(async (req, _res, next) => {
 });
 
 export const optionalAuthenticateJWT = asyncHandler(async (req, _res, next) => {
-  // This helper is for routes where auth is useful but not mandatory.
+
   const authHeader = req.headers.authorization;
 
   if (!authHeader) {
@@ -77,11 +78,11 @@ export const optionalAuthenticateJWT = asyncHandler(async (req, _res, next) => {
   next();
 });
 
-/**
- * Like authenticateJWT (cookie or Bearer) but never fails:
- * missing / invalid / expired token simply leaves req.user unset.
- * Used for GET /auth/me so clients can probe session without a 401 in DevTools.
- */
+
+
+
+
+
 export const optionalSessionJWT = asyncHandler(async (req, _res, next) => {
   let token = req.cookies?.authToken;
 
@@ -105,15 +106,16 @@ export const optionalSessionJWT = asyncHandler(async (req, _res, next) => {
       req.auth = decoded;
     }
   } catch {
-    // Expired or bad token — treat as logged out
+
   }
 
   next();
 });
 
+// Handle Role.
 export const authorizeRole = (...roles) => {
   return (req, _res, next) => {
-    // Role checks assume an earlier auth middleware already attached req.user.
+
     if (!req.user) {
       throw new ApiError(401, 'Authentication required');
     }
@@ -126,6 +128,7 @@ export const authorizeRole = (...roles) => {
   };
 };
 
+// Handle Recruiter Verified.
 export const checkRecruiterVerified = (req, _res, next) => {
   if (!req.user) {
     throw new ApiError(401, 'Authentication required');
@@ -138,6 +141,6 @@ export const checkRecruiterVerified = (req, _res, next) => {
   next();
 };
 
-// Backward-compatible aliases for existing imports.
+
 export const verifyToken = authenticateJWT;
 export const verifyRole = authorizeRole;

@@ -1,17 +1,19 @@
-// ── OpenRouter AI Provider ──
-// Single source of truth for the OpenAI-compatible client pointed at OpenRouter.
+// Sends AI requests through the OpenRouter provider.
+
+
 import OpenAI from 'openai';
 import ApiError from '../../../utils/ApiError.js';
 import logger from '../../../utils/logger.js';
 
 const DEFAULT_MODEL = 'nvidia/nemotron-3-super-120b-a12b:free';
-// Free-tier models on OpenRouter can queue for a very long time.
-// A hard timeout prevents the pipeline from hanging silently.
+
+
 const REQUEST_TIMEOUT_MS = 60_000;
 const DEFAULT_TEMPERATURE = 0.2;
 
 let _client = null;
 
+// Get client.
 const getClient = () => {
   if (!process.env.OPENROUTER_API_KEY) {
     throw new ApiError(503, 'OpenRouter API key is not configured', [], false);
@@ -21,18 +23,19 @@ const getClient = () => {
       apiKey: process.env.OPENROUTER_API_KEY,
       baseURL: 'https://openrouter.ai/api/v1',
       timeout: REQUEST_TIMEOUT_MS,
-      maxRetries: 0, // surface errors immediately; retry logic lives in callers
+      maxRetries: 0
     });
   }
   return _client;
 };
 
-/**
- * Send a chat completion request to OpenRouter.
- * @param {Array}  messages     - OpenAI-format messages array
- * @param {Object} [options]    - Override model, temperature, etc.
- * @returns {Promise<string>}   - Raw text content from the model
- */
+
+
+
+
+
+
+// Handle Completion.
 export const chatCompletion = async (messages, options = {}) => {
   const client = getClient();
   const model = options.model || DEFAULT_MODEL;
@@ -45,7 +48,7 @@ export const chatCompletion = async (messages, options = {}) => {
       model,
       messages,
       temperature: options.temperature ?? DEFAULT_TEMPERATURE,
-      ...options.extra,
+      ...options.extra
     });
   } catch (err) {
     if (err?.code === 'ETIMEDOUT' || err?.name === 'APIConnectionTimeoutError' || err?.message?.includes('timeout')) {

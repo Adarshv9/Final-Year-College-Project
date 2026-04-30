@@ -1,34 +1,35 @@
-// Shared textarea component with forwarded refs and consistent styling.
+// Reusable textarea component for multi-line inputs.
+
 import { forwardRef } from 'react';
 import { inputBase } from './Input';
 
 export const Textarea = forwardRef(function Textarea(
-  { label, error, hint, className = '', id, required, rows = 4, ...props },
-  ref
-) {
+{ label, error, hint, className = '', id, required, rows = 4, ...props },
+ref)
+{
   return (
     <div className="flex flex-col gap-1.5">
-      {label && (
-        <label htmlFor={id} className="text-sm font-medium text-slate-900">
+      {label &&
+      <label htmlFor={id} className="text-sm font-medium text-slate-900">
           {label}{required && <span className="text-rose-400 ml-0.5">*</span>}
         </label>
-      )}
+      }
       <textarea
         ref={ref}
         id={id}
         rows={rows}
         className={[
-          inputBase,
-          'resize-y min-h-[100px]',
-          error ? 'border-rose-500 focus:border-rose-500 focus:ring-rose-500/20' : '',
-          className,
-        ].join(' ')}
-        {...props}
-      />
+        inputBase,
+        'resize-y min-h-[100px]',
+        error ? 'border-rose-500 focus:border-rose-500 focus:ring-rose-500/20' : '',
+        className].
+        join(' ')}
+        {...props} />
+      
       {error && <p className="text-xs text-rose-400">{error}</p>}
       {hint && !error && <p className="text-xs text-slate-500">{hint}</p>}
-    </div>
-  );
+    </div>);
+
 });
 
 export default Textarea;

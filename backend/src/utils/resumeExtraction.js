@@ -1,6 +1,7 @@
-// ── Resume Extraction Utilities ──
-// Text extraction, transformation, and normalization.
-// AI parsing is delegated to src/services/ai/ai.service.js
+// Extracts structured resume details from uploaded files.
+
+
+
 import { createRequire } from 'module';
 const require = createRequire(import.meta.url);
 const pdfParse = require('pdf-parse');
@@ -8,11 +9,12 @@ const pdfParse = require('pdf-parse');
 import ApiError from './ApiError.js';
 import logger from './logger.js';
 
-/**
- * Extract plain text from a PDF buffer.
- * @param {Buffer} pdfBuffer
- * @returns {Promise<string>} Raw text
- */
+
+
+
+
+
+// Extract text from PDF.
 export const extractTextFromPdf = async (pdfBuffer) => {
   try {
     const pdfData = await pdfParse(pdfBuffer);
@@ -23,22 +25,24 @@ export const extractTextFromPdf = async (pdfBuffer) => {
   }
 };
 
-/**
- * Clean raw resume text: strip excessive whitespace and common noise.
- * @param {string} rawText
- * @returns {string}
- */
+
+
+
+
+
+// Handle Resume Text.
 export const cleanResumeText = (rawText) => {
-  return rawText
-    .replace(/\r\n/g, '\n')
-    .replace(/\r/g, '\n')
-    .replace(/[ \t]{2,}/g, ' ')  // collapse multiple spaces/tabs
-    .replace(/\n{3,}/g, '\n\n')  // collapse triple+ blank lines
-    .trim();
+  return rawText.
+  replace(/\r\n/g, '\n').
+  replace(/\r/g, '\n').
+  replace(/[ \t]{2,}/g, ' ').
+  replace(/\n{3,}/g, '\n\n').
+  trim();
 };
 
-// ── Date parsing ─────────────────────────────────────────────────────────────
 
+
+// Parse date.
 const parseDate = (dateString) => {
   if (!dateString || typeof dateString !== 'string') return null;
 
@@ -58,6 +62,7 @@ const parseDate = (dateString) => {
   return isNaN(date) ? null : date;
 };
 
+// Merge intervals.
 const mergeIntervals = (intervals) => {
   if (intervals.length === 0) return [];
   const sorted = [...intervals].sort((a, b) => a[0] - b[0]);
@@ -65,7 +70,7 @@ const mergeIntervals = (intervals) => {
   for (let i = 1; i < sorted.length; i++) {
     const current = sorted[i];
     const last = merged[merged.length - 1];
-    // Overlapping jobs should count once toward total experience.
+
     if (current[0] <= last[1]) {
       last[1] = Math.max(last[1], current[1]);
     } else {
@@ -75,12 +80,13 @@ const mergeIntervals = (intervals) => {
   return merged;
 };
 
-/**
- * Calculate total years of experience from an array of experience objects.
- * Merges overlapping date intervals.
- * @param {Array} experiences
- * @returns {number} Years (1 decimal)
- */
+
+
+
+
+
+
+// Handle Experience Years.
 export const calculateExperienceYears = (experiences) => {
   if (!Array.isArray(experiences) || experiences.length === 0) return 0;
 
@@ -91,15 +97,15 @@ export const calculateExperienceYears = (experiences) => {
     const parsedStart = startDate || (exp.startDate instanceof Date ? exp.startDate : null);
     if (!parsedStart) continue;
 
-    let endDate = exp.endDate
-      ? parseDate(typeof exp.endDate === 'string' ? exp.endDate : exp.endDate?.toISOString?.() || '')
-      : null;
+    let endDate = exp.endDate ?
+    parseDate(typeof exp.endDate === 'string' ? exp.endDate : exp.endDate?.toISOString?.() || '') :
+    null;
     const parsedEnd = endDate || (exp.endDate instanceof Date ? exp.endDate : null) || new Date();
 
     intervals.push([
-      (parsedStart instanceof Date ? parsedStart : new Date(parsedStart)).getTime(),
-      (parsedEnd instanceof Date ? parsedEnd : new Date(parsedEnd)).getTime(),
-    ]);
+    (parsedStart instanceof Date ? parsedStart : new Date(parsedStart)).getTime(),
+    (parsedEnd instanceof Date ? parsedEnd : new Date(parsedEnd)).getTime()]
+    );
   }
 
   if (intervals.length === 0) return 0;
@@ -110,30 +116,32 @@ export const calculateExperienceYears = (experiences) => {
     totalMs += end - start;
   }
 
-  return Math.round((totalMs / (1000 * 60 * 60 * 24 * 365.25)) * 10) / 10;
+  return Math.round(totalMs / (1000 * 60 * 60 * 24 * 365.25) * 10) / 10;
 };
 
-/**
- * Normalize skills: lowercase, trim, remove duplicates.
- * @param {Array} skills
- * @returns {string[]}
- */
+
+
+
+
+
+// Normalize skills array.
 export const normalizeSkillsArray = (skills) => {
   if (!Array.isArray(skills)) return [];
   return [
-    ...new Set(
-      skills
-        .filter((skill) => typeof skill === 'string' && skill.trim().length > 0)
-        .map((skill) => skill.toLowerCase().trim())
-    ),
-  ];
+  ...new Set(
+    skills.
+    filter((skill) => typeof skill === 'string' && skill.trim().length > 0).
+    map((skill) => skill.toLowerCase().trim())
+  )];
+
 };
 
-/**
- * Transform raw AI-parsed resume data into the Resume model format.
- * @param {Object} aiData - Raw object from AI
- * @returns {Object} Transformed resume fields
- */
+
+
+
+
+
+// Handle Resume Data.
 export const transformResumeData = (aiData) => {
   const { experiences = [], skills = [], ...rest } = aiData;
 
@@ -141,12 +149,12 @@ export const transformResumeData = (aiData) => {
     company: exp.company || '',
     role: exp.role || '',
     startDate: parseDate(exp.startDate) || new Date(),
-    // Ongoing roles are stored with a null end date and treated as "until now"
-    // when experience years are calculated.
+
+
     endDate:
-      exp.endDate && exp.endDate.toLowerCase() !== 'present'
-        ? parseDate(exp.endDate)
-        : null,
+    exp.endDate && exp.endDate.toLowerCase() !== 'present' ?
+    parseDate(exp.endDate) :
+    null
   }));
 
   return {
@@ -155,6 +163,6 @@ export const transformResumeData = (aiData) => {
     experiences: transformedExperiences,
     experienceYears: calculateExperienceYears(transformedExperiences),
     education: aiData.education || [],
-    projects: aiData.projects || [],
+    projects: aiData.projects || []
   };
 };

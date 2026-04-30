@@ -1,4 +1,5 @@
-// Job seeker settings page for updating the account password.
+// Job seeker page component for Change Password.
+
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -13,17 +14,18 @@ import Alert from '../../shared/ui/Alert';
 const schema = z.object({
   currentPassword: z.string().min(1, 'Current password is required'),
   newPassword: z.string().min(6, 'New password must be at least 6 characters'),
-  confirmPassword: z.string().min(1, 'Please confirm your password'),
-}).refine(d => d.newPassword === d.confirmPassword, {
+  confirmPassword: z.string().min(1, 'Please confirm your password')
+}).refine((d) => d.newPassword === d.confirmPassword, {
   message: "Passwords don't match",
-  path: ['confirmPassword'],
+  path: ['confirmPassword']
 });
 
+// Render the change password page.
 export default function ChangePasswordPage() {
   const [success, setSuccess] = useState(false);
 
   const { register, handleSubmit, reset, formState: { errors, isSubmitting } } = useForm({
-    resolver: zodResolver(schema),
+    resolver: zodResolver(schema)
   });
 
   const mutation = useMutation({
@@ -35,9 +37,10 @@ export default function ChangePasswordPage() {
     },
     onError: (err) => {
       toast.error(err.response?.data?.message || 'Failed to change password');
-    },
+    }
   });
 
+  // Handle Cls.
   const inputCls = (hasError) => `w-full bg-white border rounded-lg px-4 py-2.5 text-sm text-slate-900 placeholder-slate-400 outline-none focus:ring-2 transition-all ${hasError ? 'border-rose-500 focus:border-rose-500 focus:ring-rose-500/20' : 'border-slate-200 focus:border-indigo-500 focus:ring-indigo-500/20'}`;
 
   return (
@@ -49,12 +52,12 @@ export default function ChangePasswordPage() {
         <p className="text-sm text-slate-600 mt-1">Update your account password</p>
       </div>
 
-      {success && (
-        <Alert type="success">Password changed successfully! Your account is now secured with the new password.</Alert>
-      )}
+      {success &&
+      <Alert type="success">Password changed successfully! Your account is now secured with the new password.</Alert>
+      }
 
       <div className="bg-white border border-slate-200 rounded-2xl p-6">
-        <form onSubmit={handleSubmit(d => mutation.mutate(d))} className="space-y-5">
+        <form onSubmit={handleSubmit((d) => mutation.mutate(d))} className="space-y-5">
           <div className="flex flex-col gap-1.5">
             <label className="text-sm font-medium text-slate-900 flex items-center gap-2">
               <Lock size={14} /> Current Password
@@ -63,8 +66,8 @@ export default function ChangePasswordPage() {
               type="password"
               placeholder="Enter current password"
               className={inputCls(!!errors.currentPassword)}
-              {...register('currentPassword')}
-            />
+              {...register('currentPassword')} />
+            
             {errors.currentPassword && <p className="text-xs text-rose-400">{errors.currentPassword.message}</p>}
           </div>
 
@@ -76,8 +79,8 @@ export default function ChangePasswordPage() {
               type="password"
               placeholder="At least 6 characters"
               className={inputCls(!!errors.newPassword)}
-              {...register('newPassword')}
-            />
+              {...register('newPassword')} />
+            
             {errors.newPassword && <p className="text-xs text-rose-400">{errors.newPassword.message}</p>}
           </div>
 
@@ -87,8 +90,8 @@ export default function ChangePasswordPage() {
               type="password"
               placeholder="Repeat new password"
               className={inputCls(!!errors.confirmPassword)}
-              {...register('confirmPassword')}
-            />
+              {...register('confirmPassword')} />
+            
             {errors.confirmPassword && <p className="text-xs text-rose-400">{errors.confirmPassword.message}</p>}
           </div>
 
@@ -97,6 +100,6 @@ export default function ChangePasswordPage() {
           </Button>
         </form>
       </div>
-    </div>
-  );
+    </div>);
+
 }

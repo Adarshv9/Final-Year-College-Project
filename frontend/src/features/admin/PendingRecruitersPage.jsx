@@ -1,4 +1,5 @@
-// Admin page for reviewing and approving pending recruiter accounts.
+// Admin page component for Pending Recruiters.
+
 import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { ShieldCheck, ShieldX, Search, User, Mail, Clock, Building2 } from 'lucide-react';
@@ -10,6 +11,7 @@ import { SkeletonList } from '../../shared/ui/Skeleton';
 import EmptyState from '../../shared/ui/EmptyState';
 import Pagination from '../../shared/ui/Pagination';
 
+// Render the pending recruiters page.
 export default function PendingRecruitersPage() {
   const qc = useQueryClient();
   const [search, setSearch] = useState('');
@@ -18,35 +20,35 @@ export default function PendingRecruitersPage() {
 
   const { data, isLoading } = useQuery({
     queryKey: ['pending-recruiters', search, page],
-    queryFn: () => adminApi.pendingRecruiters({ search, page, limit: 10 }).then(r => r.data),
+    queryFn: () => adminApi.pendingRecruiters({ search, page, limit: 10 }).then((r) => r.data)
   });
 
   const verifyMutation = useMutation({
     mutationFn: (id) => adminApi.verifyRecruiter(id),
-    onMutate: (id) => setActionMap(m => ({ ...m, [id]: 'verifying' })),
+    onMutate: (id) => setActionMap((m) => ({ ...m, [id]: 'verifying' })),
     onSuccess: (_, id) => {
       toast.success('Recruiter approved!');
-      setActionMap(m => { const n = { ...m }; delete n[id]; return n; });
+      setActionMap((m) => {const n = { ...m };delete n[id];return n;});
       qc.invalidateQueries({ queryKey: ['pending-recruiters'] });
     },
     onError: (err, id) => {
       toast.error(err.response?.data?.message || 'Failed');
-      setActionMap(m => { const n = { ...m }; delete n[id]; return n; });
-    },
+      setActionMap((m) => {const n = { ...m };delete n[id];return n;});
+    }
   });
 
   const rejectMutation = useMutation({
     mutationFn: (id) => adminApi.rejectRecruiter(id),
-    onMutate: (id) => setActionMap(m => ({ ...m, [id]: 'rejecting' })),
+    onMutate: (id) => setActionMap((m) => ({ ...m, [id]: 'rejecting' })),
     onSuccess: (_, id) => {
       toast.success('Recruiter rejected');
-      setActionMap(m => { const n = { ...m }; delete n[id]; return n; });
+      setActionMap((m) => {const n = { ...m };delete n[id];return n;});
       qc.invalidateQueries({ queryKey: ['pending-recruiters'] });
     },
     onError: (err, id) => {
       toast.error(err.response?.data?.message || 'Failed');
-      setActionMap(m => { const n = { ...m }; delete n[id]; return n; });
-    },
+      setActionMap((m) => {const n = { ...m };delete n[id];return n;});
+    }
   });
 
   const recruiters = data?.data?.recruiters || [];
@@ -59,30 +61,30 @@ export default function PendingRecruitersPage() {
         <p className="text-sm text-slate-600 mt-1">Review and approve recruiter account requests</p>
       </div>
 
-      {/* Search */}
+      
       <div className="relative">
         <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
         <input
           type="text"
           value={search}
-          onChange={e => { setSearch(e.target.value); setPage(1); }}
+          onChange={(e) => {setSearch(e.target.value);setPage(1);}}
           placeholder="Search by name or email…"
-          className="w-full bg-white border border-slate-200 rounded-xl pl-9 pr-4 py-2.5 text-sm text-slate-900 placeholder-slate-400 outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 transition-all"
-        />
+          className="w-full bg-white border border-slate-200 rounded-xl pl-9 pr-4 py-2.5 text-sm text-slate-900 placeholder-slate-400 outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 transition-all" />
+        
       </div>
 
-      {isLoading ? (
-        <SkeletonList count={5} />
-      ) : recruiters.length === 0 ? (
-        <EmptyState
-          icon={ShieldCheck}
-          title="No pending recruiters"
-          description={search ? 'No recruiters match your search' : 'All recruiter requests have been reviewed!'}
-        />
-      ) : (
-        <div className="space-y-4">
-          {recruiters.map(recruiter => (
-            <div key={recruiter._id} className="bg-white border border-slate-200 rounded-xl p-5 hover:border-slate-300 transition-all">
+      {isLoading ?
+      <SkeletonList count={5} /> :
+      recruiters.length === 0 ?
+      <EmptyState
+        icon={ShieldCheck}
+        title="No pending recruiters"
+        description={search ? 'No recruiters match your search' : 'All recruiter requests have been reviewed!'} /> :
+
+
+      <div className="space-y-4">
+          {recruiters.map((recruiter) =>
+        <div key={recruiter._id} className="bg-white border border-slate-200 rounded-xl p-5 hover:border-slate-300 transition-all">
               <div className="flex items-start justify-between gap-4">
                 <div className="flex items-start gap-3">
                   <div className="w-10 h-10 bg-amber-500/10 rounded-full flex items-center justify-center font-bold text-amber-400 text-sm flex-shrink-0">
@@ -93,48 +95,48 @@ export default function PendingRecruitersPage() {
                     <p className="text-xs text-indigo-400 flex items-center gap-1">
                       <Mail size={11} /> {recruiter.email}
                     </p>
-                    {recruiter.createdAt && (
-                      <p className="text-xs text-slate-500 flex items-center gap-1 mt-0.5">
+                    {recruiter.createdAt &&
+                <p className="text-xs text-slate-500 flex items-center gap-1 mt-0.5">
                         <Clock size={11} />
                         Registered {new Date(recruiter.createdAt).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}
                       </p>
-                    )}
-                    {recruiter.profile?.companyName && (
-                      <p className="text-xs text-slate-600 mt-1 flex items-center gap-1">
+                }
+                    {recruiter.profile?.companyName &&
+                <p className="text-xs text-slate-600 mt-1 flex items-center gap-1">
                         <Building2 size={11} /> {recruiter.profile.companyName}
                       </p>
-                    )}
+                }
                   </div>
                 </div>
 
                 <div className="flex items-center gap-2 flex-shrink-0">
                   <Badge variant="pending">Pending</Badge>
                   <Button
-                    variant="success"
-                    size="sm"
-                    loading={actionMap[recruiter._id] === 'verifying'}
-                    disabled={!!actionMap[recruiter._id]}
-                    onClick={() => verifyMutation.mutate(recruiter._id)}
-                  >
+                variant="success"
+                size="sm"
+                loading={actionMap[recruiter._id] === 'verifying'}
+                disabled={!!actionMap[recruiter._id]}
+                onClick={() => verifyMutation.mutate(recruiter._id)}>
+                
                     <ShieldCheck size={13} /> Approve
                   </Button>
                   <Button
-                    variant="danger"
-                    size="sm"
-                    loading={actionMap[recruiter._id] === 'rejecting'}
-                    disabled={!!actionMap[recruiter._id]}
-                    onClick={() => rejectMutation.mutate(recruiter._id)}
-                  >
+                variant="danger"
+                size="sm"
+                loading={actionMap[recruiter._id] === 'rejecting'}
+                disabled={!!actionMap[recruiter._id]}
+                onClick={() => rejectMutation.mutate(recruiter._id)}>
+                
                     <ShieldX size={13} /> Reject
                   </Button>
                 </div>
               </div>
             </div>
-          ))}
+        )}
         </div>
-      )}
+      }
 
       <Pagination page={page} totalPages={pagination?.totalPages || 1} onPageChange={setPage} />
-    </div>
-  );
+    </div>);
+
 }

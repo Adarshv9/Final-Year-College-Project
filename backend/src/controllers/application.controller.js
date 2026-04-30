@@ -1,4 +1,5 @@
-// HTTP handlers for job applications and recruiter-side review flows.
+// Handles HTTP requests for application endpoints.
+
 import asyncHandler from '../utils/asyncHandler.js';
 import * as applicationService from '../services/application.service.js';
 
@@ -8,7 +9,7 @@ export const createApplication = asyncHandler(async (req, res) => {
   res.status(201).json({
     success: true,
     statusCode: 201,
-    message: 'Application submitted successfully',
+    message: 'Application submitted successfully'
   });
 });
 
@@ -18,7 +19,7 @@ export const getMyApplications = asyncHandler(async (req, res) => {
   res.status(200).json({
     success: true,
     statusCode: 200,
-    data: applications,
+    data: applications
   });
 });
 
@@ -28,7 +29,7 @@ export const getRecruiterApplications = asyncHandler(async (req, res) => {
     limit = 100,
     status,
     jobId,
-    sort = 'newest',
+    sort = 'newest'
   } = req.query;
 
   const result = await applicationService.getRecruiterApplications(
@@ -38,7 +39,7 @@ export const getRecruiterApplications = asyncHandler(async (req, res) => {
       limit: parseInt(limit, 10),
       status: status || undefined,
       jobId: jobId || undefined,
-      sort,
+      sort
     }
   );
 
@@ -46,7 +47,7 @@ export const getRecruiterApplications = asyncHandler(async (req, res) => {
     success: true,
     statusCode: 200,
     data: result.data,
-    pagination: result.pagination,
+    pagination: result.pagination
   });
 });
 
@@ -59,7 +60,7 @@ export const getApplicationsForJob = asyncHandler(async (req, res) => {
     {
       page: parseInt(page, 10),
       limit: parseInt(limit, 10),
-      status: status || undefined,
+      status: status || undefined
     }
   );
 
@@ -67,7 +68,7 @@ export const getApplicationsForJob = asyncHandler(async (req, res) => {
     success: true,
     statusCode: 200,
     data: result.data,
-    pagination: result.pagination,
+    pagination: result.pagination
   });
 });
 
@@ -80,7 +81,7 @@ export const getRecommendedApplications = asyncHandler(async (req, res) => {
   res.status(200).json({
     success: true,
     statusCode: 200,
-    data: applications,
+    data: applications
   });
 });
 
@@ -92,14 +93,14 @@ export const updateApplicationStatus = asyncHandler(async (req, res) => {
   );
 
   const message =
-    req.body.status === 'pending'
-      ? 'Application moved back to pending. Any scheduled decision email was cancelled.'
-      : 'Application status updated successfully. Candidate email will be sent after 15 seconds.';
+  req.body.status === 'pending' ?
+  'Application moved back to pending. Any scheduled decision email was cancelled.' :
+  'Application status updated successfully. Candidate email will be sent after 15 seconds.';
 
   res.status(200).json({
     success: true,
     statusCode: 200,
     message,
-    data: result,
+    data: result
   });
 });

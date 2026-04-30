@@ -1,4 +1,5 @@
-// Shared button component with variants, sizes, and loading treatment.
+// Reusable button component with project styling states.
+
 import { forwardRef } from 'react';
 
 const variants = {
@@ -7,7 +8,7 @@ const variants = {
   ghost: 'bg-transparent hover:bg-slate-100 text-slate-700 hover:text-slate-900',
   danger: 'bg-rose-500/10 hover:bg-rose-500 text-rose-400 hover:text-white border border-transparent',
   success: 'bg-emerald-500/10 hover:bg-emerald-500 text-emerald-400 hover:text-white border border-transparent',
-  outline: 'bg-transparent border border-indigo-500 text-indigo-600 hover:bg-indigo-500/10',
+  outline: 'bg-transparent border border-indigo-500 text-indigo-600 hover:bg-indigo-500/10'
 };
 
 const sizes = {
@@ -15,37 +16,37 @@ const sizes = {
   md: 'h-9 px-4 text-sm gap-2',
   lg: 'h-11 px-6 text-base gap-2',
   icon: 'h-9 w-9 p-0',
-  'icon-sm': 'h-7 w-7 p-0',
+  'icon-sm': 'h-7 w-7 p-0'
 };
 
 export const Button = forwardRef(function Button(
-  { variant = 'primary', size = 'md', className = '', children, disabled, loading, full, ...props },
-  ref
-) {
+{ variant = 'primary', size = 'md', className = '', children, disabled, loading, full, ...props },
+ref)
+{
   return (
     <button
       ref={ref}
       disabled={disabled || loading}
       className={[
-        'inline-flex items-center justify-center',
-        'rounded-lg font-semibold transition-all duration-150 cursor-pointer',
-        'disabled:opacity-50 disabled:cursor-not-allowed disabled:pointer-events-none',
-        'whitespace-nowrap select-none',
-        variants[variant] || variants.primary,
-        sizes[size] || sizes.md,
-        full ? 'w-full' : '',
-        className,
-      ].join(' ')}
-      {...props}
-    >
-      {loading ? (
-        <>
+      'inline-flex items-center justify-center',
+      'rounded-lg font-semibold transition-all duration-150 cursor-pointer',
+      'disabled:opacity-50 disabled:cursor-not-allowed disabled:pointer-events-none',
+      'whitespace-nowrap select-none',
+      variants[variant] || variants.primary,
+      sizes[size] || sizes.md,
+      full ? 'w-full' : '',
+      className].
+      join(' ')}
+      {...props}>
+      
+      {loading ?
+      <>
           <span className="w-4 h-4 border-2 border-current/30 border-t-current rounded-full animate-spin" />
           {children}
-        </>
-      ) : children}
-    </button>
-  );
+        </> :
+      children}
+    </button>);
+
 });
 
 export default Button;

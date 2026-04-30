@@ -1,9 +1,11 @@
-// CLI script to create or promote a local admin account.
+// Seeds or updates the initial admin account.
+
 import mongoose from 'mongoose';
 import connectDB from '../src/config/db.js';
 import User from '../src/models/User.js';
 import '../src/config/env.js';
 
+// Parse args.
 const parseArgs = () => {
   const args = process.argv.slice(2);
   const options = {};
@@ -27,12 +29,15 @@ const parseArgs = () => {
   return options;
 };
 
+// Handle Usage.
 const printUsage = () => {
   console.log('Usage: npm run create:admin -- --name "Admin User" --email "admin@example.com" --password "StrongPass123"');
 };
 
+// Normalize string.
 const normalizeString = (value) => String(value || '').trim();
 
+// Handle .
 const main = async () => {
   const options = parseArgs();
   const name = normalizeString(options.name);
@@ -78,7 +83,7 @@ const main = async () => {
         emailVerified: true,
         isVerified: true,
         isActive: true,
-        approvalStatus: null,
+        approvalStatus: null
       });
 
       console.log(`Created admin user ${email}.`);

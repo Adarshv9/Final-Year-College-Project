@@ -1,14 +1,16 @@
-// Shared MongoDB connection helper for the backend process.
+// Connects the backend to the MongoDB database.
+
 import mongoose from 'mongoose';
 import { env } from './env.js';
 import logger from '../utils/logger.js';
 
 const LEGACY_APPLICATION_INDEXES = ['job_1', 'applicant_1', 'job_1_applicant_1'];
 
+// Handle Legacy Application Indexes.
 const dropLegacyApplicationIndexes = async (connection) => {
-  const collections = await connection.db
-    .listCollections({ name: 'applications' }, { nameOnly: true })
-    .toArray();
+  const collections = await connection.db.
+  listCollections({ name: 'applications' }, { nameOnly: true }).
+  toArray();
 
   if (collections.length === 0) return;
 
@@ -24,10 +26,11 @@ const dropLegacyApplicationIndexes = async (connection) => {
   }
 };
 
-/**
- * Connect to MongoDB using Mongoose.
- * Retries are handled by Mongoose's built-in reconnection logic.
- */
+
+
+
+
+// Connect DB.
 const connectDB = async () => {
   try {
     const conn = await mongoose.connect(env.mongodbUri);

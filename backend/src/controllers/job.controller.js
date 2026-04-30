@@ -1,4 +1,5 @@
-// HTTP handlers for public job browsing and recruiter job management.
+// Handles HTTP requests for job endpoints.
+
 import asyncHandler from '../utils/asyncHandler.js';
 import * as jobService from '../services/job.service.js';
 
@@ -10,8 +11,8 @@ export const createJob = asyncHandler(async (req, res) => {
     statusCode: 201,
     message: 'Job created successfully',
     data: {
-      jobId: job._id,
-    },
+      jobId: job._id
+    }
   });
 });
 
@@ -21,7 +22,7 @@ export const getMyJobs = asyncHandler(async (req, res) => {
   res.status(200).json({
     success: true,
     statusCode: 200,
-    data: jobs,
+    data: jobs
   });
 });
 
@@ -32,7 +33,7 @@ export const getJobs = asyncHandler(async (req, res) => {
     success: true,
     statusCode: 200,
     data: result.jobs,
-    pagination: result.pagination,
+    pagination: result.pagination
   });
 });
 
@@ -42,7 +43,7 @@ export const getJob = asyncHandler(async (req, res) => {
   res.status(200).json({
     success: true,
     statusCode: 200,
-    data: job,
+    data: job
   });
 });
 
@@ -53,7 +54,7 @@ export const getAtsScore = asyncHandler(async (req, res) => {
     success: true,
     statusCode: 200,
     message: 'ATS score generated successfully',
-    data: score,
+    data: score
   });
 });
 
@@ -63,7 +64,7 @@ export const updateJob = asyncHandler(async (req, res) => {
   res.status(200).json({
     success: true,
     statusCode: 200,
-    message: 'Job updated successfully',
+    message: 'Job updated successfully'
   });
 });
 
@@ -73,17 +74,17 @@ export const deleteJob = asyncHandler(async (req, res) => {
   res.status(200).json({
     success: true,
     statusCode: 200,
-    message: 'Job deleted successfully',
+    message: 'Job deleted successfully'
   });
 });
 
 export const getRecommendedJobs = asyncHandler(async (req, res) => {
   const jobs = await jobService.getRecommendedJobs(req.user.id);
-  
+
 
   res.status(200).json({
     success: true,
     statusCode: 200,
-    data: jobs,
+    data: jobs
   });
 });

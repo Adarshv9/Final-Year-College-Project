@@ -1,7 +1,8 @@
-// ── Recruiter Profile Model ──
+// Defines the MongoDB schema for Recruiter Profile data.
+
 import mongoose from 'mongoose';
 
-// Recruiter profile with company information
+
 const recruiterProfileSchema = new mongoose.Schema(
   {
     user: {
@@ -9,28 +10,28 @@ const recruiterProfileSchema = new mongoose.Schema(
       ref: 'User',
       required: true,
       unique: true,
-      index: true,
+      index: true
     },
     companyName: {
       type: String,
       required: [true, 'Company name is required'],
-      trim: true,
+      trim: true
     },
     companyWebsite: {
       type: String,
-      trim: true,
+      trim: true
     },
     companySize: {
       type: String,
-      trim: true,
+      trim: true
     },
     companyDescription: {
       type: String,
-      trim: true,
-    },
+      trim: true
+    }
   },
   {
-    timestamps: true,
+    timestamps: true
   }
 );
 

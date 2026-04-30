@@ -1,4 +1,5 @@
-/* App.jsx is no longer used - routing is handled by AppRouter in router/index.jsx */
+// Render the app component.
+
 export default function App() {
   return null;
 }

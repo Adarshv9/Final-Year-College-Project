@@ -1,30 +1,33 @@
-// ── Centralized AI Service ──
-// All AI operations flow through here. Consumers import from this file,
-// never from providers or prompts directly.
+// Coordinates AI-powered resume analysis and matching tasks.
+
+
+
 import logger from '../../utils/logger.js';
 import ApiError from '../../utils/ApiError.js';
 import { chatCompletion } from './providers/openrouter.provider.js';
 import { buildResumeParseMessages } from './prompts/resume.prompt.js';
 import { buildApplicationScoringMessages, buildJobRankingMessages } from './prompts/matching.prompt.js';
 
-// ── helpers ─────────────────────────────────────────────────────────────────
 
+
+// Parse json response.
 const parseJsonResponse = (text) => {
-  // Providers sometimes wrap JSON in markdown fences, so strip them first.
-  const cleaned = text
-  .replace(/```json/g, '')
-  .replace(/```/g, '')
-  .trim();
+
+  const cleaned = text.
+  replace(/```json/g, '').
+  replace(/```/g, '').
+  trim();
   return JSON.parse(cleaned);
 };
 
-// ── Public API ───────────────────────────────────────────────────────────────
 
-/**
- * Parse raw resume text into structured JSON via AI.
- * @param {string} rawText
- * @returns {Promise<Object>} Parsed resume object
- */
+
+
+
+
+
+
+// Parse resume text.
 export const parseResumeText = async (rawText) => {
   const start = Date.now();
   try {
@@ -39,7 +42,7 @@ export const parseResumeText = async (rawText) => {
       throw new ApiError(500, 'Invalid JSON from AI', [], false);
     }
 
-    // Validate the AI response before it reaches the rest of the pipeline.
+
     if (!parsed || typeof parsed !== 'object') {
       throw new ApiError(400, 'Invalid resume data structure from AI', [], false);
     }
@@ -60,12 +63,13 @@ export const parseResumeText = async (rawText) => {
   }
 };
 
-/**
- * Score a candidate application against a job.
- * @param {Object} job            - Job document
- * @param {Object} resumeSnapshot - Candidate snapshot
- * @returns {Promise<{ matchScore: number, reason: string }>}
- */
+
+
+
+
+
+
+// Score application.
 export const scoreApplication = async (job, resumeSnapshot) => {
   const start = Date.now();
   try {
@@ -83,7 +87,7 @@ export const scoreApplication = async (job, resumeSnapshot) => {
 
     return {
       matchScore: Math.max(0, Math.min(100, Math.round(Number(parsed.matchScore) || 0))),
-      reason: String(parsed.reason || '').trim(),
+      reason: String(parsed.reason || '').trim()
     };
   } catch (error) {
     if (error instanceof ApiError) throw error;
@@ -92,12 +96,13 @@ export const scoreApplication = async (job, resumeSnapshot) => {
   }
 };
 
-/**
- * Rank a list of jobs by relevance for a candidate's skills.
- * @param {Array<string>} resumeSkills
- * @param {Array<Object>} jobs
- * @returns {Promise<Array>} Ranked + enriched job list
- */
+
+
+
+
+
+
+// Handle Jobs.
 export const rankJobs = async (resumeSkills, jobs) => {
   if (!Array.isArray(jobs) || jobs.length === 0) return [];
 
@@ -119,26 +124,26 @@ export const rankJobs = async (resumeSkills, jobs) => {
 
     logger.info(`[METRIC] AI job ranking completed in ${Date.now() - start}ms`);
 
-    // Map ids back to the original query results so the UI only receives
-    // trusted fields from our own database, not arbitrary model output.
+
+
     const jobMap = new Map(jobs.map((job) => [String(job._id), job]));
 
-    return parsed
-      // Ignore any hallucinated ids and only keep items we can map back to
-      // the original jobs we provided to the model.
-      .filter((item) => jobMap.has(String(item.jobId)))
-      .map((item) => {
-        const job = jobMap.get(String(item.jobId));
-        return {
-          jobId: String(job._id),
-          title: job.title,
-          companyName: job.companyName,
-          jobType: job.jobType,
-          matchScore: Math.max(0, Math.min(100, Math.round(Number(item.matchScore) || 0))),
-          reason: String(item.reason || '').trim(),
-        };
-      })
-      .sort((a, b) => b.matchScore - a.matchScore);
+    return parsed.
+
+
+    filter((item) => jobMap.has(String(item.jobId))).
+    map((item) => {
+      const job = jobMap.get(String(item.jobId));
+      return {
+        jobId: String(job._id),
+        title: job.title,
+        companyName: job.companyName,
+        jobType: job.jobType,
+        matchScore: Math.max(0, Math.min(100, Math.round(Number(item.matchScore) || 0))),
+        reason: String(item.reason || '').trim()
+      };
+    }).
+    sort((a, b) => b.matchScore - a.matchScore);
   } catch (error) {
     if (error instanceof ApiError) throw error;
     logger.error(`AI job ranking error: ${error.message}`);

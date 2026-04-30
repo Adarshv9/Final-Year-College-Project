@@ -1,14 +1,16 @@
-// Middleware factory that validates request body, params, and query with Joi.
+// Validates request payloads against Joi schemas.
+
 import ApiError from '../utils/ApiError.js';
 
-/**
- * Returns an Express middleware that validates the request
- * against a Joi schema.
- *
- * @param {import('joi').ObjectSchema} schema - Joi schema with optional
- *   `body`, `params`, and `query` keys.
- * @returns {Function} Express middleware
- */
+
+
+
+
+
+
+
+
+// Validate .
 const validate = (schema) => (req, _res, next) => {
   const validProperties = ['body', 'params', 'query'];
   const objectToValidate = {};
@@ -20,9 +22,9 @@ const validate = (schema) => (req, _res, next) => {
   });
 
   const { error, value } = schema.validate(objectToValidate, {
-    abortEarly: false, // collect all errors
+    abortEarly: false,
     allowUnknown: false,
-    stripUnknown: true,
+    stripUnknown: true
   });
 
   if (error) {
@@ -30,7 +32,7 @@ const validate = (schema) => (req, _res, next) => {
     return next(new ApiError(422, 'Validation failed', errors));
   }
 
-  // Replace request properties with validated (and sanitised) values
+
   Object.assign(req, value);
   next();
 };

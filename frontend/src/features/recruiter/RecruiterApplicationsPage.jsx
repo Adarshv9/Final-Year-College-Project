@@ -1,4 +1,5 @@
-// Recruiter page for browsing all applications across their open jobs.
+// Recruiter page component for Recruiter Applications.
+
 import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Link } from 'react-router-dom';
@@ -12,6 +13,7 @@ import EmptyState from '../../shared/ui/EmptyState';
 import Modal from '../../shared/ui/Modal';
 import ApplicationCandidateCard from './components/ApplicationCandidateCard';
 
+// Render the recruiter applications page.
 export default function RecruiterApplicationsPage() {
   const qc = useQueryClient();
   const [selectedJobId, setSelectedJobId] = useState('');
@@ -21,27 +23,27 @@ export default function RecruiterApplicationsPage() {
 
   const { data: jobsData } = useQuery({
     queryKey: ['my-jobs'],
-    queryFn: () => jobsApi.myJobs({ limit: 100 }).then((r) => r.data),
+    queryFn: () => jobsApi.myJobs({ limit: 100 }).then((r) => r.data)
   });
 
   const { data: appsData, isLoading } = useQuery({
     queryKey: ['recruiter-applications', selectedJobId, status, sort],
     queryFn: () =>
-      applicationsApi.recruiter({
-        jobId: selectedJobId || undefined,
-        status: status === 'all' ? undefined : status,
-        sort,
-        limit: 200,
-      }).then((r) => r.data),
+    applicationsApi.recruiter({
+      jobId: selectedJobId || undefined,
+      status: status === 'all' ? undefined : status,
+      sort,
+      limit: 200
+    }).then((r) => r.data)
   });
 
   const statusMutation = useMutation({
     mutationFn: ({ id, action }) => applicationsApi.updateStatus(id, action),
     onSuccess: (_, vars) => {
       const message =
-        vars.action === 'pending'
-          ? 'Application moved back to pending.'
-          : `Application ${vars.action}. Candidate email will be sent in 15 seconds.`;
+      vars.action === 'pending' ?
+      'Application moved back to pending.' :
+      `Application ${vars.action}. Candidate email will be sent in 15 seconds.`;
       toast.success(message);
       setConfirmModal(null);
       qc.invalidateQueries({ queryKey: ['recruiter-applications'] });
@@ -49,7 +51,7 @@ export default function RecruiterApplicationsPage() {
       qc.invalidateQueries({ queryKey: ['job-recommended'] });
       qc.invalidateQueries({ queryKey: ['my-jobs'] });
     },
-    onError: (err) => toast.error(err.response?.data?.message || 'Failed to update'),
+    onError: (err) => toast.error(err.response?.data?.message || 'Failed to update')
   });
 
   const jobs = jobsData?.data || [];
@@ -76,19 +78,19 @@ export default function RecruiterApplicationsPage() {
           <Select
             label="Job"
             value={selectedJobId}
-            onChange={(e) => setSelectedJobId(e.target.value)}
-          >
+            onChange={(e) => setSelectedJobId(e.target.value)}>
+            
             <option value="">All jobs</option>
-            {jobs.map((job) => (
-              <option key={job._id} value={job._id}>{job.title}</option>
-            ))}
+            {jobs.map((job) =>
+            <option key={job._id} value={job._id}>{job.title}</option>
+            )}
           </Select>
 
           <Select
             label="Status"
             value={status}
-            onChange={(e) => setStatus(e.target.value)}
-          >
+            onChange={(e) => setStatus(e.target.value)}>
+            
             <option value="all">All statuses</option>
             <option value="pending">Pending</option>
             <option value="accepted">Accepted</option>
@@ -98,79 +100,79 @@ export default function RecruiterApplicationsPage() {
           <Select
             label="Sort"
             value={sort}
-            onChange={(e) => setSort(e.target.value)}
-          >
+            onChange={(e) => setSort(e.target.value)}>
+            
             <option value="newest">Newest first</option>
             <option value="oldest">Oldest first</option>
           </Select>
         </div>
       </div>
 
-      {isLoading ? (
-        <SkeletonList count={4} />
-      ) : applications.length === 0 ? (
-        <EmptyState
-          icon={Users}
-          title="No applications found"
-          description="Try a different job or status filter, or wait for new applicants to apply."
-        />
-      ) : (
-        <div className="space-y-4">
-          {applications.map((app) => (
-            <ApplicationCandidateCard
-              key={app._id}
-              app={app}
-              onAction={(id, action) => setConfirmModal({ id, action })}
-            />
-          ))}
+      {isLoading ?
+      <SkeletonList count={4} /> :
+      applications.length === 0 ?
+      <EmptyState
+        icon={Users}
+        title="No applications found"
+        description="Try a different job or status filter, or wait for new applicants to apply." /> :
+
+
+      <div className="space-y-4">
+          {applications.map((app) =>
+        <ApplicationCandidateCard
+          key={app._id}
+          app={app}
+          onAction={(id, action) => setConfirmModal({ id, action })} />
+
+        )}
         </div>
-      )}
+      }
 
       <Modal
         isOpen={!!confirmModal}
         onClose={() => setConfirmModal(null)}
         title={
-          confirmModal?.action === 'accepted'
-            ? 'Accept Application'
-            : confirmModal?.action === 'rejected'
-              ? 'Reject Application'
-              : 'Move Application Back To Pending'
+        confirmModal?.action === 'accepted' ?
+        'Accept Application' :
+        confirmModal?.action === 'rejected' ?
+        'Reject Application' :
+        'Move Application Back To Pending'
         }
-        footer={(
-          <>
+        footer={
+        <>
             <Button variant="secondary" onClick={() => setConfirmModal(null)}>Cancel</Button>
             <Button
-              variant={
-                confirmModal?.action === 'accepted'
-                  ? 'success'
-                  : confirmModal?.action === 'rejected'
-                    ? 'danger'
-                    : 'secondary'
-              }
-              loading={statusMutation.isPending}
-              onClick={() => statusMutation.mutate(confirmModal)}
-            >
-              {confirmModal?.action === 'accepted'
-                ? 'Confirm Accept'
-                : confirmModal?.action === 'rejected'
-                  ? 'Confirm Reject'
-                  : 'Move To Pending'}
+            variant={
+            confirmModal?.action === 'accepted' ?
+            'success' :
+            confirmModal?.action === 'rejected' ?
+            'danger' :
+            'secondary'
+            }
+            loading={statusMutation.isPending}
+            onClick={() => statusMutation.mutate(confirmModal)}>
+            
+              {confirmModal?.action === 'accepted' ?
+            'Confirm Accept' :
+            confirmModal?.action === 'rejected' ?
+            'Confirm Reject' :
+            'Move To Pending'}
             </Button>
           </>
-        )}
-      >
+        }>
+        
         <p className="text-sm text-slate-600">
-          {confirmModal?.action === 'pending' ? (
-            <>
+          {confirmModal?.action === 'pending' ?
+          <>
               This will move the application back to <strong className="text-slate-900">pending</strong> and cancel any scheduled decision email.
-            </>
-          ) : (
-            <>
+            </> :
+
+          <>
               Are you sure you want to <strong className="text-slate-900">{confirmModal?.action}</strong> this application? The applicant will be notified after 15 seconds.
             </>
-          )}
+          }
         </p>
       </Modal>
-    </div>
-  );
+    </div>);
+
 }

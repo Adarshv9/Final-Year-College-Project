@@ -1,37 +1,41 @@
-// Shared Axios client with base URL, cookies, and response handling.
+// Configures the shared Axios client for backend requests.
+
 import axios from 'axios';
 
 const API_BASE = '/api/v1';
 
 const api = axios.create({
   baseURL: API_BASE,
-  withCredentials: true, // backend uses httpOnly cookies
-  headers: { 'Content-Type': 'application/json' },
+  withCredentials: true,
+  headers: { 'Content-Type': 'application/json' }
 });
 
 let refreshRequest = null;
 
+// Check whether auth page.
 const isAuthPage = () =>
-  window.location.pathname.includes('/login') ||
-  window.location.pathname.includes('/register') ||
-  window.location.pathname.includes('/verify-otp');
+window.location.pathname.includes('/login') ||
+window.location.pathname.includes('/register') ||
+window.location.pathname.includes('/verify-otp');
 
+// Check whether skip refresh.
 const shouldSkipRefresh = (url = '') =>
-  String(url).includes('/auth/login') ||
-  String(url).includes('/auth/register') ||
-  String(url).includes('/auth/verify-otp') ||
-  String(url).includes('/auth/resend-otp') ||
-  String(url).includes('/auth/refresh-token') ||
-  String(url).includes('/auth/me');
+String(url).includes('/auth/login') ||
+String(url).includes('/auth/register') ||
+String(url).includes('/auth/verify-otp') ||
+String(url).includes('/auth/resend-otp') ||
+String(url).includes('/auth/refresh-token') ||
+String(url).includes('/auth/me');
 
+// Refresh session.
 const refreshSession = async () => {
   if (!refreshRequest) {
-    // Reuse a single in-flight refresh so a burst of 401s only triggers one
-    // refresh request instead of a thundering herd.
-    refreshRequest = api.post('/auth/refresh-token', {})
-      .finally(() => {
-        refreshRequest = null;
-      });
+
+
+    refreshRequest = api.post('/auth/refresh-token', {}).
+    finally(() => {
+      refreshRequest = null;
+    });
   }
 
   return refreshRequest;
@@ -45,14 +49,14 @@ api.interceptors.response.use(
     const requestUrl = String(originalRequest.url || '');
 
     if (
-      status === 401 &&
-      !originalRequest._retry &&
-      !shouldSkipRefresh(requestUrl)
-    ) {
+    status === 401 &&
+    !originalRequest._retry &&
+    !shouldSkipRefresh(requestUrl))
+    {
       originalRequest._retry = true;
 
       try {
-        // Refresh first, then replay the original request with the new cookie.
+
         await refreshSession();
         return api(originalRequest);
       } catch (refreshError) {
@@ -63,8 +67,8 @@ api.interceptors.response.use(
       }
     }
 
-    // For non-retried 401s, only redirect if we're in an authenticated section.
-    // Unauthenticated routes (landing page, /jobs) intentionally get 401 on /auth/me.
+
+
     if (status === 401 && !isAuthPage() && !shouldSkipRefresh(requestUrl)) {
       window.location.href = '/login';
     }

@@ -1,4 +1,5 @@
-// Business logic for job search, recruiter CRUD, and recommendations.
+// Implements business logic for job workflows.
+
 import Job from '../models/Job.js';
 import Resume from '../models/Resume.js';
 import JobSeekerProfile from '../models/JobSeekerProfile.js';
@@ -9,25 +10,26 @@ import { scoreApplication } from './ai/ai.service.js';
 import { computeHybridScore } from './scoring.service.js';
 
 const publicJobFields =
-  '_id title companyName location description requiredSkills minExperience jobType salary createdAt updatedAt';
+'_id title companyName location description requiredSkills minExperience jobType salary createdAt updatedAt';
 
+// Build public job filter.
 const buildPublicJobFilter = ({
   search,
   skill,
   location,
   locationType,
   jobType,
-  minExperience,
+  minExperience
 }) => {
   const filter = { isActive: true };
 
   if (search) {
-    // Search is intentionally broad so public job discovery works from a
-    // single text box without separate title/description filters.
+
+
     filter.$or = [
-      { title: { $regex: search, $options: 'i' } },
-      { description: { $regex: search, $options: 'i' } },
-    ];
+    { title: { $regex: search, $options: 'i' } },
+    { description: { $regex: search, $options: 'i' } }];
+
   }
 
   if (skill) {
@@ -40,14 +42,14 @@ const buildPublicJobFilter = ({
 
   if (location) {
     filter.$and = [
-      ...(filter.$and || []),
-      {
-        $or: [
-          { 'location.city': { $regex: location, $options: 'i' } },
-          { 'location.country': { $regex: location, $options: 'i' } },
-        ],
-      },
-    ];
+    ...(filter.$and || []),
+    {
+      $or: [
+      { 'location.city': { $regex: location, $options: 'i' } },
+      { 'location.country': { $regex: location, $options: 'i' } }]
+
+    }];
+
   }
 
   if (jobType) {
@@ -61,27 +63,30 @@ const buildPublicJobFilter = ({
   return filter;
 };
 
+// Create job.
 export const createJob = async (recruiterId, jobData) =>
-  Job.create({
-    ...jobData,
-    recruiterId,
-  });
+Job.create({
+  ...jobData,
+  recruiterId
+});
 
+// Get recruiter jobs.
 export const getRecruiterJobs = async (recruiterId) => {
-  const jobs = await Job.find({ recruiterId, isActive: true })
-    .select('_id title companyName location requiredSkills jobType applicants createdAt')
-    .sort({ createdAt: -1 })
-    .lean();
+  const jobs = await Job.find({ recruiterId, isActive: true }).
+  select('_id title companyName location requiredSkills jobType applicants createdAt').
+  sort({ createdAt: -1 }).
+  lean();
 
   return jobs.map((job) => ({
     ...job,
-    applicationsCount: Array.isArray(job.applicants) ? job.applicants.length : 0,
+    applicationsCount: Array.isArray(job.applicants) ? job.applicants.length : 0
   }));
 };
 
+// Get jobs.
 export const getJobs = async (
-  { page = 1, limit = 10, search, skill, location, locationType, jobType, minExperience }
-) => {
+{ page = 1, limit = 10, search, skill, location, locationType, jobType, minExperience }) =>
+{
   const parsedPage = Number(page) || 1;
   const parsedLimit = Number(limit) || 10;
   const skip = (parsedPage - 1) * parsedLimit;
@@ -91,18 +96,18 @@ export const getJobs = async (
     location,
     locationType,
     jobType,
-    minExperience,
+    minExperience
   });
 
   const [jobs, total] = await Promise.all([
-    Job.find(filter)
-      .select(publicJobFields)
-      .sort({ createdAt: -1 })
-      .skip(skip)
-      .limit(parsedLimit)
-      .lean(),
-    Job.countDocuments(filter),
-  ]);
+  Job.find(filter).
+  select(publicJobFields).
+  sort({ createdAt: -1 }).
+  skip(skip).
+  limit(parsedLimit).
+  lean(),
+  Job.countDocuments(filter)]
+  );
 
   return {
     jobs,
@@ -110,15 +115,16 @@ export const getJobs = async (
       total,
       page: parsedPage,
       limit: parsedLimit,
-      totalPages: Math.ceil(total / parsedLimit),
-    },
+      totalPages: Math.ceil(total / parsedLimit)
+    }
   };
 };
 
+// Get public job by ID.
 export const getPublicJobById = async (jobId) => {
-  const job = await Job.findOne({ _id: jobId, isActive: true })
-    .select(publicJobFields)
-    .lean();
+  const job = await Job.findOne({ _id: jobId, isActive: true }).
+  select(publicJobFields).
+  lean();
 
   if (!job) {
     throw new ApiError(404, 'Job not found');
@@ -127,11 +133,12 @@ export const getPublicJobById = async (jobId) => {
   return job;
 };
 
+// Build ats resume snapshot.
 const buildAtsResumeSnapshot = (resume) => {
   const firstEducation =
-    Array.isArray(resume.education) && resume.education.length > 0
-      ? resume.education[0]
-      : {};
+  Array.isArray(resume.education) && resume.education.length > 0 ?
+  resume.education[0] :
+  {};
 
   return {
     name: resume.name || '',
@@ -140,16 +147,17 @@ const buildAtsResumeSnapshot = (resume) => {
     education: {
       degree: firstEducation.degree || '',
       institution: firstEducation.institution || '',
-      year: firstEducation.year ?? null,
-    },
+      year: firstEducation.year ?? null
+    }
   };
 };
 
+// Get ats score for job.
 export const getAtsScoreForJob = async (userId, jobId) => {
   const [job, resume] = await Promise.all([
-    Job.findOne({ _id: jobId, isActive: true }).select(publicJobFields).lean(),
-    Resume.findOne({ user: userId }).select('name skills experienceYears education').lean(),
-  ]);
+  Job.findOne({ _id: jobId, isActive: true }).select(publicJobFields).lean(),
+  Resume.findOne({ user: userId }).select('name skills experienceYears education').lean()]
+  );
 
   if (!job) {
     throw new ApiError(404, 'Job not found');
@@ -166,7 +174,7 @@ export const getAtsScoreForJob = async (userId, jobId) => {
     minExp: job.minExperience || 0,
     candidateSkills: resumeSnapshot.skills || [],
     candidateExp: resumeSnapshot.experienceYears || 0,
-    aiScore: aiResult.matchScore,
+    aiScore: aiResult.matchScore
   });
 
   return {
@@ -179,44 +187,46 @@ export const getAtsScoreForJob = async (userId, jobId) => {
       experienceScore: breakdown.expScore,
       aiScore: breakdown.aiScore,
       matchingSkills: breakdown.matchingSkills,
-      missingSkills: breakdown.missingSkills,
-    },
+      missingSkills: breakdown.missingSkills
+    }
   };
 };
 
+// Get recommended jobs.
 export const getRecommendedJobs = async (userId) => {
-  // Fetch skills from BOTH sources in parallel for best coverage.
-  // A user may have only a Profile, only a Resume, or both — we handle all cases.
-  const [resume, profile] = await Promise.all([
-    Resume.findOne({ user: userId }).select('skills').lean(),
-    JobSeekerProfile.findOne({ user: userId }).select('skills').lean(),
-  ]);
 
-  const resumeSkills  = normalizeSkills(resume?.skills  || []);
+
+  const [resume, profile] = await Promise.all([
+  Resume.findOne({ user: userId }).select('skills').lean(),
+  JobSeekerProfile.findOne({ user: userId }).select('skills').lean()]
+  );
+
+  const resumeSkills = normalizeSkills(resume?.skills || []);
   const profileSkills = normalizeSkills(profile?.skills || []);
 
-  // Merge and deduplicate skill sets.
+
   const mergedSkills = [...new Set([...resumeSkills, ...profileSkills])];
 
   if (mergedSkills.length === 0) {
-    // User has set up neither source yet — return empty so the UI can guide them.
+
     return [];
   }
 
-  // Match jobs on skill overlap only (experience is NOT a filter).
+
   const jobs = await Job.find({
     isActive: true,
-    requiredSkills: { $in: mergedSkills },
-  })
-    .select(publicJobFields)
-    .sort({ createdAt: -1 })
-    .limit(20)
-    .lean();
+    requiredSkills: { $in: mergedSkills }
+  }).
+  select(publicJobFields).
+  sort({ createdAt: -1 }).
+  limit(20).
+  lean();
 
-  // AI ranking re-orders the candidate set by relevance before returning.
+
   return rankJobsWithAI(mergedSkills, jobs);
 };
 
+// Update job.
 export const updateJob = async (jobId, recruiterId, updateData) => {
   const job = await Job.findOneAndUpdate(
     { _id: jobId, recruiterId },
@@ -231,6 +241,7 @@ export const updateJob = async (jobId, recruiterId, updateData) => {
   return job;
 };
 
+// Delete job.
 export const deleteJob = async (jobId, recruiterId) => {
   const job = await Job.findOneAndUpdate(
     { _id: jobId, recruiterId },

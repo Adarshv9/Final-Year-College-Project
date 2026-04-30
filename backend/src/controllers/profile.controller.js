@@ -1,10 +1,12 @@
-// HTTP handlers for job seeker and recruiter profile management.
+// Handles HTTP requests for profile endpoints.
+
 import asyncHandler from '../utils/asyncHandler.js';
 import ApiError from '../utils/ApiError.js';
 import ApiResponse from '../utils/ApiResponse.js';
 import * as profileService from '../services/profile.service.js';
 import { deleteResumeAsset, uploadResumeBuffer } from '../config/cloudinary.js';
 
+// Parse parsed data.
 const parseParsedData = (rawParsedData) => {
   if (!rawParsedData) {
     return undefined;
@@ -24,17 +26,17 @@ const parseParsedData = (rawParsedData) => {
 export const createJobSeekerProfile = asyncHandler(async (req, res) => {
   const profile = await profileService.createJobSeekerProfile(req.user.id, req.body);
 
-  res
-    .status(201)
-    .json(new ApiResponse(201, 'Job seeker profile created successfully', profile));
+  res.
+  status(201).
+  json(new ApiResponse(201, 'Job seeker profile created successfully', profile));
 });
 
 export const getJobSeekerProfile = asyncHandler(async (req, res) => {
   const profile = await profileService.getJobSeekerProfile(req.user.id);
 
-  const message = profile
-    ? 'Job seeker profile fetched successfully'
-    : 'No job seeker profile yet';
+  const message = profile ?
+  'Job seeker profile fetched successfully' :
+  'No job seeker profile yet';
 
   res.status(200).json(new ApiResponse(200, message, profile));
 });
@@ -42,9 +44,9 @@ export const getJobSeekerProfile = asyncHandler(async (req, res) => {
 export const updateJobSeekerProfile = asyncHandler(async (req, res) => {
   const profile = await profileService.updateJobSeekerProfile(req.user.id, req.body);
 
-  res
-    .status(200)
-    .json(new ApiResponse(200, 'Job seeker profile updated successfully', profile));
+  res.
+  status(200).
+  json(new ApiResponse(200, 'Job seeker profile updated successfully', profile));
 });
 
 export const uploadResume = asyncHandler(async (req, res) => {
@@ -55,8 +57,8 @@ export const uploadResume = asyncHandler(async (req, res) => {
   const parsedData = parseParsedData(req.body.parsedData);
   const currentProfile = await profileService.getJobSeekerProfile(req.user.id);
   const upload = await uploadResumeBuffer(req.file.buffer, {
-    // Include `.pdf` so Cloudinary identifies the asset as a PDF.
-    public_id: `profile-resume-${req.user.id}-${Date.now()}.pdf`,
+
+    public_id: `profile-resume-${req.user.id}-${Date.now()}.pdf`
   });
 
   if (currentProfile?.resumePublicId && currentProfile.resumePublicId !== upload.public_id) {
@@ -70,25 +72,25 @@ export const uploadResume = asyncHandler(async (req, res) => {
     parsedData
   );
 
-  res
-    .status(200)
-    .json(new ApiResponse(200, 'Resume uploaded successfully', profile));
+  res.
+  status(200).
+  json(new ApiResponse(200, 'Resume uploaded successfully', profile));
 });
 
 export const createRecruiterProfile = asyncHandler(async (req, res) => {
   const profile = await profileService.createRecruiterProfile(req.user.id, req.body);
 
-  res
-    .status(201)
-    .json(new ApiResponse(201, 'Recruiter profile created successfully', profile));
+  res.
+  status(201).
+  json(new ApiResponse(201, 'Recruiter profile created successfully', profile));
 });
 
 export const getRecruiterProfile = asyncHandler(async (req, res) => {
   const profile = await profileService.getRecruiterProfile(req.user.id);
 
-  const message = profile
-    ? 'Recruiter profile fetched successfully'
-    : 'No recruiter profile yet';
+  const message = profile ?
+  'Recruiter profile fetched successfully' :
+  'No recruiter profile yet';
 
   res.status(200).json(new ApiResponse(200, message, profile));
 });
@@ -96,7 +98,7 @@ export const getRecruiterProfile = asyncHandler(async (req, res) => {
 export const updateRecruiterProfile = asyncHandler(async (req, res) => {
   const profile = await profileService.updateRecruiterProfile(req.user.id, req.body);
 
-  res
-    .status(200)
-    .json(new ApiResponse(200, 'Recruiter profile updated successfully', profile));
+  res.
+  status(200).
+  json(new ApiResponse(200, 'Recruiter profile updated successfully', profile));
 });

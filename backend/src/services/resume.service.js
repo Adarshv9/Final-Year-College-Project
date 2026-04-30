@@ -1,24 +1,26 @@
-// Business logic for parsing, storing, updating, and deleting resumes.
+// Implements business logic for resume workflows.
+
 import Resume from '../models/Resume.js';
 import ApiError from '../utils/ApiError.js';
 import {
   extractTextFromPdf,
   cleanResumeText,
-  transformResumeData,
-} from '../utils/resumeExtraction.js';
+  transformResumeData } from
+'../utils/resumeExtraction.js';
 import { parseResumeText } from './ai/ai.service.js';
 import { deleteResumeAsset, uploadResumeBuffer } from '../config/cloudinary.js';
 import logger from '../utils/logger.js';
 
-/**
- * Full resume processing pipeline:
- * 1. Extract text from PDF buffer
- * 2. Clean extracted text
- * 3. Parse with AI -> structured JSON
- * 4. Transform (dates, experience years, normalize skills)
- * 5. Upload the source PDF to Cloudinary
- * 6. Upsert to DB
- */
+
+
+
+
+
+
+
+
+
+// Process resume file.
 export const processResumeFile = async (userId, pdfBuffer, options = {}) => {
   const { assertClientConnected = () => {} } = options;
   const start = Date.now();
@@ -40,15 +42,15 @@ export const processResumeFile = async (userId, pdfBuffer, options = {}) => {
     logger.info(`[Pipeline] Sending resume to AI for user ${userId}`);
     const aiData = await parseResumeText(cleanedText);
     assertClientConnected();
-    
+
     logger.info(`[Pipeline] Transforming (dates, experience years, normalize skills) for user ${userId}`);
     const transformedData = transformResumeData(aiData);
     assertClientConnected();
 
     logger.info(`[Pipeline] Uploading PDF to Cloudinary for user ${userId}`);
     upload = await uploadResumeBuffer(pdfBuffer, {
-      // Include `.pdf` so Cloudinary identifies the asset as a PDF even for `resource_type: 'raw'`.
-      public_id: `resume-${userId}-${Date.now()}.pdf`,
+
+      public_id: `resume-${userId}-${Date.now()}.pdf`
     });
 
     assertClientConnected();
@@ -58,7 +60,7 @@ export const processResumeFile = async (userId, pdfBuffer, options = {}) => {
       fileUrl: upload.secure_url,
       filePublicId: upload.public_id,
       rawText: rawText.substring(0, 10000),
-      parsedData: aiData,
+      parsedData: aiData
     };
 
     resume = await upsertResume(userId, resumeData);
@@ -77,6 +79,7 @@ export const processResumeFile = async (userId, pdfBuffer, options = {}) => {
   }
 };
 
+// Handle Resume.
 export const upsertResume = async (userId, resumeData) => {
   const { skills, experiences, experienceYears, ...otherData } = resumeData;
 
@@ -98,22 +101,23 @@ export const upsertResume = async (userId, resumeData) => {
         fileUrl: otherData.fileUrl || '',
         filePublicId: otherData.filePublicId || '',
         rawText: otherData.rawText || '',
-        // Keep the original AI payload as well as normalized top-level fields
-        // so admins can inspect what the model extracted.
-        parsedData: otherData.parsedData || {},
-      },
+
+
+        parsedData: otherData.parsedData || {}
+      }
     },
     { new: true, upsert: true }
   );
 };
 
+// Update resume fields.
 export const updateResumeFields = async (userId, updates) => {
-  // Manual edits are intentionally whitelisted so clients cannot overwrite
-  // storage metadata such as Cloudinary ids by accident.
+
+
   const allowedFields = [
-    'name', 'email', 'phone', 'location', 'summary',
-    'skills', 'experiences', 'education', 'projects', 'experienceYears',
-  ];
+  'name', 'email', 'phone', 'location', 'summary',
+  'skills', 'experiences', 'education', 'projects', 'experienceYears'];
+
 
   const updatePayload = {};
   allowedFields.forEach((field) => {
@@ -139,6 +143,7 @@ export const updateResumeFields = async (userId, updates) => {
   return resume;
 };
 
+// Get resume by user ID.
 export const getResumeByUserId = async (userId) => {
   const resume = await Resume.findOne({ user: userId }).populate(
     'user',
@@ -152,21 +157,23 @@ export const getResumeByUserId = async (userId) => {
   return resume;
 };
 
+// Find resume by user ID.
 export const findResumeByUserId = async (userId) => Resume.findOne({ user: userId });
 
+// Get all resumes.
 export const getAllResumes = async (options = {}) => {
   const { limit = 10, page = 1, search = '' } = options;
   const skip = (page - 1) * limit;
 
-  // Admin search stays name-based for now to keep moderation queries fast and
-  // predictable.
+
+
   const query = search ? { name: { $regex: search, $options: 'i' } } : {};
 
-  const resumes = await Resume.find(query)
-    .populate('user', 'name email role')
-    .limit(limit)
-    .skip(skip)
-    .sort({ createdAt: -1 });
+  const resumes = await Resume.find(query).
+  populate('user', 'name email role').
+  limit(limit).
+  skip(skip).
+  sort({ createdAt: -1 });
 
   const total = await Resume.countDocuments(query);
 
@@ -176,11 +183,12 @@ export const getAllResumes = async (options = {}) => {
       page,
       limit,
       total,
-      pages: Math.ceil(total / limit),
-    },
+      pages: Math.ceil(total / limit)
+    }
   };
 };
 
+// Update resume verification.
 export const updateResumeVerification = async (resumeId, isVerified) => {
   const resume = await Resume.findByIdAndUpdate(
     resumeId,
@@ -195,6 +203,7 @@ export const updateResumeVerification = async (resumeId, isVerified) => {
   return resume;
 };
 
+// Delete resume.
 export const deleteResume = async (userId) => {
   const resume = await Resume.findOne({ user: userId });
 

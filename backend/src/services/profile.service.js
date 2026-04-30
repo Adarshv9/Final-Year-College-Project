@@ -1,14 +1,16 @@
-// ── User Profile Service ──
+// Implements business logic for profile workflows.
+
 import JobSeekerProfile from '../models/JobSeekerProfile.js';
 import RecruiterProfile from '../models/RecruiterProfile.js';
 import ApiError from '../utils/ApiError.js';
 
-// Job seekers and recruiters use separate collections because their profile
-// fields diverge quickly and are edited from different parts of the UI.
 
-// ── Job Seeker Profile ──
 
-// Create a new job seeker profile
+
+
+
+
+// Create job seeker profile.
 export const createJobSeekerProfile = async (userId, profileData) => {
   const existingProfile = await JobSeekerProfile.findOne({ user: userId });
   if (existingProfile) {
@@ -17,11 +19,12 @@ export const createJobSeekerProfile = async (userId, profileData) => {
 
   return JobSeekerProfile.create({
     user: userId,
-    ...profileData,
+    ...profileData
   });
 };
 
-// Fetch job seeker profile by user ID (null if not created yet)
+
+// Get job seeker profile.
 export const getJobSeekerProfile = async (userId) => {
   const profile = await JobSeekerProfile.findOne({ user: userId }).populate(
     'user',
@@ -31,7 +34,8 @@ export const getJobSeekerProfile = async (userId) => {
   return profile;
 };
 
-// Update job seeker profile fields
+
+// Update job seeker profile.
 export const updateJobSeekerProfile = async (userId, profileData) => {
   const profile = await JobSeekerProfile.findOne({ user: userId });
   if (!profile) {
@@ -44,13 +48,14 @@ export const updateJobSeekerProfile = async (userId, profileData) => {
   return profile.populate('user', 'name email role isVerified isActive');
 };
 
-// Upload resume and store file URL and parsed data
+
+// Handle Job Seeker Resume.
 export const uploadJobSeekerResume = async (userId, resumeUrl, resumePublicId, parsedData) => {
   let profile = await JobSeekerProfile.findOne({ user: userId });
 
   if (!profile) {
-    // Resume upload can be the first profile-touching action for a new user,
-    // so create the shell profile lazily when needed.
+
+
     profile = new JobSeekerProfile({ user: userId });
   }
 
@@ -65,9 +70,10 @@ export const uploadJobSeekerResume = async (userId, resumeUrl, resumePublicId, p
   return profile.populate('user', 'name email role isVerified isActive');
 };
 
-// ── Recruiter Profile ──
 
-// Create a new recruiter profile
+
+
+// Create recruiter profile.
 export const createRecruiterProfile = async (userId, profileData) => {
   const existingProfile = await RecruiterProfile.findOne({ user: userId });
   if (existingProfile) {
@@ -76,11 +82,12 @@ export const createRecruiterProfile = async (userId, profileData) => {
 
   return RecruiterProfile.create({
     user: userId,
-    ...profileData,
+    ...profileData
   });
 };
 
-// Fetch recruiter profile by user ID (null if not created yet)
+
+// Get recruiter profile.
 export const getRecruiterProfile = async (userId) => {
   const profile = await RecruiterProfile.findOne({ user: userId }).populate(
     'user',
@@ -90,7 +97,8 @@ export const getRecruiterProfile = async (userId) => {
   return profile;
 };
 
-// Update recruiter profile fields
+
+// Update recruiter profile.
 export const updateRecruiterProfile = async (userId, profileData) => {
   const profile = await RecruiterProfile.findOne({ user: userId });
   if (!profile) {

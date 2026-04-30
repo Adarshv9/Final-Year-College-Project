@@ -1,4 +1,5 @@
-// Admin page for browsing uploaded resumes and verifying candidate documents.
+// Admin page component for Resumes.
+
 import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Search, FileText, CheckCircle, X } from 'lucide-react';
@@ -10,6 +11,7 @@ import { SkeletonList } from '../../shared/ui/Skeleton';
 import EmptyState from '../../shared/ui/EmptyState';
 import Pagination from '../../shared/ui/Pagination';
 
+// Render the resumes page.
 export default function ResumesPage() {
   const qc = useQueryClient();
   const [search, setSearch] = useState('');
@@ -17,7 +19,7 @@ export default function ResumesPage() {
 
   const { data, isLoading } = useQuery({
     queryKey: ['admin-resumes', search, page],
-    queryFn: () => adminApi.getResumes({ search, page, limit: 15 }).then(r => r.data),
+    queryFn: () => adminApi.getResumes({ search, page, limit: 15 }).then((r) => r.data)
   });
 
   const verifyMutation = useMutation({
@@ -26,10 +28,10 @@ export default function ResumesPage() {
       toast.success(isVerified ? 'Resume verified!' : 'Resume unverified');
       qc.invalidateQueries({ queryKey: ['admin-resumes'] });
     },
-    onError: (err) => toast.error(err.response?.data?.message || 'Failed'),
+    onError: (err) => toast.error(err.response?.data?.message || 'Failed')
   });
 
-  // Handle both `data` array or nested `data.data` from API
+
   const resumes = data?.data?.data || data?.data || [];
   const pagination = data?.pagination || data?.data?.pagination;
 
@@ -40,31 +42,31 @@ export default function ResumesPage() {
         <p className="text-sm text-slate-600 mt-1">Review and verify job seeker resumes</p>
       </div>
 
-      {/* Search */}
+      
       <div className="flex gap-3">
         <div className="relative flex-1">
           <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
           <input
             type="text"
             value={search}
-            onChange={e => { setSearch(e.target.value); setPage(1); }}
+            onChange={(e) => {setSearch(e.target.value);setPage(1);}}
             placeholder="Search by name or email…"
-            className="w-full bg-white border border-slate-200 rounded-xl pl-9 pr-4 py-2.5 text-sm text-slate-900 placeholder-slate-400 outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 transition-all"
-          />
+            className="w-full bg-white border border-slate-200 rounded-xl pl-9 pr-4 py-2.5 text-sm text-slate-900 placeholder-slate-400 outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 transition-all" />
+          
         </div>
-        {search && (
-          <button onClick={() => { setSearch(''); setPage(1); }} className="flex items-center gap-1.5 text-sm text-slate-500 hover:text-rose-400 transition-colors px-2">
+        {search &&
+        <button onClick={() => {setSearch('');setPage(1);}} className="flex items-center gap-1.5 text-sm text-slate-500 hover:text-rose-400 transition-colors px-2">
             <X size={14} /> Clear
           </button>
-        )}
+        }
       </div>
 
-      {isLoading ? (
-        <SkeletonList count={8} />
-      ) : resumes.length === 0 ? (
-        <EmptyState icon={FileText} title="No resumes found" description={search ? 'No resumes match your search' : 'No resumes have been uploaded yet'} />
-      ) : (
-        <div className="bg-white border border-slate-200 rounded-xl overflow-hidden">
+      {isLoading ?
+      <SkeletonList count={8} /> :
+      resumes.length === 0 ?
+      <EmptyState icon={FileText} title="No resumes found" description={search ? 'No resumes match your search' : 'No resumes have been uploaded yet'} /> :
+
+      <div className="bg-white border border-slate-200 rounded-xl overflow-hidden">
           <table className="w-full">
             <thead>
               <tr className="bg-slate-50 border-b border-slate-200">
@@ -76,8 +78,8 @@ export default function ResumesPage() {
               </tr>
             </thead>
             <tbody>
-              {resumes.map(resume => (
-                <tr key={resume._id} className="border-b border-slate-200 last:border-0 hover:bg-slate-50 transition-colors">
+              {resumes.map((resume) =>
+            <tr key={resume._id} className="border-b border-slate-200 last:border-0 hover:bg-slate-50 transition-colors">
                   <td className="px-5 py-4">
                     <div className="flex items-center gap-3">
                       <div className="w-8 h-8 bg-emerald-500/10 rounded-full flex items-center justify-center text-xs font-bold text-emerald-400 flex-shrink-0">
@@ -99,23 +101,23 @@ export default function ResumesPage() {
                   </td>
                   <td className="px-5 py-4">
                     <Button
-                      variant={resume.isVerified ? 'secondary' : 'success'}
-                      size="sm"
-                      loading={verifyMutation.isPending && verifyMutation.variables?.id === resume._id}
-                      onClick={() => verifyMutation.mutate({ id: resume._id, isVerified: !resume.isVerified })}
-                    >
+                  variant={resume.isVerified ? 'secondary' : 'success'}
+                  size="sm"
+                  loading={verifyMutation.isPending && verifyMutation.variables?.id === resume._id}
+                  onClick={() => verifyMutation.mutate({ id: resume._id, isVerified: !resume.isVerified })}>
+                  
                       <CheckCircle size={13} />
                       {resume.isVerified ? 'Unverify' : 'Verify'}
                     </Button>
                   </td>
                 </tr>
-              ))}
+            )}
             </tbody>
           </table>
         </div>
-      )}
+      }
 
       <Pagination page={page} totalPages={pagination?.totalPages || 1} onPageChange={setPage} />
-    </div>
-  );
+    </div>);
+
 }

@@ -1,30 +1,33 @@
-// ── Authentication Service ──
+// Implements business logic for auth workflows.
+
 import otpGenerator from 'otp-generator';
 import User from '../models/User.js';
 import ApiError from '../utils/ApiError.js';
 import { EMAIL_FROM_ADDRESS, sendEmail } from './email.service.js';
 import * as tokenService from './token.service.js';
 
-/**
- * Generate a 6-digit OTP
- * @returns {string} OTP code
- */
+
+
+
+
+// Generate OTP.
 const generateOTP = () => {
   return otpGenerator.generate(6, {
     upperCaseAlphabets: false,
     specialChars: false,
     lowerCaseAlphabets: false,
-    digits: true,
+    digits: true
   });
 };
 
-/**
- * Send OTP to user email via Resend.
- * @param {string} email - User's email address
- * @param {string} otp - OTP to send
- * @param {string} userName - User's name
- * @returns {Promise<void>}
- */
+
+
+
+
+
+
+
+// Send OTP email.
 const sendOTPEmail = async (email, otp, userName) => {
   try {
     await sendEmail({
@@ -44,7 +47,7 @@ const sendOTPEmail = async (email, otp, userName) => {
           <p style="color: #94a3b8; font-size: 13px;">If you didn't request this, you can safely ignore this email.</p>
           <p style="color: #475569; margin-top: 24px;">— The CompasX Team</p>
         </div>
-      `,
+      `
     });
   } catch (err) {
     if (err instanceof ApiError) throw err;
@@ -52,34 +55,36 @@ const sendOTPEmail = async (email, otp, userName) => {
   }
 };
 
-/**
- * Calculate OTP expiry time (10 minutes from now)
- * @returns {Date} Expiry timestamp
- */
+
+
+
+
+// Get OTP expiry.
 const getOTPExpiry = () => {
-  return new Date(Date.now() + 10 * 60 * 1000); // 10 minutes
+  return new Date(Date.now() + 10 * 60 * 1000);
 };
 
-// ────────────────────────────────────────
-// AUTHENTICATION FUNCTIONS
-// ────────────────────────────────────────
 
-/**
- * Register a new user with OTP verification.
- * @param {Object} data - { name, email, password, role }
- * @returns {Promise<Object>} { user, email }
- */
+
+
+
+
+
+
+
+
+// Register the user.
 export const register = async ({ name, email, password, role = 'job_seeker' }) => {
   const existingUser = await User.findOne({ email });
   if (existingUser) {
     throw new ApiError(409, 'Email is already registered');
   }
 
-  // Generate OTP up front so we can store it with the user atomically.
+
   const otp = generateOTP();
   const otpExpiresAt = getOTPExpiry();
 
-  // Create user with emailVerified = false and OTP
+
   const userData = {
     name,
     email,
@@ -87,10 +92,10 @@ export const register = async ({ name, email, password, role = 'job_seeker' }) =
     role,
     emailVerified: false,
     otp,
-    otpExpiresAt,
+    otpExpiresAt
   };
 
-  // If role is recruiter, set approvalStatus to pending
+
   if (role === 'recruiter') {
     userData.approvalStatus = 'pending';
   }
@@ -98,8 +103,8 @@ export const register = async ({ name, email, password, role = 'job_seeker' }) =
   const user = await User.create(userData);
 
   try {
-    // Send OTP to email — roll back the user record if delivery fails so the
-    // email address stays available for a fresh signup attempt.
+
+
     await sendOTPEmail(email, otp, name);
   } catch (error) {
     await User.deleteOne({ _id: user._id });
@@ -109,11 +114,12 @@ export const register = async ({ name, email, password, role = 'job_seeker' }) =
   return { user, email };
 };
 
-/**
- * Verify OTP and mark email as verified.
- * @param {Object} data - { email, otp }
- * @returns {Promise<Object>} { user }
- */
+
+
+
+
+
+// Verify OTP.
 export const verifyOTP = async ({ email, otp }) => {
   const user = await User.findOne({ email }).select('+otp +otpExpiresAt');
   if (!user) {
@@ -136,7 +142,7 @@ export const verifyOTP = async ({ email, otp }) => {
     throw new ApiError(400, 'OTP has expired. Please request a new one.');
   }
 
-  // Mark email as verified and clear OTP
+
   user.emailVerified = true;
   user.otp = undefined;
   user.otpExpiresAt = undefined;
@@ -145,11 +151,12 @@ export const verifyOTP = async ({ email, otp }) => {
   return { user };
 };
 
-/**
- * Resend OTP to user's email.
- * @param {Object} data - { email }
- * @returns {Promise<void>}
- */
+
+
+
+
+
+// Resend OTP.
 export const resendOTP = async ({ email }) => {
   const user = await User.findOne({ email }).select('+otp +otpExpiresAt');
   if (!user) {
@@ -160,7 +167,7 @@ export const resendOTP = async ({ email }) => {
     throw new ApiError(400, 'Email is already verified');
   }
 
-  // Generate new OTP
+
   const otp = generateOTP();
   const otpExpiresAt = getOTPExpiry();
 
@@ -168,36 +175,37 @@ export const resendOTP = async ({ email }) => {
   user.otpExpiresAt = otpExpiresAt;
   await user.save();
 
-  // Send OTP to email
+
   await sendOTPEmail(email, otp, user.name);
 };
 
-/**
- * Authenticate a user with email and password.
- * @param {Object} data - { email, password }
- * @returns {Promise<Object>} { token, refreshToken, user }
- */
+
+
+
+
+
+// Log in the user.
 export const login = async ({ email, password }) => {
-  // Gate Check 1: User must exist
+
   const user = await User.findOne({ email }).select('+password');
   if (!user) {
     throw new ApiError(401, 'Invalid email or password');
   }
 
-  // Gate Check 2: Provider must be 'local'
+
   if (user.provider !== 'local') {
     throw new ApiError(403, `This account is registered with ${user.provider}`);
   }
 
-  // Gate Check 3: Password must match (bcrypt)
+
   const isMatch = await user.comparePassword(password);
   if (!isMatch) {
     throw new ApiError(401, 'Invalid email or password');
   }
 
-  // Gate Check 4: Email must be verified
+
   if (!user.emailVerified) {
-    // Auto-send a fresh OTP so the user can verify immediately from the redirect.
+
     const otp = generateOTP();
     user.otp = otp;
     user.otpExpiresAt = getOTPExpiry();
@@ -212,13 +220,13 @@ export const login = async ({ email, password }) => {
     );
   }
 
-  // Gate Check 5: If recruiter, approvalStatus must be 'approved'
+
   if (user.role === 'recruiter' && user.approvalStatus !== 'approved') {
     throw new ApiError(403, 'Your recruiter account is not yet approved by admin.');
   }
 
-  // Access tokens stay short-lived while refresh tokens are persisted for
-  // rotation and revocation in tokenService.
+
+
   const token = tokenService.generateAccessToken(user);
   const refreshToken = await tokenService.generateRefreshToken(user);
 
@@ -227,16 +235,17 @@ export const login = async ({ email, password }) => {
     refreshToken,
     user: {
       email: user.email,
-      role: user.role,
-    },
+      role: user.role
+    }
   };
 };
 
-/**
- * Refresh the access token using a valid refresh token.
- * @param {string} refreshTokenStr - The refresh token
- * @returns {Promise<Object>} { accessToken, refreshToken }
- */
+
+
+
+
+
+// Refresh access token.
 export const refreshAccessToken = async (refreshTokenStr) => {
   const decoded = await tokenService.verifyRefreshToken(refreshTokenStr);
 
@@ -253,7 +262,7 @@ export const refreshAccessToken = async (refreshTokenStr) => {
     throw new ApiError(403, 'Your recruiter account is not yet approved by admin.');
   }
 
-  // Rotation limits replay risk by making each refresh token single-use.
+
   await tokenService.removeRefreshToken(refreshTokenStr);
 
   const accessToken = tokenService.generateAccessToken(user);
@@ -265,16 +274,17 @@ export const refreshAccessToken = async (refreshTokenStr) => {
     user: {
       id: user._id,
       email: user.email,
-      role: user.role,
-    },
+      role: user.role
+    }
   };
 };
 
-/**
- * Logout: invalidate the current refresh token when present.
- * Falls back to clearing all tokens for the user only when there is no
- * specific refresh token to revoke.
- */
+
+
+
+
+
+// Log out the user.
 export const logout = async ({ userId, refreshToken }) => {
   if (refreshToken) {
     await tokenService.removeRefreshToken(refreshToken);
@@ -286,11 +296,12 @@ export const logout = async ({ userId, refreshToken }) => {
   }
 };
 
-/**
- * Get authenticated user's profile.
- * @param {string} userId - User ID
- * @returns {Promise<Object>} { email, role }
- */
+
+
+
+
+
+// Get profile.
 export const getProfile = async (userId) => {
   const user = await User.findById(userId);
   if (!user) {
@@ -299,6 +310,6 @@ export const getProfile = async (userId) => {
 
   return {
     email: user.email,
-    role: user.role,
+    role: user.role
   };
 };

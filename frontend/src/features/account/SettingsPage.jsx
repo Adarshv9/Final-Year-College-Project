@@ -1,3 +1,4 @@
+// Account page component for Settings.
 import { useMemo, useState } from 'react';
 import { useMutation } from '@tanstack/react-query';
 import toast from 'react-hot-toast';
@@ -10,12 +11,14 @@ const cardCls = 'bg-white border border-slate-200 rounded-2xl p-6';
 const labelCls = 'text-sm font-medium text-slate-900';
 const inputCls = 'w-full bg-white border border-slate-200 rounded-lg px-3 py-2.5 text-sm text-slate-900 placeholder-slate-400 outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20';
 
+// Handle To Account Type Label.
 function roleToAccountTypeLabel(role) {
   if (role === 'recruiter') return 'Recruiter';
   if (role === 'job_seeker') return 'Jobseeker';
   return 'Jobseeker';
 }
 
+// Render the settings page.
 export default function SettingsPage() {
   const { user, logout, updateUser } = useAuth();
   const [email, setEmail] = useState(user?.email || '');
@@ -28,23 +31,23 @@ export default function SettingsPage() {
   const recruiterPending = user?.role === 'job_seeker' && user?.pendingRole === 'recruiter' && user?.approvalStatus === 'pending';
 
   const updateMutation = useMutation({
-    mutationFn: (payload) => usersApi.updateMe(payload).then(r => r.data.data),
+    mutationFn: (payload) => usersApi.updateMe(payload).then((r) => r.data.data),
     onSuccess: (updated) => {
       updateUser(updated);
       toast.success('Settings updated');
     },
-    onError: (err) => toast.error(err.response?.data?.message || 'Failed to update settings'),
+    onError: (err) => toast.error(err.response?.data?.message || 'Failed to update settings')
   });
 
   const accountTypeMutation = useMutation({
-    mutationFn: (nextRole) => usersApi.updateMe({ role: nextRole }).then(r => r.data.data),
+    mutationFn: (nextRole) => usersApi.updateMe({ role: nextRole }).then((r) => r.data.data),
     onSuccess: (updated) => {
       updateUser(updated);
       toast.success(updated?.pendingRole === 'recruiter' ? 'Recruiter request submitted' : 'Account type updated');
       setConfirmOpen(false);
       setConfirmRole(null);
     },
-    onError: (err) => toast.error(err.response?.data?.message || 'Failed to update account type'),
+    onError: (err) => toast.error(err.response?.data?.message || 'Failed to update account type')
   });
 
   const closeAccountMutation = useMutation({
@@ -53,16 +56,18 @@ export default function SettingsPage() {
       toast.success('Account closed');
       await logout();
     },
-    onError: (err) => toast.error(err.response?.data?.message || 'Failed to close account'),
+    onError: (err) => toast.error(err.response?.data?.message || 'Failed to close account')
   });
 
+  // Handle save contact.
   const handleSaveContact = () => {
     updateMutation.mutate({
       email: email.trim(),
-      phone: phone.trim(),
+      phone: phone.trim()
     });
   };
 
+  // Handle save account type.
   const handleSaveAccountType = () => {
     if (!canSwitchRole) return;
 
@@ -79,15 +84,18 @@ export default function SettingsPage() {
     setConfirmOpen(true);
   };
 
+  // Handle cancel recruiter request.
   const handleCancelRecruiterRequest = () => {
     updateMutation.mutate({ role: 'job_seeker' });
   };
 
+  // Handle sign out.
   const handleSignOut = async () => {
     await logout();
     toast.success('Signed out');
   };
 
+  // Handle close account.
   const handleCloseAccount = () => {
     const ok = window.confirm('Close your account permanently? This cannot be undone.');
     if (!ok) return;
@@ -109,33 +117,33 @@ export default function SettingsPage() {
         }}
         title="Confirm account type change"
         size="sm"
-        footer={(
-          <>
+        footer={
+        <>
             <Button
-              type="button"
-              variant="secondary"
-              onClick={() => {
-                if (accountTypeMutation.isPending) return;
-                setConfirmOpen(false);
-                setConfirmRole(null);
-              }}
-              disabled={accountTypeMutation.isPending}
-            >
+            type="button"
+            variant="secondary"
+            onClick={() => {
+              if (accountTypeMutation.isPending) return;
+              setConfirmOpen(false);
+              setConfirmRole(null);
+            }}
+            disabled={accountTypeMutation.isPending}>
+            
               Cancel
             </Button>
             <Button
-              type="button"
-              loading={accountTypeMutation.isPending}
-              onClick={() => {
-                if (!confirmRole) return;
-                accountTypeMutation.mutate(confirmRole);
-              }}
-            >
+            type="button"
+            loading={accountTypeMutation.isPending}
+            onClick={() => {
+              if (!confirmRole) return;
+              accountTypeMutation.mutate(confirmRole);
+            }}>
+            
               Confirm change
             </Button>
           </>
-        )}
-      >
+        }>
+        
         <div className="space-y-4">
           <div className="rounded-2xl border border-slate-200 overflow-hidden">
             <div className="px-4 py-3 flex items-center justify-between bg-slate-50">
@@ -148,11 +156,11 @@ export default function SettingsPage() {
             </div>
           </div>
 
-          {confirmRole === 'recruiter' && (
-            <div className="rounded-2xl bg-amber-500/10 border border-amber-200 px-4 py-3 text-sm text-amber-900 leading-relaxed">
+          {confirmRole === 'recruiter' &&
+          <div className="rounded-2xl bg-amber-500/10 border border-amber-200 px-4 py-3 text-sm text-amber-900 leading-relaxed">
               Recruiter accounts require <span className="font-semibold">admin approval</span>. Your account will stay <span className="font-semibold">Jobseeker</span> until approved.
             </div>
-          )}
+          }
 
           <p className="text-xs text-slate-500">
             You can change this later in Settings.
@@ -176,11 +184,11 @@ export default function SettingsPage() {
               disabled={!canSwitchRole}
               onClick={() => setRole('job_seeker')}
               className={[
-                'text-left rounded-xl border p-4 transition-colors',
-                role === 'job_seeker' ? 'border-indigo-500 bg-indigo-500/5' : 'border-slate-200 hover:bg-slate-50',
-                !canSwitchRole ? 'opacity-60 cursor-not-allowed' : '',
-              ].join(' ')}
-            >
+              'text-left rounded-xl border p-4 transition-colors',
+              role === 'job_seeker' ? 'border-indigo-500 bg-indigo-500/5' : 'border-slate-200 hover:bg-slate-50',
+              !canSwitchRole ? 'opacity-60 cursor-not-allowed' : ''].
+              join(' ')}>
+              
               <div className="font-semibold text-slate-900">Jobseeker</div>
               <div className="text-sm text-slate-600 mt-1">Find jobs and apply faster.</div>
             </button>
@@ -190,19 +198,19 @@ export default function SettingsPage() {
               disabled={!canSwitchRole || recruiterPending}
               onClick={() => setRole('recruiter')}
               className={[
-                'text-left rounded-xl border p-4 transition-colors',
-                role === 'recruiter' ? 'border-indigo-500 bg-indigo-500/5' : 'border-slate-200 hover:bg-slate-50',
-                recruiterPending ? 'opacity-80 cursor-not-allowed' : '',
-                !canSwitchRole ? 'opacity-60 cursor-not-allowed' : '',
-              ].join(' ')}
-            >
+              'text-left rounded-xl border p-4 transition-colors',
+              role === 'recruiter' ? 'border-indigo-500 bg-indigo-500/5' : 'border-slate-200 hover:bg-slate-50',
+              recruiterPending ? 'opacity-80 cursor-not-allowed' : '',
+              !canSwitchRole ? 'opacity-60 cursor-not-allowed' : ''].
+              join(' ')}>
+              
               <div className="flex items-center justify-between gap-2">
                 <div className="font-semibold text-slate-900">Recruiter</div>
-                {recruiterPending && (
-                  <span className="text-[11px] font-semibold px-2 py-1 rounded-full bg-amber-500/15 text-amber-800">
+                {recruiterPending &&
+                <span className="text-[11px] font-semibold px-2 py-1 rounded-full bg-amber-500/15 text-amber-800">
                     Pending approval
                   </span>
-                )}
+                }
               </div>
               <div className="text-sm text-slate-600 mt-1">
                 {recruiterPending ? 'Waiting for admin to approve your recruiter request.' : 'Post jobs and manage applicants.'}
@@ -215,22 +223,22 @@ export default function SettingsPage() {
               type="button"
               onClick={handleSaveAccountType}
               loading={updateMutation.isPending}
-              disabled={!canSwitchRole || recruiterPending}
-            >
+              disabled={!canSwitchRole || recruiterPending}>
+              
               Change account type
             </Button>
-            {recruiterPending && (
-              <div className="mt-3">
+            {recruiterPending &&
+            <div className="mt-3">
                 <Button
-                  type="button"
-                  variant="secondary"
-                  onClick={handleCancelRecruiterRequest}
-                  loading={updateMutation.isPending}
-                >
+                type="button"
+                variant="secondary"
+                onClick={handleCancelRecruiterRequest}
+                loading={updateMutation.isPending}>
+                
                   Cancel recruiter request
                 </Button>
               </div>
-            )}
+            }
           </div>
         </div>
       </section>
@@ -274,13 +282,12 @@ export default function SettingsPage() {
             type="button"
             variant="danger"
             onClick={handleCloseAccount}
-            loading={closeAccountMutation.isPending}
-          >
+            loading={closeAccountMutation.isPending}>
+            
             Close my account
           </Button>
         </div>
       </section>
-    </div>
-  );
-}
+    </div>);
 
+}

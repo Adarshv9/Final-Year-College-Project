@@ -1,15 +1,16 @@
-// ── User Controller ──
+// Handles HTTP requests for user endpoints.
+
 import asyncHandler from '../utils/asyncHandler.js';
 import ApiResponse from '../utils/ApiResponse.js';
 import * as userService from '../services/user.service.js';
 
-/**
- * PATCH /api/v1/users/me
- * Update authenticated user's own account fields.
- */
+
+
+
+
 export const updateMe = asyncHandler(async (req, res) => {
   const allowed = (({ name, phone, location, email, role }) => ({ name, phone, location, email, role }))(req.body || {});
-  // Strip undefined keys so we don't overwrite with undefined.
+
   Object.keys(allowed).forEach((k) => allowed[k] === undefined && delete allowed[k]);
 
   const user = await userService.updateUser(req.user.id, allowed, { self: true });
@@ -17,20 +18,20 @@ export const updateMe = asyncHandler(async (req, res) => {
   res.status(response.statusCode).json(response);
 });
 
-/**
- * DELETE /api/v1/users/me
- * Close authenticated user's account.
- */
+
+
+
+
 export const deleteMe = asyncHandler(async (req, res) => {
   await userService.deleteSelf(req.user.id, req.user);
   const response = new ApiResponse(200, 'Account closed successfully');
   res.status(response.statusCode).json(response);
 });
 
-// Fetch all users with pagination and filtering
-/**
- * GET /api/v1/users
- */
+
+
+
+
 export const getUsers = asyncHandler(async (req, res) => {
   const result = await userService.getUsers(req.query);
 
@@ -39,9 +40,9 @@ export const getUsers = asyncHandler(async (req, res) => {
   res.status(response.statusCode).json(response);
 });
 
-/**
- * GET /api/v1/users/:id
- */
+
+
+
 export const getUser = asyncHandler(async (req, res) => {
   const user = await userService.getUserById(req.params.id);
 
@@ -50,9 +51,9 @@ export const getUser = asyncHandler(async (req, res) => {
   res.status(response.statusCode).json(response);
 });
 
-/**
- * PUT /api/v1/users/:id
- */
+
+
+
 export const updateUser = asyncHandler(async (req, res) => {
   const user = await userService.updateUser(req.params.id, req.body);
 
@@ -61,9 +62,9 @@ export const updateUser = asyncHandler(async (req, res) => {
   res.status(response.statusCode).json(response);
 });
 
-/**
- * DELETE /api/v1/users/:id
- */
+
+
+
 export const deleteUser = asyncHandler(async (req, res) => {
   await userService.deleteUser(req.params.id, req.user);
 
@@ -72,9 +73,9 @@ export const deleteUser = asyncHandler(async (req, res) => {
   res.status(response.statusCode).json(response);
 });
 
-/**
- * PATCH /api/v1/user/change-password
- */
+
+
+
 export const changePassword = asyncHandler(async (req, res) => {
   await userService.changePassword(req.user.id, req.body);
 

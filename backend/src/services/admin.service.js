@@ -1,37 +1,39 @@
-// ── Admin Service ──
+// Implements business logic for admin workflows.
+
 import RecruiterProfile from '../models/RecruiterProfile.js';
 import User from '../models/User.js';
 import * as userService from './user.service.js';
 import ApiError from '../utils/ApiError.js';
 
-// Fetch all pending recruiter registrations with their profiles
+
+// Get pending recruiters.
 export const getPendingRecruiters = async ({ page = 1, limit = 10, search }) => {
   const filter = {
     approvalStatus: 'pending',
     $or: [
-      // Legacy: recruiter role set at signup
-      { role: 'recruiter' },
-      // New: role change requests
-      { pendingRole: 'recruiter' },
-    ],
+
+    { role: 'recruiter' },
+
+    { pendingRole: 'recruiter' }]
+
   };
 
   if (search) {
     filter.$or = [
-      { name: { $regex: search, $options: 'i' } },
-      { email: { $regex: search, $options: 'i' } },
-    ];
+    { name: { $regex: search, $options: 'i' } },
+    { email: { $regex: search, $options: 'i' } }];
+
   }
 
   const skip = (page - 1) * limit;
 
   const [recruiters, total] = await Promise.all([
-    User.find(filter).sort({ createdAt: -1 }).skip(skip).limit(limit).lean(),
-    User.countDocuments(filter),
-  ]);
+  User.find(filter).sort({ createdAt: -1 }).skip(skip).limit(limit).lean(),
+  User.countDocuments(filter)]
+  );
 
   const profiles = await RecruiterProfile.find({
-    user: { $in: recruiters.map((recruiter) => recruiter._id) },
+    user: { $in: recruiters.map((recruiter) => recruiter._id) }
   }).lean();
 
   const profileMap = new Map(
@@ -41,18 +43,19 @@ export const getPendingRecruiters = async ({ page = 1, limit = 10, search }) => 
   return {
     recruiters: recruiters.map((recruiter) => ({
       ...recruiter,
-      profile: profileMap.get(String(recruiter._id)) || null,
+      profile: profileMap.get(String(recruiter._id)) || null
     })),
     pagination: {
       total,
       page,
       limit,
-      totalPages: Math.ceil(total / limit),
-    },
+      totalPages: Math.ceil(total / limit)
+    }
   };
 };
 
-// Verify a recruiter and activate their account
+
+// Verify recruiter.
 export const verifyRecruiter = async (recruiterId) => {
   const recruiter = await User.findById(recruiterId);
   if (!recruiter) {
@@ -72,14 +75,15 @@ export const verifyRecruiter = async (recruiterId) => {
   return recruiter;
 };
 
-// Reject a recruiter by deactivating their account
+
+// Reject recruiter.
 export const rejectRecruiter = async (recruiterId) => {
   const recruiter = await User.findById(recruiterId);
   if (!recruiter) {
     throw new ApiError(404, 'Recruiter not found');
   }
 
-  // If this was a pending role-change request, keep them as job seeker and just mark rejected.
+
   if (recruiter.pendingRole === 'recruiter') {
     recruiter.pendingRole = null;
     recruiter.approvalStatus = 'rejected';
@@ -97,7 +101,8 @@ export const rejectRecruiter = async (recruiterId) => {
   return recruiter;
 };
 
-// Promote an existing verified user to admin
+
+// Promote user to admin.
 export const promoteUserToAdmin = async (userId) => {
   const user = await User.findById(userId);
   if (!user) {
@@ -120,7 +125,8 @@ export const promoteUserToAdmin = async (userId) => {
   return user;
 };
 
-// Alias for fetching all users (delegates to user service)
+
+// Get all users.
 export const getAllUsers = async (query) => {
   return userService.getUsers(query);
 };

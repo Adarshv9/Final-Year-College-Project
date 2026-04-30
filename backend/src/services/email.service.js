@@ -1,3 +1,4 @@
+// Sends transactional emails through the configured provider.
 import { Resend } from 'resend';
 import { env } from '../config/env.js';
 import ApiError from '../utils/ApiError.js';
@@ -7,20 +8,21 @@ let resendClient = null;
 
 const RESEND_SANDBOX_FROM = 'onboarding@resend.dev';
 const PERSONAL_EMAIL_DOMAINS = new Set([
-  'gmail.com',
-  'googlemail.com',
-  'yahoo.com',
-  'yahoo.co.in',
-  'outlook.com',
-  'hotmail.com',
-  'live.com',
-  'icloud.com',
-  'me.com',
-  'aol.com',
-  'proton.me',
-  'protonmail.com',
-]);
+'gmail.com',
+'googlemail.com',
+'yahoo.com',
+'yahoo.co.in',
+'outlook.com',
+'hotmail.com',
+'live.com',
+'icloud.com',
+'me.com',
+'aol.com',
+'proton.me',
+'protonmail.com']
+);
 
+// Resolve from address.
 const resolveFromAddress = (configuredFrom) => {
   if (!configuredFrom) return RESEND_SANDBOX_FROM;
 
@@ -39,6 +41,7 @@ const resolveFromAddress = (configuredFrom) => {
 
 export const EMAIL_FROM_ADDRESS = resolveFromAddress(env.emailFrom);
 
+// Get resend client.
 const getResendClient = () => {
   if (!resendClient) {
     if (!env.resendApiKey) {
@@ -51,12 +54,13 @@ const getResendClient = () => {
   return resendClient;
 };
 
+// Send email.
 export const sendEmail = async ({
   to,
   subject,
   html,
   from = EMAIL_FROM_ADDRESS,
-  context = 'transactional',
+  context = 'transactional'
 }) => {
   try {
     const resend = getResendClient();

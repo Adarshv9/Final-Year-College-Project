@@ -1,8 +1,10 @@
-// ── Request ID Middleware ──
-// Generates a unique request ID for every incoming request.
-// Attaches it to req.id and sets the X-Request-Id response header.
+// Attaches a unique request ID to each incoming request.
+
+
+
 import { randomUUID } from 'crypto';
 
+// Handle ID.
 const requestId = (req, res, next) => {
   const id = req.headers['x-request-id'] || randomUUID();
   req.id = id;

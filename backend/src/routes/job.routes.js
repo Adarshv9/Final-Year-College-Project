@@ -1,12 +1,13 @@
-// Express routes for public job discovery and recruiter job management.
+// Registers API routes for job features.
+
 import express from 'express';
 import * as jobController from '../controllers/job.controller.js';
 import {
   authenticateJWT,
   authorizeRole,
   checkRecruiterVerified,
-  optionalAuthenticateJWT,
-} from '../middlewares/auth.js';
+  optionalAuthenticateJWT } from
+'../middlewares/auth.js';
 import validate from '../middlewares/validate.js';
 import * as jobValidation from '../validations/job.validation.js';
 

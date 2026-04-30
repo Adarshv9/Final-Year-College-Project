@@ -1,10 +1,11 @@
-// Shared rate limiter configurations for general traffic and auth endpoints.
+// Applies request throttling to selected endpoints.
+
 import rateLimit from 'express-rate-limit';
 import { env } from '../config/env.js';
 
-/**
- * General-purpose rate limiter applied to all routes.
- */
+
+
+
 export const generalLimiter = rateLimit({
   windowMs: env.rateLimit.windowMs,
   max: env.rateLimit.max,
@@ -12,35 +13,35 @@ export const generalLimiter = rateLimit({
   legacyHeaders: false,
   message: {
     success: false,
-    message: 'Too many requests, please try again later.',
-  },
+    message: 'Too many requests, please try again later.'
+  }
 });
 
-/**
- * Stricter rate limiter specifically for authentication endpoints.
- */
+
+
+
 export const authLimiter = rateLimit({
-  windowMs: 15 * 60 * 1000, // 15 minutes
+  windowMs: 15 * 60 * 1000,
   max: 20,
   standardHeaders: true,
   legacyHeaders: false,
   message: {
     success: false,
-    message: 'Too many authentication attempts, please try again later.',
-  },
+    message: 'Too many authentication attempts, please try again later.'
+  }
 });
 
-/**
- * Login-specific limiter that only counts failed attempts.
- */
+
+
+
 export const loginLimiter = rateLimit({
-  windowMs: 15 * 60 * 1000, // 15 minutes
+  windowMs: 15 * 60 * 1000,
   max: 20,
   standardHeaders: true,
   legacyHeaders: false,
   skipSuccessfulRequests: true,
   message: {
     success: false,
-    message: 'Too many authentication attempts, please try again later.',
-  },
+    message: 'Too many authentication attempts, please try again later.'
+  }
 });

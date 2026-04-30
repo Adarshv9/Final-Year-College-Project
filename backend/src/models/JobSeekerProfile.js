@@ -1,50 +1,51 @@
-// ── Job Seeker Profile Model ──
+// Defines the MongoDB schema for Job Seeker Profile data.
+
 import mongoose from 'mongoose';
 import normalizeSkills from '../utils/normalizeSkills.js';
 
-// Sub-schema for work experience
+
 const experienceSchema = new mongoose.Schema(
   {
     company: {
       type: String,
-      trim: true,
+      trim: true
     },
     role: {
       type: String,
-      trim: true,
+      trim: true
     },
     years: {
       type: Number,
-      min: 0,
-    },
+      min: 0
+    }
   },
   {
-    _id: false,
+    _id: false
   }
 );
 
-// Sub-schema for education details
+
 const educationSchema = new mongoose.Schema(
   {
     degree: {
       type: String,
-      trim: true,
+      trim: true
     },
     institution: {
       type: String,
-      trim: true,
+      trim: true
     },
     year: {
       type: Number,
-      min: 1900,
-    },
+      min: 1900
+    }
   },
   {
-    _id: false,
+    _id: false
   }
 );
 
-// Job seeker profile with skills, experience, education, and resume
+
 const jobSeekerProfileSchema = new mongoose.Schema(
   {
     user: {
@@ -52,44 +53,44 @@ const jobSeekerProfileSchema = new mongoose.Schema(
       ref: 'User',
       required: true,
       unique: true,
-      index: true,
+      index: true
     },
     headline: {
       type: String,
-      trim: true,
+      trim: true
     },
     skills: {
       type: [String],
       default: [],
-      set: normalizeSkills,
+      set: normalizeSkills
     },
     experience: {
       type: [experienceSchema],
-      default: [],
+      default: []
     },
     education: {
       type: [educationSchema],
-      default: [],
+      default: []
     },
     resumeUrl: {
       type: String,
-      trim: true,
+      trim: true
     },
     resumePublicId: {
       type: String,
-      trim: true,
+      trim: true
     },
     parsedData: {
       type: mongoose.Schema.Types.Mixed,
-      default: {},
-    },
+      default: {}
+    }
   },
   {
-    timestamps: true,
+    timestamps: true
   }
 );
 
-// Index for efficient skill-based searching
+
 jobSeekerProfileSchema.index({ skills: 1 });
 
 const JobSeekerProfile = mongoose.model('JobSeekerProfile', jobSeekerProfileSchema);

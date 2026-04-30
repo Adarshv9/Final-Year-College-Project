@@ -1,4 +1,5 @@
-// Shared Winston logger used across the backend.
+// Configures structured logging for backend events.
+
 import winston from 'winston';
 import { env } from '../config/env.js';
 
@@ -7,17 +8,18 @@ const levels = {
   warn: 1,
   info: 2,
   http: 3,
-  debug: 4,
+  debug: 4
 };
 
-const level = () => (env.nodeEnv === 'development' ? 'debug' : 'warn');
+// Handle .
+const level = () => env.nodeEnv === 'development' ? 'debug' : 'warn';
 
 const colors = {
   error: 'red',
   warn: 'yellow',
   info: 'green',
   http: 'magenta',
-  debug: 'white',
+  debug: 'white'
 };
 
 winston.addColors(colors);
@@ -32,16 +34,16 @@ const format = winston.format.combine(
 );
 
 const transports = [
-  new winston.transports.Console(),
-  new winston.transports.File({ filename: 'logs/error.log', level: 'error' }),
-  new winston.transports.File({ filename: 'logs/combined.log' }),
-];
+new winston.transports.Console(),
+new winston.transports.File({ filename: 'logs/error.log', level: 'error' }),
+new winston.transports.File({ filename: 'logs/combined.log' })];
+
 
 const logger = winston.createLogger({
   level: level(),
   levels,
   format,
-  transports,
+  transports
 });
 
 export default logger;

@@ -1,4 +1,5 @@
-// Joi schemas for public job listing and recruiter job management endpoints.
+// Defines Joi validation rules for job requests.
+
 import Joi from 'joi';
 
 const objectId = Joi.string().pattern(/^[0-9a-fA-F]{24}$/);
@@ -6,7 +7,7 @@ const objectId = Joi.string().pattern(/^[0-9a-fA-F]{24}$/);
 const locationSchema = Joi.object({
   type: Joi.string().valid('remote', 'onsite', 'hybrid').required(),
   city: Joi.string().trim().allow(null, ''),
-  country: Joi.string().trim().allow(null, ''),
+  country: Joi.string().trim().allow(null, '')
 }).required();
 
 const createJobBody = Joi.object({
@@ -17,7 +18,7 @@ const createJobBody = Joi.object({
   requiredSkills: Joi.array().items(Joi.string().trim()).default([]),
   minExperience: Joi.number().integer().min(0).required(),
   jobType: Joi.string().valid('full-time', 'part-time', 'internship', 'contract').required(),
-  salary: Joi.string().trim().allow('').required(),
+  salary: Joi.string().trim().allow('').required()
 });
 
 const updateJobBody = Joi.object({
@@ -28,11 +29,11 @@ const updateJobBody = Joi.object({
   requiredSkills: Joi.array().items(Joi.string().trim()),
   minExperience: Joi.number().integer().min(0),
   jobType: Joi.string().valid('full-time', 'part-time', 'internship', 'contract'),
-  salary: Joi.string().trim().allow(''),
+  salary: Joi.string().trim().allow('')
 }).min(1);
 
 export const createJob = Joi.object({
-  body: createJobBody.required(),
+  body: createJobBody.required()
 });
 
 export const getMyJobs = Joi.object({});
@@ -43,37 +44,37 @@ export const getJob = Joi.object({
   params: Joi.object({
     jobId: objectId.required().messages({
       'string.pattern.base': 'Invalid job ID format',
-      'any.required': 'Job ID is required',
-    }),
-  }).required(),
+      'any.required': 'Job ID is required'
+    })
+  }).required()
 });
 
 export const atsScore = Joi.object({
   params: Joi.object({
     jobId: objectId.required().messages({
       'string.pattern.base': 'Invalid job ID format',
-      'any.required': 'Job ID is required',
-    }),
-  }).required(),
+      'any.required': 'Job ID is required'
+    })
+  }).required()
 });
 
 export const updateJob = Joi.object({
   params: Joi.object({
     jobId: objectId.required().messages({
       'string.pattern.base': 'Invalid job ID format',
-      'any.required': 'Job ID is required',
-    }),
+      'any.required': 'Job ID is required'
+    })
   }).required(),
-  body: updateJobBody.required(),
+  body: updateJobBody.required()
 });
 
 export const deleteJob = Joi.object({
   params: Joi.object({
     jobId: objectId.required().messages({
       'string.pattern.base': 'Invalid job ID format',
-      'any.required': 'Job ID is required',
-    }),
-  }).required(),
+      'any.required': 'Job ID is required'
+    })
+  }).required()
 });
 
 export const listJobs = Joi.object({
@@ -83,9 +84,9 @@ export const listJobs = Joi.object({
     search: Joi.string().trim().max(100).allow(''),
     skill: Joi.string().trim().max(100).allow(''),
     location: Joi.string().trim().max(100).allow(''),
-    // Query strings send "" for cleared selects; treat as “no filter”
+
     locationType: Joi.string().valid('remote', 'onsite', 'hybrid').empty('').optional(),
     jobType: Joi.string().valid('full-time', 'part-time', 'internship', 'contract').empty('').optional(),
-    minExperience: Joi.number().integer().min(0),
-  }).allow({}),
+    minExperience: Joi.number().integer().min(0)
+  }).allow({})
 });

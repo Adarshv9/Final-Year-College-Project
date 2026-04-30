@@ -1,33 +1,36 @@
-// Server bootstrap: validates config, connects to MongoDB, and starts Express.
+// Starts the backend server and boots required services.
+
 import app from './app.js';
 import { env, validateEnv } from './config/env.js';
 import connectDB from './config/db.js';
 import {
   startDecisionEmailProcessor,
-  stopDecisionEmailProcessor,
-} from './services/application.service.js';
+  stopDecisionEmailProcessor } from
+'./services/application.service.js';
 import logger from './utils/logger.js';
 
-/**
- * Bootstrap the server:
- * 1. Validate environment variables
- * 2. Connect to MongoDB
- * 3. Start listening
- */
+
+
+
+
+
+
+// Start server.
 const startServer = async () => {
   try {
     validateEnv();
     await connectDB();
     logger.info('MongoDB connected');
-    // Decision emails are scheduled in MongoDB and processed by a lightweight
-    // polling loop that only starts once the database is ready.
+
+
     startDecisionEmailProcessor();
 
     const server = app.listen(env.port, () => {
       logger.info(`Server running in ${env.nodeEnv} mode on port ${env.port}`);
     });
 
-    // ── Graceful shutdown ──────────────────────────────────────────────────────
+
+    // Handle Shutdown.
     const gracefulShutdown = (signal) => {
       logger.info(`${signal} received. Shutting down gracefully...`);
       stopDecisionEmailProcessor();
@@ -40,7 +43,7 @@ const startServer = async () => {
     process.on('SIGTERM', () => gracefulShutdown('SIGTERM'));
     process.on('SIGINT', () => gracefulShutdown('SIGINT'));
 
-    // Exit on unhandled failures rather than serving requests in a bad state.
+
     process.on('unhandledRejection', (err) => {
       logger.error(`Unhandled Rejection: ${err.message}`);
       server.close(() => process.exit(1));

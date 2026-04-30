@@ -1,12 +1,14 @@
-// File Upload Middleware
+// Configures file upload handling for resume documents.
+
 import path from 'path';
 import multer from 'multer';
 import ApiError from '../utils/ApiError.js';
 
-/**
- * PDF-only file filter.
- * Checks both MIME type and file extension.
- */
+
+
+
+
+// Handle Filter.
 const fileFilter = (_req, file, cb) => {
   const extension = path.extname(file.originalname).toLowerCase();
 
@@ -18,25 +20,26 @@ const fileFilter = (_req, file, cb) => {
   cb(null, true);
 };
 
-/**
- * Multer instance - PDF only, 2 MB max
- */
+
+
+
 const upload = multer({
   storage: multer.memoryStorage(),
   fileFilter,
   limits: {
-    fileSize: 2 * 1024 * 1024, // 2 MB
-  },
+    fileSize: 2 * 1024 * 1024
+  }
 });
 
-// Export single file upload middleware for resume field
+
 export const uploadResume = upload.single('resume');
 
-/**
- * Magic-byte validation middleware.
- * Must be used AFTER multer has read the file.
- * Reads the first 4 bytes and verifies the %PDF signature.
- */
+
+
+
+
+
+// Validate PDF signature.
 export const validatePdfSignature = (req, _res, next) => {
   if (!req.file) return next();
 

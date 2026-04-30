@@ -1,4 +1,5 @@
-// ── Express App Configuration ──
+// Configures the Express app with middleware, routes, and error handling.
+
 import express from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
@@ -20,43 +21,43 @@ const app = express();
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-// Middleware order matters: security and request metadata come first,
-// parsers/sanitizers run before routes, and the error handler stays last.
 
-// ── Security ──────────────────────────────────────────────────────────────────
+
+
+
 app.use(helmet());
 
-// ── Request ID — attach before everything so it's available in logs ───────────
+
 app.use(requestIdMiddleware);
 
-// ── CORS ──────────────────────────────────────────────────────────────────────
+
 app.use(
   cors({
     origin: env.corsOrigin,
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'],
-    allowedHeaders: ['Content-Type', 'Authorization'],
+    allowedHeaders: ['Content-Type', 'Authorization']
   })
 );
 
-// ── Body Parser ───────────────────────────────────────────────────────────────
+
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
-// ── Cookie Parser ─────────────────────────────────────────────────────────────
+
 app.use(cookieParser());
 
-// ── Data Sanitization ─────────────────────────────────────────────────────────
+
 app.use(mongoSanitize());
 
-// ── HTTP Logger ───────────────────────────────────────────────────────────────
+
 if (env.nodeEnv === 'development') {
   app.use(morgan('dev'));
 } else {
   app.use(morgan('combined'));
 }
 
-// ── API Latency Metrics ───────────────────────────────────────────────────────
+
 app.use((req, res, next) => {
   const start = Date.now();
   res.on('finish', () => {
@@ -66,10 +67,10 @@ app.use((req, res, next) => {
   next();
 });
 
-// ── Rate Limiter ──────────────────────────────────────────────────────────────
+
 app.use(generalLimiter);
 
-// ── Health Check ──────────────────────────────────────────────────────────────
+
 app.get('/', (_req, res) => {
   res.send('Hello World');
 });
@@ -78,22 +79,22 @@ app.get('/api/health', (_req, res) => {
   res.status(200).json({ success: true, message: 'Server is running' });
 });
 
-// ── Static Files ──────────────────────────────────────────────────────────────
-// Uploaded resume files are exposed from a separate folder instead of being
-// served through the API controllers.
+
+
+
 app.use('/uploads', express.static(path.resolve(__dirname, '../uploads')));
 
-// ── API Routes ────────────────────────────────────────────────────────────────
-// Versioning the API at the mount point makes it easier to evolve routes
-// without changing the rest of the server setup.
+
+
+
 app.use('/api/v1', routes);
 
-// ── 404 Handler ───────────────────────────────────────────────────────────────
+
 app.use((req, _res, next) => {
   next(new ApiError(404, `Route not found: ${req.method} ${req.originalUrl}`, [], true, 'ROUTE_NOT_FOUND'));
 });
 
-// ── Global Error Handler ──────────────────────────────────────────────────────
+
 app.use(errorHandler);
 
 export default app;

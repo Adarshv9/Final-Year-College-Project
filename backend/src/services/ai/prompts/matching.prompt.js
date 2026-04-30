@@ -1,19 +1,20 @@
-// ── Matching & Ranking Prompts ──
+// Build application scoring messages.
 
-/**
- * Build messages for scoring a single application against a job
- * @param {Object} job            - Job document (lean)
- * @param {Object} resumeSnapshot - Candidate resume snapshot
- * @returns {Array} OpenAI messages array
- */
+
+
+
+
+
+
+
 export const buildApplicationScoringMessages = (job, resumeSnapshot) => [
-  {
-    role: 'system',
-    content: 'You ONLY return valid JSON. No text, no explanation.',
-  },
-  {
-    role: 'user',
-    content: `You are an AI hiring assistant.
+{
+  role: 'system',
+  content: 'You ONLY return valid JSON. No text, no explanation.'
+},
+{
+  role: 'user',
+  content: `You are an AI hiring assistant.
 Evaluate how well this candidate matches the job and return only valid JSON.
 
 Required JSON shape:
@@ -30,30 +31,31 @@ Rules:
 
 Job:
 ${JSON.stringify(
-  {
-    title: job.title,
-    companyName: job.companyName,
-    description: job.description,
-    requiredSkills: job.requiredSkills,
-    minExperience: job.minExperience,
-    jobType: job.jobType,
-    location: job.location,
-  },
-  null,
-  2
-)}
+    {
+      title: job.title,
+      companyName: job.companyName,
+      description: job.description,
+      requiredSkills: job.requiredSkills,
+      minExperience: job.minExperience,
+      jobType: job.jobType,
+      location: job.location
+    },
+    null,
+    2
+  )}
 
 Candidate resume snapshot:
-${JSON.stringify(resumeSnapshot, null, 2)}`,
-  },
-];
+${JSON.stringify(resumeSnapshot, null, 2)}`
+}];
 
-/**
- * Build messages for ranking multiple jobs against resume skills
- * @param {Array<string>} resumeSkills - Candidate skill list
- * @param {Array<Object>} jobs         - Job documents array
- * @returns {Array} OpenAI messages array
- */
+
+
+
+
+
+
+
+// Build job ranking messages.
 export const buildJobRankingMessages = (resumeSkills, jobs) => {
   const rankingSchema = {
     type: 'array',
@@ -62,20 +64,20 @@ export const buildJobRankingMessages = (resumeSkills, jobs) => {
       properties: {
         jobId: { type: 'string' },
         matchScore: { type: 'number' },
-        reason: { type: 'string' },
+        reason: { type: 'string' }
       },
-      required: ['jobId', 'matchScore', 'reason'],
-    },
+      required: ['jobId', 'matchScore', 'reason']
+    }
   };
 
   return [
-    {
-      role: 'system',
-      content: 'You ONLY return valid JSON. No text, no explanation.',
-    },
-    {
-      role: 'user',
-      content: `You are a job matching assistant.
+  {
+    role: 'system',
+    content: 'You ONLY return valid JSON. No text, no explanation.'
+  },
+  {
+    role: 'user',
+    content: `You are a job matching assistant.
 Given the resume skills and jobs below, rank each job for the candidate.
 
 Return only valid JSON matching this schema:
@@ -92,19 +94,19 @@ ${JSON.stringify(resumeSkills)}
 
 Jobs:
 ${JSON.stringify(
-  jobs.map((job) => ({
-    jobId: String(job._id),
-    title: job.title,
-    companyName: job.companyName,
-    description: job.description,
-    requiredSkills: job.requiredSkills,
-    minExperience: job.minExperience,
-    jobType: job.jobType,
-    location: job.location,
-  })),
-  null,
-  2
-)}`,
-    },
-  ];
+      jobs.map((job) => ({
+        jobId: String(job._id),
+        title: job.title,
+        companyName: job.companyName,
+        description: job.description,
+        requiredSkills: job.requiredSkills,
+        minExperience: job.minExperience,
+        jobType: job.jobType,
+        location: job.location
+      })),
+      null,
+      2
+    )}`
+  }];
+
 };

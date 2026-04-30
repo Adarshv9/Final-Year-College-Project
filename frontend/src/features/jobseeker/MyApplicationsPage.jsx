@@ -1,4 +1,5 @@
-// Job seeker page for tracking submitted applications and their statuses.
+// Job seeker page component for My Applications.
+
 import { useQuery } from '@tanstack/react-query';
 import { Link } from 'react-router-dom';
 import { Briefcase, MapPin, Clock, ChevronRight, Sparkles } from 'lucide-react';
@@ -8,15 +9,17 @@ import { SkeletonCard } from '../../shared/ui/Skeleton';
 import EmptyState from '../../shared/ui/EmptyState';
 import Button from '../../shared/ui/Button';
 
+// Format date.
 function formatDate(str) {
   if (!str) return '';
   return new Date(str).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' });
 }
 
+// Render the my applications page.
 export default function MyApplicationsPage() {
   const { data, isLoading } = useQuery({
     queryKey: ['my-applications'],
-    queryFn: () => applicationsApi.myApplications().then(r => r.data),
+    queryFn: () => applicationsApi.myApplications().then((r) => r.data)
   });
 
   const apps = data?.data || [];
@@ -25,8 +28,8 @@ export default function MyApplicationsPage() {
     return (
       <div className="max-w-3xl mx-auto grid gap-4">
         {Array.from({ length: 5 }).map((_, i) => <SkeletonCard key={i} />)}
-      </div>
-    );
+      </div>);
+
   }
 
   if (apps.length === 0) {
@@ -36,17 +39,17 @@ export default function MyApplicationsPage() {
           icon={Briefcase}
           title="No applications yet"
           description="Start applying to jobs to track your progress here"
-          action={<Link to="/jobs"><Button>Browse Jobs</Button></Link>}
-        />
-      </div>
-    );
+          action={<Link to="/jobs"><Button>Browse Jobs</Button></Link>} />
+        
+      </div>);
+
   }
 
   const counts = {
     total: apps.length,
-    pending: apps.filter(a => a.status === 'pending').length,
-    accepted: apps.filter(a => a.status === 'accepted').length,
-    rejected: apps.filter(a => a.status === 'rejected').length,
+    pending: apps.filter((a) => a.status === 'pending').length,
+    accepted: apps.filter((a) => a.status === 'accepted').length,
+    rejected: apps.filter((a) => a.status === 'rejected').length
   };
 
   return (
@@ -57,11 +60,11 @@ export default function MyApplicationsPage() {
       </div>
 
       <div className="space-y-4">
-        {apps.map((app, idx) => (
-          <div
-            key={app.applicationId || app._id || `app-${idx}`}
-            className="bg-white border border-slate-200 rounded-xl p-5 hover:border-slate-300 transition-all"
-          >
+        {apps.map((app, idx) =>
+        <div
+          key={app.applicationId || app._id || `app-${idx}`}
+          className="bg-white border border-slate-200 rounded-xl p-5 hover:border-slate-300 transition-all">
+          
             <div className="flex items-start justify-between gap-4">
               <div className="flex items-start gap-3">
                 <div className="w-10 h-10 bg-indigo-500/10 rounded-lg flex items-center justify-center flex-shrink-0">
@@ -73,12 +76,12 @@ export default function MyApplicationsPage() {
                   </h3>
                   <p className="text-sm text-slate-600">{app.companyName || app.job?.companyName}</p>
                   <div className="flex flex-wrap gap-3 mt-2 text-xs text-slate-500">
-                    {(app.location?.city || app.job?.location?.city) && (
-                      <span className="flex items-center gap-1">
+                    {(app.location?.city || app.job?.location?.city) &&
+                  <span className="flex items-center gap-1">
                         <MapPin size={11} />
                         {app.location?.city || app.job?.location?.city}
                       </span>
-                    )}
+                  }
                     <span className="flex items-center gap-1">
                       <Clock size={11} />
                       Applied {formatDate(app.appliedAt || app.createdAt)}
@@ -88,35 +91,35 @@ export default function MyApplicationsPage() {
               </div>
               <div className="flex flex-col items-end gap-2">
                 <Badge variant={app.status}>{app.status}</Badge>
-                {(app.jobId || app.job?._id) ? (
-                  <Link
-                    to={`/jobs/${app.jobId || app.job?._id}`}
-                    className="text-xs text-indigo-400 hover:underline flex items-center gap-0.5"
-                  >
+                {app.jobId || app.job?._id ?
+              <Link
+                to={`/jobs/${app.jobId || app.job?._id}`}
+                className="text-xs text-indigo-400 hover:underline flex items-center gap-0.5">
+                
                     View job <ChevronRight size={12} />
-                  </Link>
-                ) : (
-                  <span className="text-xs text-slate-500">Job unavailable</span>
-                )}
+                  </Link> :
+
+              <span className="text-xs text-slate-500">Job unavailable</span>
+              }
               </div>
             </div>
 
-            {app.message && (
-              <div className="mt-4 pt-4 border-t border-slate-200">
+            {app.message &&
+          <div className="mt-4 pt-4 border-t border-slate-200">
                 <p className="text-xs font-semibold text-slate-500 uppercase mb-1">Your message</p>
                 <p className="text-sm text-slate-600">{app.message}</p>
               </div>
-            )}
+          }
 
-            {app.status === 'accepted' && (
-              <div className="mt-3 flex items-center gap-2 p-3 bg-emerald-500/10 rounded-lg">
+            {app.status === 'accepted' &&
+          <div className="mt-3 flex items-center gap-2 p-3 bg-emerald-500/10 rounded-lg">
                 <Sparkles size={15} className="text-emerald-400 flex-shrink-0" />
                 <span className="text-emerald-400 text-sm font-medium">Congratulations! You've been accepted.</span>
               </div>
-            )}
+          }
           </div>
-        ))}
+        )}
       </div>
-    </div>
-  );
+    </div>);
+
 }

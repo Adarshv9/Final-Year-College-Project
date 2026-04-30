@@ -1,4 +1,5 @@
-// Admin dashboard page showing high-level platform metrics and recent activity.
+// Admin page component for Dashboard.
+
 import { createElement } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { Shield, Users, Briefcase, FileText, TrendingUp } from 'lucide-react';
@@ -8,35 +9,36 @@ import { adminApi } from '../../lib/api';
 import { SkeletonStats } from '../../shared/ui/Skeleton';
 import Button from '../../shared/ui/Button';
 
+// Render the admin dashboard component.
 export default function AdminDashboard() {
   const { data: usersData, isLoading: usersLoading } = useQuery({
     queryKey: ['admin-users'],
-    queryFn: () => adminApi.getUsers({ limit: 100 }).then(r => r.data),
+    queryFn: () => adminApi.getUsers({ limit: 100 }).then((r) => r.data)
   });
 
   const { data: recData } = useQuery({
     queryKey: ['pending-recruiters'],
-    queryFn: () => adminApi.pendingRecruiters({ limit: 100 }).then(r => r.data),
+    queryFn: () => adminApi.pendingRecruiters({ limit: 100 }).then((r) => r.data)
   });
 
   const { data: resumesData } = useQuery({
     queryKey: ['admin-resumes'],
-    queryFn: () => adminApi.getResumes({ limit: 100 }).then(r => r.data),
+    queryFn: () => adminApi.getResumes({ limit: 100 }).then((r) => r.data)
   });
 
   const users = usersData?.data?.users || usersData?.users || [];
   const pendingRecruiters = recData?.data?.recruiters || recData?.recruiters || [];
   const resumes = resumesData?.data?.resumes || resumesData?.resumes || [];
 
-  const seekers = users.filter(u => u.role === 'job_seeker').length;
-  const recruiters = users.filter(u => u.role === 'recruiter').length;
+  const seekers = users.filter((u) => u.role === 'job_seeker').length;
+  const recruiters = users.filter((u) => u.role === 'recruiter').length;
 
   const chartData = [
-    { name: 'Job Seekers', count: seekers, fill: '#6366f1' },
-    { name: 'Recruiters', count: recruiters, fill: '#10b981' },
-    { name: 'Pending', count: pendingRecruiters.length, fill: '#f59e0b' },
-    { name: 'Resumes', count: resumes.length, fill: '#94a3b8' },
-  ];
+  { name: 'Job Seekers', count: seekers, fill: '#6366f1' },
+  { name: 'Recruiters', count: recruiters, fill: '#10b981' },
+  { name: 'Pending', count: pendingRecruiters.length, fill: '#f59e0b' },
+  { name: 'Resumes', count: resumes.length, fill: '#94a3b8' }];
+
 
   return (
     <div className="max-w-5xl mx-auto space-y-8 animate-fade-in">
@@ -47,16 +49,16 @@ export default function AdminDashboard() {
         <p className="text-sm text-slate-600 mt-1">Platform overview and moderation tools</p>
       </div>
 
-      {usersLoading ? <SkeletonStats count={4} /> : (
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+      {usersLoading ? <SkeletonStats count={4} /> :
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
           {[
-            { icon: Users, label: 'Total Users', value: users.length, color: 'bg-indigo-500/15 text-indigo-400', to: '/admin/users' },
-            { icon: Users, label: 'Job Seekers', value: seekers, color: 'bg-blue-500/15 text-blue-400' },
-            { icon: Briefcase, label: 'Pending Recruiters', value: pendingRecruiters.length, color: 'bg-amber-500/15 text-amber-400', to: '/admin/recruiters' },
-            { icon: FileText, label: 'Resumes', value: resumes.length, color: 'bg-emerald-500/15 text-emerald-400', to: '/admin/resumes' },
-          ].map(({ icon: Icon, label, value, color, to }) => {
-            const c = (
-              <div className={`bg-white border border-slate-200 rounded-xl p-5 flex items-center gap-4 hover:border-slate-300 transition-all ${to ? 'cursor-pointer hover:-translate-y-0.5' : ''}`}>
+        { icon: Users, label: 'Total Users', value: users.length, color: 'bg-indigo-500/15 text-indigo-400', to: '/admin/users' },
+        { icon: Users, label: 'Job Seekers', value: seekers, color: 'bg-blue-500/15 text-blue-400' },
+        { icon: Briefcase, label: 'Pending Recruiters', value: pendingRecruiters.length, color: 'bg-amber-500/15 text-amber-400', to: '/admin/recruiters' },
+        { icon: FileText, label: 'Resumes', value: resumes.length, color: 'bg-emerald-500/15 text-emerald-400', to: '/admin/resumes' }].
+        map(({ icon: Icon, label, value, color, to }) => {
+          const c =
+          <div className={`bg-white border border-slate-200 rounded-xl p-5 flex items-center gap-4 hover:border-slate-300 transition-all ${to ? 'cursor-pointer hover:-translate-y-0.5' : ''}`}>
                 <div className={`w-11 h-11 rounded-xl flex items-center justify-center flex-shrink-0 ${color}`}>
                   {createElement(Icon, { size: 20 })}
                 </div>
@@ -64,15 +66,15 @@ export default function AdminDashboard() {
                   <div className="text-2xl font-bold text-slate-900">{value ?? '–'}</div>
                   <div className="text-xs text-slate-600">{label}</div>
                 </div>
-              </div>
-            );
-            return to ? <Link key={label} to={to}>{c}</Link> : <div key={label}>{c}</div>;
-          })}
+              </div>;
+
+          return to ? <Link key={label} to={to}>{c}</Link> : <div key={label}>{c}</div>;
+        })}
         </div>
-      )}
+      }
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Chart */}
+        
         <div className="bg-white border border-slate-200 rounded-xl p-5">
           <h2 className="text-base font-semibold text-slate-900 mb-4 flex items-center gap-2">
             <TrendingUp size={16} className="text-indigo-400" /> Platform Overview
@@ -83,15 +85,15 @@ export default function AdminDashboard() {
               <YAxis tick={{ fill: '#64748b', fontSize: 11 }} axisLine={false} tickLine={false} allowDecimals={false} />
               <Tooltip contentStyle={{ background: '#ffffff', border: '1px solid #e2e8f0', borderRadius: 8, color: '#0f172a' }} cursor={{ fill: 'rgba(99,102,241,0.05)' }} />
               <Bar dataKey="count" radius={[6, 6, 0, 0]}>
-                {chartData.map((entry, i) => (
-                  <rect key={i} fill={entry.fill} fillOpacity={0.85} />
-                ))}
+                {chartData.map((entry, i) =>
+                <rect key={i} fill={entry.fill} fillOpacity={0.85} />
+                )}
               </Bar>
             </BarChart>
           </ResponsiveContainer>
         </div>
 
-        {/* Quick actions */}
+        
         <div className="bg-white border border-slate-200 rounded-xl p-5">
           <h2 className="text-base font-semibold text-slate-900 mb-4">Moderation Tools</h2>
           <div className="space-y-3">
@@ -120,7 +122,7 @@ export default function AdminDashboard() {
                 <div className="w-8 h-8 bg-emerald-500/15 rounded-lg flex items-center justify-center"><FileText size={15} className="text-emerald-400" /></div>
                 <div>
                   <div className="text-sm font-medium text-slate-900">Resume Moderation</div>
-                  <div className="text-xs text-slate-500">{resumes.filter(r => !r.isVerified).length} unverified</div>
+                  <div className="text-xs text-slate-500">{resumes.filter((r) => !r.isVerified).length} unverified</div>
                 </div>
               </div>
               <Button size="sm" variant="secondary">Verify</Button>
@@ -128,6 +130,6 @@ export default function AdminDashboard() {
           </div>
         </div>
       </div>
-    </div>
-  );
+    </div>);
+
 }

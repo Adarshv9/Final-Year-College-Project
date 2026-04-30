@@ -1,11 +1,12 @@
-// Public job details page with the apply flow and richer job metadata.
+// Jobs page component for Job Detail.
+
 import { useState } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import {
   ArrowLeft, MapPin, Briefcase, Clock, Building2,
-  CheckCircle, Send, AlertTriangle, Star, DollarSign,
-} from 'lucide-react';
+  CheckCircle, Send, AlertTriangle, Star, DollarSign } from
+'lucide-react';
 import toast from 'react-hot-toast';
 import { jobsApi, applicationsApi } from '../../lib/api';
 import { useAuth } from '../../context/AuthContext';
@@ -14,15 +15,18 @@ import Button from '../../shared/ui/Button';
 import { Skeleton } from '../../shared/ui/Skeleton';
 import Modal from '../../shared/ui/Modal';
 
+// Format applied date.
 function formatAppliedDate(str) {
   if (!str) return '';
   return new Date(str).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' });
 }
 
+// Get application job ID.
 function getApplicationJobId(application) {
   return String(application?.jobId || application?.job?._id || '');
 }
 
+// Render the job detail page.
 export default function JobDetailPage() {
   const { jobId: jobIdParam } = useParams();
   const jobId = jobIdParam && jobIdParam !== 'undefined' ? jobIdParam : undefined;
@@ -34,29 +38,29 @@ export default function JobDetailPage() {
 
   const { data, isLoading, error } = useQuery({
     queryKey: ['job', jobId],
-    queryFn: () => jobsApi.get(jobId).then(r => r.data.data),
-    enabled: Boolean(jobId),
+    queryFn: () => jobsApi.get(jobId).then((r) => r.data.data),
+    enabled: Boolean(jobId)
   });
 
   const {
     data: myAppsData,
     isLoading: myAppsLoading,
-    refetch: refetchMyApplications,
+    refetch: refetchMyApplications
   } = useQuery({
     queryKey: ['my-applications'],
-    queryFn: () => applicationsApi.myApplications().then(r => r.data),
+    queryFn: () => applicationsApi.myApplications().then((r) => r.data),
     enabled: Boolean(jobId && isAuthenticated && user?.role === 'job_seeker'),
-    refetchOnMount: 'always',
+    refetchOnMount: 'always'
   });
 
   const myApps = myAppsData?.data || [];
   const myApplication = myApps.find((application) => getApplicationJobId(application) === String(jobId));
 
   const atsMutation = useMutation({
-    mutationFn: () => jobsApi.atsScore(jobId).then(r => r.data.data),
+    mutationFn: () => jobsApi.atsScore(jobId).then((r) => r.data.data),
     onError: (err) => {
       toast.error(err.response?.data?.message || 'Failed to generate ATS score');
-    },
+    }
   });
 
   const applyMutation = useMutation({
@@ -101,12 +105,13 @@ export default function JobDetailPage() {
       }
 
       toast.error(apiMessage);
-    },
+    }
   });
 
+  // Handle apply.
   const handleApply = () => {
-    if (!isAuthenticated) { navigate('/login'); return; }
-    if (user?.role !== 'job_seeker') { toast.error('Only job seekers can apply'); return; }
+    if (!isAuthenticated) {navigate('/login');return;}
+    if (user?.role !== 'job_seeker') {toast.error('Only job seekers can apply');return;}
     if (authLoading || myAppsLoading) {
       toast('Checking your application status...');
       return;
@@ -118,9 +123,10 @@ export default function JobDetailPage() {
     setApplyModal(true);
   };
 
+  // Handle check ats score.
   const handleCheckAtsScore = () => {
-    if (!isAuthenticated) { navigate('/login'); return; }
-    if (user?.role !== 'job_seeker') { toast.error('Only job seekers can check ATS score'); return; }
+    if (!isAuthenticated) {navigate('/login');return;}
+    if (user?.role !== 'job_seeker') {toast.error('Only job seekers can check ATS score');return;}
     if (!jobId) return;
     atsMutation.mutate();
   };
@@ -133,8 +139,8 @@ export default function JobDetailPage() {
           <h2 className="text-xl font-bold text-slate-900 mb-2">Job not found</h2>
           <Link to="/jobs"><Button variant="secondary">← Browse Jobs</Button></Link>
         </div>
-      </div>
-    );
+      </div>);
+
   }
 
   if (isLoading) {
@@ -147,8 +153,8 @@ export default function JobDetailPage() {
           <Skeleton className="h-32" />
           <Skeleton className="h-48" />
         </div>
-      </div>
-    );
+      </div>);
+
   }
 
   if (error || !data) {
@@ -159,8 +165,8 @@ export default function JobDetailPage() {
           <h2 className="text-xl font-bold text-slate-900 mb-2">Job not found</h2>
           <Link to="/jobs"><Button variant="secondary">← Browse Jobs</Button></Link>
         </div>
-      </div>
-    );
+      </div>);
+
   }
 
   const job = data;
@@ -171,12 +177,12 @@ export default function JobDetailPage() {
   return (
     <div className="min-h-screen bg-slate-50 py-8 px-4">
       <div className="max-w-3xl mx-auto">
-        {/* Back */}
+        
         <Link to="/jobs" className="inline-flex items-center gap-2 text-sm text-slate-600 hover:text-slate-900 transition-colors mb-6">
           <ArrowLeft size={16} /> Back to jobs
         </Link>
 
-        {/* Header card */}
+        
         <div className="bg-white border border-slate-200 rounded-2xl p-6 mb-5">
           <div className="flex items-start justify-between gap-4 mb-4">
             <div className="w-14 h-14 bg-indigo-500/10 rounded-xl flex items-center justify-center flex-shrink-0">
@@ -192,92 +198,92 @@ export default function JobDetailPage() {
           <p className="text-slate-600 font-medium mb-3">{job.companyName}</p>
 
           <div className="flex flex-wrap gap-4 text-sm text-slate-500">
-            {(job.location?.city || job.location?.country) && (
-              <span className="flex items-center gap-1.5">
+            {(job.location?.city || job.location?.country) &&
+            <span className="flex items-center gap-1.5">
                 <MapPin size={14} />
                 {[job.location?.city, job.location?.country].filter(Boolean).join(', ')}
               </span>
-            )}
-            {job.minExperience != null && (
-              <span className="flex items-center gap-1.5">
+            }
+            {job.minExperience != null &&
+            <span className="flex items-center gap-1.5">
                 <Briefcase size={14} />
                 {job.minExperience}+ years experience
               </span>
-            )}
-            {job.salary && (
-              <span className="flex items-center gap-1.5">
+            }
+            {job.salary &&
+            <span className="flex items-center gap-1.5">
                 <DollarSign size={14} /> {job.salary}
               </span>
-            )}
+            }
           </div>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
-          {/* Main content */}
+          
           <div className="lg:col-span-2 space-y-5">
-            {/* Description */}
+            
             <div className="bg-white border border-slate-200 rounded-2xl p-6">
               <h2 className="text-base font-semibold text-slate-900 mb-4">Job Description</h2>
               <div className="text-sm text-slate-600 leading-relaxed whitespace-pre-line">{job.description}</div>
             </div>
 
-            {/* Skills */}
-            {job.requiredSkills?.length > 0 && (
-              <div className="bg-white border border-slate-200 rounded-2xl p-6">
+            
+            {job.requiredSkills?.length > 0 &&
+            <div className="bg-white border border-slate-200 rounded-2xl p-6">
                 <h2 className="text-base font-semibold text-slate-900 mb-4">Required Skills</h2>
                 <div className="flex flex-wrap gap-2">
-                  {job.requiredSkills.map(skill => (
-                    <span key={skill} className="px-3 py-1.5 bg-indigo-500/10 text-indigo-700 border border-indigo-500/20 rounded-full text-sm font-medium">
+                  {job.requiredSkills.map((skill) =>
+                <span key={skill} className="px-3 py-1.5 bg-indigo-500/10 text-indigo-700 border border-indigo-500/20 rounded-full text-sm font-medium">
                       {skill}
                     </span>
-                  ))}
+                )}
                 </div>
               </div>
-            )}
+            }
           </div>
 
-          {/* Sidebar */}
+          
           <div className="space-y-5">
-            {/* Apply card */}
+            
             <div className="bg-white border border-slate-200 rounded-2xl p-5">
-              {isAuthenticated && user?.role === 'job_seeker' ? (
-                authLoading || myAppsLoading ? (
-                  <p className="text-sm text-slate-500 text-center py-2">Loading your application…</p>
-                ) : myApplication ? (
-                  <>
+              {isAuthenticated && user?.role === 'job_seeker' ?
+              authLoading || myAppsLoading ?
+              <p className="text-sm text-slate-500 text-center py-2">Loading your application…</p> :
+              myApplication ?
+              <>
                     <h3 className="text-sm font-semibold text-slate-900 mb-3">Your application</h3>
                     <div className="flex flex-col gap-3">
                       <div className="flex items-center justify-between gap-2">
                         <span className="text-xs text-slate-500">Status</span>
                         <Badge variant={myApplication.status}>{myApplication.status}</Badge>
                       </div>
-                      {(myApplication.appliedAt || myApplication.createdAt) && (
-                        <p className="text-xs text-slate-600">
+                      {(myApplication.appliedAt || myApplication.createdAt) &&
+                  <p className="text-xs text-slate-600">
                           Applied {formatAppliedDate(myApplication.appliedAt || myApplication.createdAt)}
                         </p>
-                      )}
-                      {myApplication.status === 'accepted' && (
-                        <p className="text-xs text-emerald-400 font-medium">You&apos;ve been accepted for this role.</p>
-                      )}
+                  }
+                      {myApplication.status === 'accepted' &&
+                  <p className="text-xs text-emerald-400 font-medium">You&apos;ve been accepted for this role.</p>
+                  }
                       <Link to="/my-applications">
                         <Button full variant="secondary">View my applications</Button>
                       </Link>
                     </div>
-                  </>
-                ) : (
-                  <>
+                  </> :
+
+              <>
                     <h3 className="text-sm font-semibold text-slate-900 mb-3">Ready to apply?</h3>
                     <Button full onClick={handleApply}>
                       <Send size={15} /> Apply Now
                     </Button>
-                  </>
-                )
-              ) : isAuthenticated ? (
-                <div className="text-sm text-slate-500 text-center py-2">
+                  </> :
+
+              isAuthenticated ?
+              <div className="text-sm text-slate-500 text-center py-2">
                   Only job seekers can apply to jobs.
-                </div>
-              ) : (
-                <>
+                </div> :
+
+              <>
                   <h3 className="text-sm font-semibold text-slate-900 mb-2">Interested in this role?</h3>
                   <p className="text-xs text-slate-500 mb-4">Create a free account to apply in seconds</p>
                   <div className="space-y-2">
@@ -285,10 +291,10 @@ export default function JobDetailPage() {
                     <Link to="/register"><Button full variant="secondary">Create Account</Button></Link>
                   </div>
                 </>
-              )}
+              }
 
-              {isAuthenticated && user?.role === 'job_seeker' ? (
-                <div className="mt-4 border-t border-slate-200 pt-4">
+              {isAuthenticated && user?.role === 'job_seeker' ?
+              <div className="mt-4 border-t border-slate-200 pt-4">
                   <div className="mb-3 flex items-center justify-between gap-3">
                     <div>
                       <h3 className="text-sm font-semibold text-slate-900">ATS score</h3>
@@ -297,8 +303,8 @@ export default function JobDetailPage() {
                     {atsResult ? <Badge variant="accent">{atsResult.atsScore}%</Badge> : null}
                   </div>
 
-                  {atsResult ? (
-                    <div className="mb-4 space-y-3 rounded-lg bg-slate-50 p-3">
+                  {atsResult ?
+                <div className="mb-4 space-y-3 rounded-lg bg-slate-50 p-3">
                       <div className="grid grid-cols-3 gap-2 text-center">
                         <div>
                           <div className="text-sm font-semibold text-slate-900">{atsResult.breakdown?.skillScore ?? 0}%</div>
@@ -314,47 +320,47 @@ export default function JobDetailPage() {
                         </div>
                       </div>
 
-                      {atsResult.reason ? (
-                        <p className="text-xs leading-5 text-slate-600">{atsResult.reason}</p>
-                      ) : null}
+                      {atsResult.reason ?
+                  <p className="text-xs leading-5 text-slate-600">{atsResult.reason}</p> :
+                  null}
 
-                      {matchingSkills.length > 0 ? (
-                        <div>
+                      {matchingSkills.length > 0 ?
+                  <div>
                           <div className="mb-1 text-[11px] font-semibold uppercase text-slate-500">Matched skills</div>
                           <div className="flex flex-wrap gap-1.5">
-                            {matchingSkills.slice(0, 5).map(skill => (
-                              <Badge key={`match-${skill}`} variant="success">{skill}</Badge>
-                            ))}
+                            {matchingSkills.slice(0, 5).map((skill) =>
+                      <Badge key={`match-${skill}`} variant="success">{skill}</Badge>
+                      )}
                           </div>
-                        </div>
-                      ) : null}
+                        </div> :
+                  null}
 
-                      {missingSkills.length > 0 ? (
-                        <div>
+                      {missingSkills.length > 0 ?
+                  <div>
                           <div className="mb-1 text-[11px] font-semibold uppercase text-slate-500">Skills to improve</div>
                           <div className="flex flex-wrap gap-1.5">
-                            {missingSkills.slice(0, 5).map(skill => (
-                              <Badge key={`missing-${skill}`} variant="warning">{skill}</Badge>
-                            ))}
+                            {missingSkills.slice(0, 5).map((skill) =>
+                      <Badge key={`missing-${skill}`} variant="warning">{skill}</Badge>
+                      )}
                           </div>
-                        </div>
-                      ) : null}
-                    </div>
-                  ) : null}
+                        </div> :
+                  null}
+                    </div> :
+                null}
 
                   <Button
-                    full
-                    variant="secondary"
-                    loading={atsMutation.isPending}
-                    onClick={handleCheckAtsScore}
-                  >
+                  full
+                  variant="secondary"
+                  loading={atsMutation.isPending}
+                  onClick={handleCheckAtsScore}>
+                  
                     <Star size={15} /> {atsResult ? 'Refresh ATS Score' : 'Check ATS Score'}
                   </Button>
-                </div>
-              ) : null}
+                </div> :
+              null}
             </div>
 
-            {/* Job summary */}
+            
             <div className="bg-white border border-slate-200 rounded-2xl p-5">
               <h3 className="text-sm font-semibold text-slate-900 mb-4">Job Summary</h3>
               <dl className="space-y-3 text-sm">
@@ -366,41 +372,41 @@ export default function JobDetailPage() {
                   <dt className="text-slate-500 text-xs mb-0.5">Work Type</dt>
                   <dd className="text-slate-900 font-medium capitalize">{job.location?.type}</dd>
                 </div>
-                {job.minExperience != null && (
-                  <div>
+                {job.minExperience != null &&
+                <div>
                     <dt className="text-slate-500 text-xs mb-0.5">Experience</dt>
                     <dd className="text-slate-900 font-medium">{job.minExperience}+ years</dd>
                   </div>
-                )}
-                {job.salary && (
-                  <div>
+                }
+                {job.salary &&
+                <div>
                     <dt className="text-slate-500 text-xs mb-0.5">Salary</dt>
                     <dd className="text-slate-900 font-medium">{job.salary}</dd>
                   </div>
-                )}
+                }
               </dl>
             </div>
           </div>
         </div>
       </div>
 
-      {/* Apply Modal */}
+      
       <Modal
         isOpen={applyModal}
         onClose={() => setApplyModal(false)}
         title="Apply for this position"
         footer={
-          <>
+        <>
             <Button variant="secondary" onClick={() => setApplyModal(false)}>Cancel</Button>
             <Button
-              loading={applyMutation.isPending}
-              onClick={() => applyMutation.mutate()}
-            >
+            loading={applyMutation.isPending}
+            onClick={() => applyMutation.mutate()}>
+            
               <Send size={14} /> Submit Application
             </Button>
           </>
-        }
-      >
+        }>
+        
         <div className="space-y-4">
           <div className="p-3 bg-slate-50 rounded-xl">
             <div className="font-semibold text-slate-900 text-sm">{job.title}</div>
@@ -413,13 +419,13 @@ export default function JobDetailPage() {
             <textarea
               rows={4}
               value={message}
-              onChange={e => setMessage(e.target.value)}
+              onChange={(e) => setMessage(e.target.value)}
               placeholder="Tell the recruiter why you're a great fit for this role…"
-              className="w-full bg-white border border-slate-200 rounded-lg px-3 py-2.5 text-sm text-slate-900 placeholder-slate-400 outline-none resize-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 transition-all"
-            />
+              className="w-full bg-white border border-slate-200 rounded-lg px-3 py-2.5 text-sm text-slate-900 placeholder-slate-400 outline-none resize-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 transition-all" />
+            
           </div>
         </div>
       </Modal>
-    </div>
-  );
+    </div>);
+
 }

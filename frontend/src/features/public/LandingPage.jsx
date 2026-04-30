@@ -1,15 +1,17 @@
+// Public page component for Landing.
 import { createElement } from 'react';
 import { Link } from 'react-router-dom';
 import { Bot, Zap, ShieldCheck, TrendingUp, CheckCircle2, ArrowRight, Briefcase, Building2, UserCheck, Target } from 'lucide-react';
 import Button from '../../shared/ui/Button';
 import heroImage from '../../assets/hero.png';
 
+// Render the hero section component.
 function HeroSection() {
   const heroHighlights = [
-    { icon: Bot, label: 'AI-ranked matches' },
-    { icon: ShieldCheck, label: 'Verified recruiters' },
-    { icon: TrendingUp, label: 'Faster shortlists' },
-  ];
+  { icon: Bot, label: 'AI-ranked matches' },
+  { icon: ShieldCheck, label: 'Verified recruiters' },
+  { icon: TrendingUp, label: 'Faster shortlists' }];
+
 
   return (
     <section className="relative overflow-hidden border-b border-slate-200 bg-white pt-20 pb-16 lg:pt-24 lg:pb-20">
@@ -20,8 +22,8 @@ function HeroSection() {
           alt=""
           className="w-[280px] max-w-[72vw] opacity-20 blur-[0.5px] sm:w-[340px] lg:mt-2 lg:w-[420px]"
           aria-hidden="true"
-          style={{ maskImage: 'radial-gradient(circle at center, black 42%, transparent 78%)' }}
-        />
+          style={{ maskImage: 'radial-gradient(circle at center, black 42%, transparent 78%)' }} />
+        
       </div>
       <div className="absolute inset-x-0 bottom-0 h-24 bg-gradient-to-t from-white via-white/90 to-transparent" />
 
@@ -58,48 +60,49 @@ function HeroSection() {
         </div>
 
         <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
-          {heroHighlights.map(({ icon: Icon, label }) => (
-            <div
-              key={label}
-              className="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white/85 px-4 py-2 text-sm font-medium text-slate-700 shadow-sm backdrop-blur"
-            >
+          {heroHighlights.map(({ icon: Icon, label }) =>
+          <div
+            key={label}
+            className="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white/85 px-4 py-2 text-sm font-medium text-slate-700 shadow-sm backdrop-blur">
+            
               <Icon size={16} className="text-indigo-600" />
               <span>{label}</span>
             </div>
-          ))}
+          )}
         </div>
       </div>
-    </section>
-  );
+    </section>);
+
 }
 
+// Render the stats section component.
 function StatsSection() {
   const stats = [
-    {
-      icon: Briefcase,
-      label: 'Active jobs',
-      value: '10,000+',
-      description: 'Live roles across product, engineering, design, and operations.',
-    },
-    {
-      icon: Building2,
-      label: 'Hiring companies',
-      value: '500+',
-      description: 'Growing teams using CompasX to source and shortlist faster.',
-    },
-    {
-      icon: UserCheck,
-      label: 'Successful placements',
-      value: '5,000+',
-      description: 'Candidate and recruiter matches that moved into real hiring outcomes.',
-    },
-    {
-      icon: Target,
-      label: 'Match accuracy',
-      value: '98%',
-      description: 'AI ranking tuned to surface stronger fits with less manual review.',
-    },
-  ];
+  {
+    icon: Briefcase,
+    label: 'Active jobs',
+    value: '10,000+',
+    description: 'Live roles across product, engineering, design, and operations.'
+  },
+  {
+    icon: Building2,
+    label: 'Hiring companies',
+    value: '500+',
+    description: 'Growing teams using CompasX to source and shortlist faster.'
+  },
+  {
+    icon: UserCheck,
+    label: 'Successful placements',
+    value: '5,000+',
+    description: 'Candidate and recruiter matches that moved into real hiring outcomes.'
+  },
+  {
+    icon: Target,
+    label: 'Match accuracy',
+    value: '98%',
+    description: 'AI ranking tuned to surface stronger fits with less manual review.'
+  }];
+
 
   return (
     <section className="border-b border-slate-200 bg-slate-50 py-16">
@@ -115,11 +118,11 @@ function StatsSection() {
         </div>
 
         <div className="mt-10 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-          {stats.map(({ icon: Icon, label, value, description }) => (
-            <div
-              key={label}
-              className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:border-indigo-200 hover:shadow-md"
-            >
+          {stats.map(({ icon: Icon, label, value, description }) =>
+          <div
+            key={label}
+            className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:border-indigo-200 hover:shadow-md">
+            
               <div className="flex items-center justify-between gap-4">
                 <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-indigo-50 text-indigo-600">
                   <Icon size={20} />
@@ -130,13 +133,14 @@ function StatsSection() {
               <div className="mt-2 text-sm font-semibold uppercase text-slate-500">{label}</div>
               <p className="mt-3 text-sm leading-6 text-slate-600">{description}</p>
             </div>
-          ))}
+          )}
         </div>
       </div>
-    </section>
-  );
+    </section>);
+
 }
 
+// Render the feature card component.
 function FeatureCard({ icon: Icon, title, description }) {
   return (
     <div className="group rounded-2xl border border-slate-200 bg-white p-8 transition-all duration-300 hover:border-indigo-500/40 hover:shadow-[0_8px_30px_rgb(99,102,241,0.12)]">
@@ -145,33 +149,34 @@ function FeatureCard({ icon: Icon, title, description }) {
       </div>
       <h3 className="mb-3 text-xl font-semibold text-slate-900">{title}</h3>
       <p className="leading-relaxed text-slate-600">{description}</p>
-    </div>
-  );
+    </div>);
+
 }
 
+// Render the features section component.
 function FeaturesSection() {
   const features = [
-    {
-      icon: Bot,
-      title: 'AI Resume Scoring',
-      description: 'Our proprietary AI instantly analyzes and scores resumes against job requirements, saving recruiters hours of manual screening.',
-    },
-    {
-      icon: Zap,
-      title: 'Smart Matching Engine',
-      description: 'Get personalized job recommendations based on your skills, experience, and career trajectory. Stop searching, start matching.',
-    },
-    {
-      icon: ShieldCheck,
-      title: 'Verified Opportunities',
-      description: 'Every recruiter and company on CompasX is vetted to ensure a safe, high-quality environment for all job seekers.',
-    },
-    {
-      icon: TrendingUp,
-      title: 'Actionable Insights',
-      description: 'Real-time analytics and application tracking so you never have to wonder where you stand in the hiring process.',
-    },
-  ];
+  {
+    icon: Bot,
+    title: 'AI Resume Scoring',
+    description: 'Our proprietary AI instantly analyzes and scores resumes against job requirements, saving recruiters hours of manual screening.'
+  },
+  {
+    icon: Zap,
+    title: 'Smart Matching Engine',
+    description: 'Get personalized job recommendations based on your skills, experience, and career trajectory. Stop searching, start matching.'
+  },
+  {
+    icon: ShieldCheck,
+    title: 'Verified Opportunities',
+    description: 'Every recruiter and company on CompasX is vetted to ensure a safe, high-quality environment for all job seekers.'
+  },
+  {
+    icon: TrendingUp,
+    title: 'Actionable Insights',
+    description: 'Real-time analytics and application tracking so you never have to wonder where you stand in the hiring process.'
+  }];
+
 
   return (
     <section id="features" className="relative py-24">
@@ -184,15 +189,16 @@ function FeaturesSection() {
         </div>
 
         <div className="grid gap-6 md:grid-cols-2 lg:gap-8">
-          {features.map((feat, idx) => (
-            <FeatureCard key={idx} {...feat} />
-          ))}
+          {features.map((feat, idx) =>
+          <FeatureCard key={idx} {...feat} />
+          )}
         </div>
       </div>
-    </section>
-  );
+    </section>);
+
 }
 
+// Render the step item component.
 function StepItem({ number, title, description }) {
   return (
     <div className="relative pb-12 pl-12 last:pb-0">
@@ -204,10 +210,11 @@ function StepItem({ number, title, description }) {
         {title}
       </h3>
       <p className="text-slate-600">{description}</p>
-    </div>
-  );
+    </div>);
+
 }
 
+// Render the how it works section component.
 function HowItWorksSection() {
   return (
     <section className="bg-white py-24">
@@ -223,18 +230,18 @@ function HowItWorksSection() {
               <StepItem
                 number="1"
                 title="Create your profile"
-                description="Sign up and upload your resume. Our system automatically parses and structures your data."
-              />
+                description="Sign up and upload your resume. Our system automatically parses and structures your data." />
+              
               <StepItem
                 number="2"
                 title="Discover perfect matches"
-                description="Browse opportunities curated specifically for your skill set or let the right companies find you."
-              />
+                description="Browse opportunities curated specifically for your skill set or let the right companies find you." />
+              
               <StepItem
                 number="3"
                 title="Apply & Get Hired"
-                description="Apply with a single click and track your progress through our intuitive dashboard. No more black holes."
-              />
+                description="Apply with a single click and track your progress through our intuitive dashboard. No more black holes." />
+              
             </div>
           </div>
 
@@ -265,10 +272,11 @@ function HowItWorksSection() {
           </div>
         </div>
       </div>
-    </section>
-  );
+    </section>);
+
 }
 
+// Render the cta section component.
 function CTASection() {
   return (
     <section className="border-t border-slate-200 bg-white py-16">
@@ -300,10 +308,11 @@ function CTASection() {
           </div>
         </div>
       </div>
-    </section>
-  );
+    </section>);
+
 }
 
+// Render the sparkles icon component.
 function SparklesIcon(props) {
   return (
     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}>
@@ -312,10 +321,11 @@ function SparklesIcon(props) {
       <path d="M19 17v4" />
       <path d="M3 5h4" />
       <path d="M17 19h4" />
-    </svg>
-  );
+    </svg>);
+
 }
 
+// Render the landing page.
 export default function LandingPage() {
   return (
     <div className="flex flex-col bg-transparent">
@@ -324,6 +334,6 @@ export default function LandingPage() {
       <FeaturesSection />
       <HowItWorksSection />
       <CTASection />
-    </div>
-  );
+    </div>);
+
 }

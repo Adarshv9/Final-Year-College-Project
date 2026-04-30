@@ -1,4 +1,5 @@
-// Frontend entry point that mounts React, routing, auth, and data providers.
+// Bootstraps the React app into the browser.
+
 import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
 import { QueryClientProvider } from '@tanstack/react-query';
@@ -13,8 +14,8 @@ createRoot(document.getElementById('root')).render(
     <QueryClientProvider client={queryClient}>
       <AuthProvider>
         <AppRouter />
-        {/* Toasts live once at the root so feature pages can trigger
-            notifications without mounting their own containers. */}
+        
+        
         <Toaster
           position="top-right"
           toastOptions={{
@@ -23,12 +24,12 @@ createRoot(document.getElementById('root')).render(
               color: '#0f172a',
               border: '1px solid #e2e8f0',
               borderRadius: '12px',
-              fontSize: '0.875rem',
+              fontSize: '0.875rem'
             },
             success: { iconTheme: { primary: '#10b981', secondary: '#ffffff' } },
-            error: { iconTheme: { primary: '#f43f5e', secondary: '#ffffff' } },
-          }}
-        />
+            error: { iconTheme: { primary: '#f43f5e', secondary: '#ffffff' } }
+          }} />
+        
       </AuthProvider>
     </QueryClientProvider>
   </StrictMode>

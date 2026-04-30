@@ -1,4 +1,5 @@
-// HTTP handlers for resume upload, retrieval, manual edits, and admin verification.
+// Handles HTTP requests for resume endpoints.
+
 import asyncHandler from '../utils/asyncHandler.js';
 import ApiError from '../utils/ApiError.js';
 import ApiResponse from '../utils/ApiResponse.js';
@@ -6,16 +7,17 @@ import * as resumeService from '../services/resume.service.js';
 import cloudinary, { buildResumeDownloadUrl } from '../config/cloudinary.js';
 import logger from '../utils/logger.js';
 
+// Handle Filename.
 const sanitizeFilename = (value = '') =>
-  value
-    .trim()
-    .replace(/[^a-zA-Z0-9]+/g, '_')
-    .replace(/^_+|_+$/g, '')
-    .slice(0, 80);
+value.
+trim().
+replace(/[^a-zA-Z0-9]+/g, '_').
+replace(/^_+|_+$/g, '').
+slice(0, 80);
 
-/**
- * PUT /resume - Upload and parse PDF resume (synchronous)
- */
+
+
+
 export const uploadResume = asyncHandler(async (req, res) => {
   if (req.user.role !== 'job_seeker') {
     throw new ApiError(403, 'Only job seekers can upload resume', [], false);
@@ -26,14 +28,17 @@ export const uploadResume = asyncHandler(async (req, res) => {
 
   let clientDisconnected = false;
   let responseFinished = false;
+  // Handle Disconnected.
   const markDisconnected = () => {
     if (!responseFinished) {
       clientDisconnected = true;
     }
   };
+  // Handle Finished.
   const markFinished = () => {
     responseFinished = true;
   };
+  // Handle Client Connected.
   const assertClientConnected = () => {
     if (clientDisconnected || req.aborted || res.destroyed) {
       throw new ApiError(499, 'Resume upload canceled by client', [], true, 'CLIENT_DISCONNECTED');
@@ -46,35 +51,35 @@ export const uploadResume = asyncHandler(async (req, res) => {
 
   try {
     const resume = await resumeService.processResumeFile(req.user.id, req.file.buffer, {
-      assertClientConnected,
+      assertClientConnected
     });
     assertClientConnected();
 
     const isCreated =
-      resume.createdAt &&
-      resume.updatedAt &&
-      resume.createdAt.getTime() === resume.updatedAt.getTime();
+    resume.createdAt &&
+    resume.updatedAt &&
+    resume.createdAt.getTime() === resume.updatedAt.getTime();
     const statusCode = isCreated ? 201 : 200;
-    const message = isCreated
-      ? 'Resume uploaded and parsed successfully'
-      : 'Resume updated successfully';
+    const message = isCreated ?
+    'Resume uploaded and parsed successfully' :
+    'Resume updated successfully';
 
     return res.status(statusCode).json(
       new ApiResponse(statusCode, message, {
         name: resume.name,
         skills: resume.skills,
         experienceYears: resume.experienceYears,
-        fileUrl: resume.fileUrl,
+        fileUrl: resume.fileUrl
       })
     );
   } catch (error) {
     if (
-      error?.errorCode === 'CLIENT_DISCONNECTED' ||
-      error?.statusCode === 499 ||
-      clientDisconnected ||
-      req.aborted ||
-      res.destroyed
-    ) {
+    error?.errorCode === 'CLIENT_DISCONNECTED' ||
+    error?.statusCode === 499 ||
+    clientDisconnected ||
+    req.aborted ||
+    res.destroyed)
+    {
       logger.info(`Resume upload canceled by client for user ${req.user.id}`);
       return;
     }
@@ -89,9 +94,9 @@ export const uploadResume = asyncHandler(async (req, res) => {
   }
 });
 
-/**
- * GET /resume - Fetch current user's resume
- */
+
+
+
 export const getResume = asyncHandler(async (req, res) => {
   if (req.user.role !== 'job_seeker') {
     throw new ApiError(403, 'Only job seekers can view resume', [], false);
@@ -117,44 +122,44 @@ export const downloadResume = asyncHandler(async (req, res) => {
     throw new ApiError(404, 'Resume file not found', [], false);
   }
 
-  // Fast path: redirect to a secure, signed URL for proper Cloudinary delivery.
+
   if (resume.filePublicId) {
     const signedUrl = buildResumeDownloadUrl(resume.filePublicId, resume.name || req.user.name);
     if (signedUrl) {
       return res.redirect(signedUrl);
     }
   } else if (resume.fileUrl) {
-    // Fallback to storing URL if publicId isn't somehow available
+
     return res.redirect(resume.fileUrl);
   }
 
   const publicId = resume.filePublicId || '';
   const normalizedPublicId = publicId.endsWith('.pdf') ? publicId.slice(0, -4) : publicId;
   const candidateUrls = [
-    '',
-    publicId
-      ? cloudinary.url(publicId, { resource_type: 'raw', type: 'upload', secure: true })
-      : '',
-    normalizedPublicId
-      ? cloudinary.url(normalizedPublicId, {
-        resource_type: 'raw',
-        type: 'upload',
-        format: 'pdf',
-        secure: true,
-      })
-      : '',
-    publicId
-      ? cloudinary.url(publicId, { resource_type: 'image', type: 'upload', secure: true })
-      : '',
-    normalizedPublicId
-      ? cloudinary.url(normalizedPublicId, {
-        resource_type: 'image',
-        type: 'upload',
-        format: 'pdf',
-        secure: true,
-      })
-      : '',
-  ].filter(Boolean);
+  '',
+  publicId ?
+  cloudinary.url(publicId, { resource_type: 'raw', type: 'upload', secure: true }) :
+  '',
+  normalizedPublicId ?
+  cloudinary.url(normalizedPublicId, {
+    resource_type: 'raw',
+    type: 'upload',
+    format: 'pdf',
+    secure: true
+  }) :
+  '',
+  publicId ?
+  cloudinary.url(publicId, { resource_type: 'image', type: 'upload', secure: true }) :
+  '',
+  normalizedPublicId ?
+  cloudinary.url(normalizedPublicId, {
+    resource_type: 'image',
+    type: 'upload',
+    format: 'pdf',
+    secure: true
+  }) :
+  ''].
+  filter(Boolean);
 
   let response = null;
   let lastStatus = 0;
@@ -162,8 +167,9 @@ export const downloadResume = asyncHandler(async (req, res) => {
   const noCacheHeaders = {
     'Cache-Control': 'no-cache, no-store, must-revalidate',
     Pragma: 'no-cache',
-    Expires: '0',
+    Expires: '0'
   };
+  // Handle Cache Buster.
   const withCacheBuster = (url) => {
     const separator = url.includes('?') ? '&' : '?';
     return `${url}${separator}cb=${Date.now()}`;
@@ -203,9 +209,9 @@ export const downloadResume = asyncHandler(async (req, res) => {
   res.status(200).send(buffer);
 });
 
-/**
- * DELETE /resume - Delete current user's resume
- */
+
+
+
 export const deleteResume = asyncHandler(async (req, res) => {
   if (req.user.role !== 'job_seeker') {
     throw new ApiError(403, 'Only job seekers can delete resume', [], false);
@@ -215,9 +221,9 @@ export const deleteResume = asyncHandler(async (req, res) => {
   res.status(200).json(new ApiResponse(200, 'Resume deleted successfully', null));
 });
 
-/**
- * PATCH /resume - Partial update of current user's resume
- */
+
+
+
 export const updateResume = asyncHandler(async (req, res) => {
   if (req.user.role !== 'job_seeker') {
     throw new ApiError(403, 'Only job seekers can update resume', [], false);
@@ -235,14 +241,15 @@ export const updateResume = asyncHandler(async (req, res) => {
   res.status(200).json(new ApiResponse(200, 'Resume updated successfully', null));
 });
 
-/**
- * POST /resume/manual - Manual resume creation or update
- */
+
+
+
 export const manualResume = asyncHandler(async (req, res) => {
   if (req.user.role !== 'job_seeker') {
     throw new ApiError(403, 'Only job seekers can save resume manually', [], false);
   }
 
+  // Normalize education.
   const normalizeEducation = (value) => {
     if (Array.isArray(value)) return value;
     if (!value || Object.keys(value).length === 0) return [];
@@ -261,7 +268,7 @@ export const manualResume = asyncHandler(async (req, res) => {
     fileUrl: existingResume?.fileUrl || manualData.fileUrl || '',
     filePublicId: existingResume?.filePublicId || manualData.filePublicId || '',
     rawText: existingResume?.rawText || manualData.rawText || '',
-    parsedData: existingResume?.parsedData || manualData.parsedData || {},
+    parsedData: existingResume?.parsedData || manualData.parsedData || {}
   });
 
   res.status(200).json(new ApiResponse(200, 'Resume saved successfully', null));
@@ -273,7 +280,7 @@ export const getAllResumes = asyncHandler(async (req, res) => {
   const result = await resumeService.getAllResumes({
     limit: parseInt(limit, 10),
     page: parseInt(page, 10),
-    search,
+    search
   });
 
   res.status(200).json(new ApiResponse(200, 'Resumes fetched successfully', result));
@@ -288,7 +295,7 @@ export const verifyResume = asyncHandler(async (req, res) => {
   }
 
   const resume = await resumeService.updateResumeVerification(resumeId, isVerified);
-  res
-    .status(200)
-    .json(new ApiResponse(200, 'Resume verification updated successfully', resume));
+  res.
+  status(200).
+  json(new ApiResponse(200, 'Resume verification updated successfully', resume));
 });

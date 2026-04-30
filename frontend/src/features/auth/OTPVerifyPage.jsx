@@ -1,4 +1,5 @@
-// OTP verification page that completes email-based account confirmation.
+// Page component for the OTPVerify authentication flow.
+
 import { useState, useEffect, useRef } from 'react';
 import { useNavigate, useLocation, Link } from 'react-router-dom';
 import { RefreshCcw } from 'lucide-react';
@@ -10,6 +11,7 @@ import BrandLogo from '../../shared/ui/BrandLogo';
 const OTP_LENGTH = 6;
 const RESEND_COOLDOWN = 60;
 
+// Render the OTP verify page.
 export default function OTPVerifyPage() {
   const [otp, setOtp] = useState(Array(OTP_LENGTH).fill(''));
   const [loading, setLoading] = useState(false);
@@ -20,29 +22,31 @@ export default function OTPVerifyPage() {
   const location = useLocation();
   const email = location.state?.email || '';
 
-  // Redirect if no email provided (can arrive from both register and login flows)
+
   useEffect(() => {
     if (!email) navigate('/login');
   }, [email, navigate]);
 
-  // Countdown timer
+
   useEffect(() => {
     if (countdown <= 0) return;
-    const t = setInterval(() => setCountdown(c => c - 1), 1000);
+    const t = setInterval(() => setCountdown((c) => c - 1), 1000);
     return () => clearInterval(t);
   }, [countdown]);
 
+  // Handle change.
   const handleChange = (val, idx) => {
     const char = val.replace(/\D/g, '').slice(-1);
     const next = [...otp];
     next[idx] = char;
     setOtp(next);
     if (char && idx < OTP_LENGTH - 1) inputsRef.current[idx + 1]?.focus();
-    if (next.every(c => c) && next.join('').length === OTP_LENGTH) {
+    if (next.every((c) => c) && next.join('').length === OTP_LENGTH) {
       submitOTP(next.join(''));
     }
   };
 
+  // Handle key down.
   const handleKeyDown = (e, idx) => {
     if (e.key === 'Backspace' && !otp[idx] && idx > 0) {
       inputsRef.current[idx - 1]?.focus();
@@ -51,6 +55,7 @@ export default function OTPVerifyPage() {
     if (e.key === 'ArrowRight' && idx < OTP_LENGTH - 1) inputsRef.current[idx + 1]?.focus();
   };
 
+  // Handle paste.
   const handlePaste = (e) => {
     const pasted = e.clipboardData.getData('text').replace(/\D/g, '').slice(0, OTP_LENGTH);
     if (pasted.length) {
@@ -61,6 +66,7 @@ export default function OTPVerifyPage() {
     }
   };
 
+  // Handle OTP.
   const submitOTP = async (code) => {
     setLoading(true);
     try {
@@ -76,6 +82,7 @@ export default function OTPVerifyPage() {
     }
   };
 
+  // Handle resend.
   const handleResend = async () => {
     setResending(true);
     try {
@@ -91,6 +98,7 @@ export default function OTPVerifyPage() {
     }
   };
 
+  // Handle manual submit.
   const handleManualSubmit = () => {
     const code = otp.join('');
     if (code.length === OTP_LENGTH) submitOTP(code);
@@ -99,7 +107,7 @@ export default function OTPVerifyPage() {
   return (
     <div className="min-h-screen flex items-center justify-center bg-slate-50 p-4">
       <div className="w-full max-w-[440px] bg-white border border-slate-200 rounded-2xl p-8 shadow-2xl animate-fade-in">
-        {/* Logo */}
+        
         <div className="flex items-center gap-3 mb-8">
           <Link to="/" aria-label="Go to home" className="inline-flex items-center gap-2.5">
             <BrandLogo imageClassName="h-10 w-auto" />
@@ -114,26 +122,26 @@ export default function OTPVerifyPage() {
           </p>
         </div>
 
-        {/* OTP inputs */}
+        
         <div className="flex gap-2 justify-center mb-6" onPaste={handlePaste}>
-          {otp.map((val, idx) => (
-            <input
-              key={idx}
-              ref={el => (inputsRef.current[idx] = el)}
-              type="text"
-              inputMode="numeric"
-              maxLength={1}
-              value={val}
-              onChange={(e) => handleChange(e.target.value, idx)}
-              onKeyDown={(e) => handleKeyDown(e, idx)}
-              className={[
-                'w-12 h-14 text-center text-xl font-bold bg-white border rounded-xl',
-                'text-slate-900 outline-none transition-all duration-150',
-                val ? 'border-indigo-500 bg-indigo-500/5' : 'border-slate-200',
-                'focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20',
-              ].join(' ')}
-            />
-          ))}
+          {otp.map((val, idx) =>
+          <input
+            key={idx}
+            ref={(el) => inputsRef.current[idx] = el}
+            type="text"
+            inputMode="numeric"
+            maxLength={1}
+            value={val}
+            onChange={(e) => handleChange(e.target.value, idx)}
+            onKeyDown={(e) => handleKeyDown(e, idx)}
+            className={[
+            'w-12 h-14 text-center text-xl font-bold bg-white border rounded-xl',
+            'text-slate-900 outline-none transition-all duration-150',
+            val ? 'border-indigo-500 bg-indigo-500/5' : 'border-slate-200',
+            'focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20'].
+            join(' ')} />
+
+          )}
         </div>
 
         <Button
@@ -141,32 +149,32 @@ export default function OTPVerifyPage() {
           size="lg"
           onClick={handleManualSubmit}
           loading={loading}
-          disabled={otp.join('').length !== OTP_LENGTH}
-        >
+          disabled={otp.join('').length !== OTP_LENGTH}>
+          
           Verify Email
         </Button>
 
-        {/* Resend */}
+        
         <div className="flex items-center justify-center gap-2 mt-6">
           <span className="text-sm text-slate-500">Didn&apos;t receive it?</span>
-          {countdown > 0 ? (
-            <span className="text-sm text-slate-600">Resend in {countdown}s</span>
-          ) : (
-            <button
-              onClick={handleResend}
-              disabled={resending}
-              className="flex items-center gap-1.5 text-sm font-semibold text-indigo-600 hover:text-indigo-700 disabled:opacity-50 transition-colors"
-            >
+          {countdown > 0 ?
+          <span className="text-sm text-slate-600">Resend in {countdown}s</span> :
+
+          <button
+            onClick={handleResend}
+            disabled={resending}
+            className="flex items-center gap-1.5 text-sm font-semibold text-indigo-600 hover:text-indigo-700 disabled:opacity-50 transition-colors">
+            
               <RefreshCcw size={13} className={resending ? 'animate-spin' : ''} />
               Resend OTP
             </button>
-          )}
+          }
         </div>
 
         <p className="text-center text-sm text-slate-500 mt-4">
           <Link to="/login" className="text-indigo-600 hover:underline">← Back to login</Link>
         </p>
       </div>
-    </div>
-  );
+    </div>);
+
 }

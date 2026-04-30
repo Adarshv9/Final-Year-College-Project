@@ -1,4 +1,5 @@
-// ── Application Service ──
+// Implements business logic for application workflows.
+
 import Application from '../models/Application.js';
 import Job from '../models/Job.js';
 import Resume from '../models/Resume.js';
@@ -16,11 +17,12 @@ const DECISION_EMAIL_POLL_MS = 5 * 1000;
 let decisionEmailProcessor = null;
 let isProcessingDecisionEmails = false;
 
-// This service handles both recruiter-facing application queries and the
-// delayed decision-email workflow that runs in the background.
 
-// ── Email ─────────────────────────────────────────────────────────────────────
 
+
+
+
+// Send application email.
 const sendApplicationEmail = async ({ to, subject, html }) => {
   try {
     await sendEmail({
@@ -28,7 +30,7 @@ const sendApplicationEmail = async ({ to, subject, html }) => {
       from: EMAIL_FROM_ADDRESS,
       to,
       subject,
-      html,
+      html
     });
   } catch (error) {
     logger.error(`Application email send error: ${error.message}`);
@@ -36,57 +38,60 @@ const sendApplicationEmail = async ({ to, subject, html }) => {
   }
 };
 
-// ── Helpers ───────────────────────────────────────────────────────────────────
 
+
+// Build resume snapshot.
 const buildResumeSnapshot = (resume) => {
   const firstEducation =
-    Array.isArray(resume.education) && resume.education.length > 0
-      ? resume.education[0]
-      : {};
+  Array.isArray(resume.education) && resume.education.length > 0 ?
+  resume.education[0] :
+  {};
 
   return {
-    // Store only the fields needed for ranking so applications stay stable
-    // even if the candidate edits their resume later.
+
+
     name: resume.name || '',
     skills: normalizeSkills(resume.skills || []),
     experienceYears: resume.experienceYears || 0,
     education: {
       degree: firstEducation.degree || '',
       institution: firstEducation.institution || '',
-      year: firstEducation.year ?? null,
-    },
+      year: firstEducation.year ?? null
+    }
   };
 };
 
+// Check whether snapshot education exists.
 const hasSnapshotEducation = (education = {}) =>
-  Boolean(education?.degree || education?.institution || education?.year);
+Boolean(education?.degree || education?.institution || education?.year);
 
+// Build applicant details.
 const buildApplicantDetails = (application) => {
   const resume =
-    application.resumeId && typeof application.resumeId === 'object'
-      ? application.resumeId
-      : null;
+  application.resumeId && typeof application.resumeId === 'object' ?
+  application.resumeId :
+  null;
 
   const snapshot = application.resumeSnapshot || {};
-  const snapshotEducation = hasSnapshotEducation(snapshot.education)
-    ? [snapshot.education]
-    : [];
+  const snapshotEducation = hasSnapshotEducation(snapshot.education) ?
+  [snapshot.education] :
+  [];
 
-  // Prefer the frozen snapshot first so recruiter views stay tied to the
-  // version of the resume that was actually submitted.
+
+
   const skills =
-    Array.isArray(snapshot.skills) && snapshot.skills.length > 0
-      ? snapshot.skills
-      : Array.isArray(resume?.skills)
-        ? resume.skills
-        : [];
+  Array.isArray(snapshot.skills) && snapshot.skills.length > 0 ?
+  snapshot.skills :
+  Array.isArray(resume?.skills) ?
+  resume.skills :
+  [];
 
   const education =
-    snapshotEducation.length > 0
-      ? snapshotEducation
-      : Array.isArray(resume?.education)
-        ? resume.education
-        : [];
+  snapshotEducation.length > 0 ?
+  snapshotEducation :
+  Array.isArray(resume?.education) ?
+  resume.education :
+  [];
 
   return {
     name: application.jobSeekerId?.name || snapshot.name || resume?.name || 'Applicant',
@@ -103,10 +108,11 @@ const buildApplicantDetails = (application) => {
       resume?.filePublicId,
       application.jobSeekerId?.name || snapshot.name || resume?.name || 'Resume'
     ),
-    resumeVerified: Boolean(resume?.isVerified),
+    resumeVerified: Boolean(resume?.isVerified)
   };
 };
 
+// Build job summary.
 const buildJobSummary = (job) => {
   if (!job || typeof job !== 'object') return null;
 
@@ -114,43 +120,47 @@ const buildJobSummary = (job) => {
     _id: String(job._id || ''),
     title: job.title || '',
     companyName: job.companyName || '',
-    location: job.location || '',
+    location: job.location || ''
   };
 };
 
+// Get owned job.
 const getOwnedJob = async (jobId, recruiterId) => {
   const job = await Job.findOne({ _id: jobId, recruiterId }).lean();
   if (!job) throw new ApiError(404, 'Job not found', [], false);
   return job;
 };
 
+// Get application with ownership check.
 const getApplicationWithOwnershipCheck = async (applicationId, recruiterId) => {
   const application = await Application.findById(applicationId).lean();
   if (!application) throw new ApiError(404, 'Application not found', [], false);
-  // Ownership is enforced through the job so recruiters cannot mutate
-  // applications that belong to another recruiter.
+
+
   const job = await getOwnedJob(application.jobId, recruiterId);
   return { application, job };
 };
 
+// Check whether complete application.
 const isCompleteApplication = async (application, jobSeekerId) => {
   if (!application?.resumeId) return false;
 
   const hasSnapshot =
-    application.resumeSnapshot &&
-    typeof application.resumeSnapshot === 'object' &&
-    Array.isArray(application.resumeSnapshot.skills);
+  application.resumeSnapshot &&
+  typeof application.resumeSnapshot === 'object' &&
+  Array.isArray(application.resumeSnapshot.skills);
 
   if (!hasSnapshot) return false;
 
   const resumeExists = await Resume.exists({
     _id: application.resumeId,
-    user: jobSeekerId,
+    user: jobSeekerId
   });
 
   return Boolean(resumeExists);
 };
 
+// Build decision email content.
 const buildDecisionEmailContent = ({ candidate, job, status }) => {
   if (status === 'accepted') {
     return {
@@ -160,7 +170,7 @@ const buildDecisionEmailContent = ({ candidate, job, status }) => {
         <p>Hi ${candidate.name},</p>
         <p>Your application for <strong>${job.title}</strong> at <strong>${job.companyName}</strong> has been accepted.</p>
         <p>Best regards,<br/>Job Portal Team</p>
-      `,
+      `
     };
   }
 
@@ -172,30 +182,33 @@ const buildDecisionEmailContent = ({ candidate, job, status }) => {
       <p>Thank you for applying to <strong>${job.title}</strong> at <strong>${job.companyName}</strong>.</p>
       <p>After review, your application was not selected for this role.</p>
       <p>Best regards,<br/>Job Portal Team</p>
-    `,
+    `
   };
 };
 
+// Build decision email update.
 const buildDecisionEmailUpdate = (status) => ({
-  // Delay the email slightly so recruiters can undo accidental decisions.
+
   'decisionEmail.type': status,
   'decisionEmail.status': 'scheduled',
   'decisionEmail.sendAt': new Date(Date.now() + DECISION_EMAIL_DELAY_MS),
   'decisionEmail.sentAt': null,
-  'decisionEmail.lastError': '',
+  'decisionEmail.lastError': ''
 });
 
+// Build cancelled decision email update.
 const buildCancelledDecisionEmailUpdate = () => ({
   'decisionEmail.type': null,
   'decisionEmail.status': 'cancelled',
   'decisionEmail.sendAt': null,
   'decisionEmail.sentAt': null,
-  'decisionEmail.lastError': '',
+  'decisionEmail.lastError': ''
 });
 
-/**
- * Compute and persist AI + hybrid scores for an application.
- */
+
+
+
+// Hydrate application scores.
 const hydrateApplicationScores = async (applicationId, job, resumeSnapshot) => {
   const aiResult = await scoreApplication(job, resumeSnapshot);
 
@@ -204,22 +217,23 @@ const hydrateApplicationScores = async (applicationId, job, resumeSnapshot) => {
     minExp: job.minExperience || 0,
     candidateSkills: resumeSnapshot.skills || [],
     candidateExp: resumeSnapshot.experienceYears || 0,
-    aiScore: aiResult.matchScore,
+    aiScore: aiResult.matchScore
   });
 
   await Application.findByIdAndUpdate(applicationId, {
     $set: {
       aiScore: aiResult.matchScore,
       aiReason: aiResult.reason,
-      hybridScore,
-    },
+      hybridScore
+    }
   });
 
   return { aiScore: aiResult.matchScore, aiReason: aiResult.reason, hybridScore };
 };
 
-// ── Public API ────────────────────────────────────────────────────────────────
 
+
+// Create application.
 export const createApplication = async (jobId, jobSeeker, message = '') => {
   const job = await Job.findOne({ _id: jobId, isActive: true }).lean();
   if (!job) throw new ApiError(404, 'Job not found', [], false);
@@ -229,7 +243,7 @@ export const createApplication = async (jobId, jobSeeker, message = '') => {
 
   const existingApplication = await Application.findOne({
     jobId,
-    jobSeekerId: jobSeeker._id,
+    jobSeekerId: jobSeeker._id
   });
   if (existingApplication) {
     const hasCompleteApplication = await isCompleteApplication(existingApplication, jobSeeker._id);
@@ -238,8 +252,8 @@ export const createApplication = async (jobId, jobSeeker, message = '') => {
       throw new ApiError(409, 'You have already applied for this job', [], false);
     }
 
-    // Recover from legacy/incomplete rows so candidates are not permanently
-    // blocked after an earlier failed apply attempt.
+
+
     await Application.findByIdAndDelete(existingApplication._id);
     await Job.findByIdAndUpdate(jobId, { $pull: { applicants: jobSeeker._id } });
   }
@@ -251,20 +265,20 @@ export const createApplication = async (jobId, jobSeeker, message = '') => {
       jobSeekerId: jobSeeker._id,
       recruiterId: job.recruiterId,
       resumeId: resume._id,
-      // Snapshot the resume at apply-time so later resume edits do not
-      // retroactively change the submitted application.
+
+
       resumeSnapshot: buildResumeSnapshot(resume),
       message,
       status: 'pending',
       aiScore: null,
       aiReason: null,
-      hybridScore: null,
+      hybridScore: null
     });
   } catch (error) {
     if (error?.code === 11000) {
       const duplicateFields = Object.keys(error.keyPattern || error.keyValue || {});
       const isApplicationDuplicate =
-        duplicateFields.includes('jobId') && duplicateFields.includes('jobSeekerId');
+      duplicateFields.includes('jobId') && duplicateFields.includes('jobSeekerId');
 
       if (isApplicationDuplicate) {
         throw new ApiError(409, 'You have already applied for this job', [], false);
@@ -273,8 +287,8 @@ export const createApplication = async (jobId, jobSeeker, message = '') => {
     throw error;
   }
 
-  // The job keeps a lightweight applicant list for recruiter dashboards while
-  // the full application document stores the detailed submission payload.
+
+
   await Job.findByIdAndUpdate(jobId, { $addToSet: { applicants: jobSeeker._id } });
 
   try {
@@ -287,7 +301,7 @@ export const createApplication = async (jobId, jobSeeker, message = '') => {
         <p>Your application for <strong>${job.title}</strong> at <strong>${job.companyName}</strong> has been submitted successfully.</p>
         <p>Status: pending</p>
         <p>Best regards,<br/>Job Portal Team</p>
-      `,
+      `
     });
   } catch (error) {
     await Application.findByIdAndDelete(application._id);
@@ -296,15 +310,16 @@ export const createApplication = async (jobId, jobSeeker, message = '') => {
   }
 };
 
+// Get my applications.
 export const getMyApplications = async (jobSeekerId) => {
-  const applications = await Application.find({ jobSeekerId })
-    .populate('jobId', 'title companyName location')
-    .sort({ createdAt: -1 })
-    .lean();
+  const applications = await Application.find({ jobSeekerId }).
+  populate('jobId', 'title companyName location').
+  sort({ createdAt: -1 }).
+  lean();
 
   return applications.map((application) => ({
-    // Flatten populate output so the frontend does not have to handle
-    // different shapes for populated vs. unpopulated relations.
+
+
     applicationId: String(application._id),
     jobId: String(application.jobId?._id || application.jobId || ''),
     jobTitle: application.jobId?.title || '',
@@ -312,17 +327,18 @@ export const getMyApplications = async (jobSeekerId) => {
     location: application.jobId?.location || null,
     status: application.status,
     appliedAt: application.createdAt,
-    message: application.message || '',
+    message: application.message || ''
   }));
 };
 
+// Get recruiter applications.
 export const getRecruiterApplications = async (recruiterId, options = {}) => {
   const {
     page = 1,
     limit = 100,
     status,
     jobId,
-    sort = 'newest',
+    sort = 'newest'
   } = options;
 
   if (jobId) {
@@ -338,23 +354,23 @@ export const getRecruiterApplications = async (recruiterId, options = {}) => {
   const sortOption = sort === 'oldest' ? { createdAt: 1 } : { createdAt: -1 };
 
   const [applications, total] = await Promise.all([
-    Application.find(query)
-      .populate('jobId', 'title companyName location')
-      .populate('jobSeekerId', 'name email')
-      .populate(
-        'resumeId',
-        'name email phone location summary skills education experiences experienceYears fileUrl isVerified'
-      )
-      .sort(sortOption)
-      .skip(skip)
-      .limit(limit)
-      .lean(),
-    Application.countDocuments(query),
-  ]);
+  Application.find(query).
+  populate('jobId', 'title companyName location').
+  populate('jobSeekerId', 'name email').
+  populate(
+    'resumeId',
+    'name email phone location summary skills education experiences experienceYears fileUrl isVerified'
+  ).
+  sort(sortOption).
+  skip(skip).
+  limit(limit).
+  lean(),
+  Application.countDocuments(query)]
+  );
 
   return {
-    // Flatten related documents here so the frontend receives a stable shape
-    // for tables and candidate cards.
+
+
     data: applications.map((application) => {
       const applicant = buildApplicantDetails(application);
 
@@ -369,21 +385,22 @@ export const getRecruiterApplications = async (recruiterId, options = {}) => {
         aiScore: application.aiScore,
         hybridScore: application.hybridScore,
         appliedAt: application.createdAt,
-        job: buildJobSummary(application.jobId),
+        job: buildJobSummary(application.jobId)
       };
     }),
     pagination: {
       page,
       limit,
       total,
-      pages: Math.ceil(total / limit),
-    },
+      pages: Math.ceil(total / limit)
+    }
   };
 };
 
-/**
- * Get applications for a job — paginated and filterable by status.
- */
+
+
+
+// Get applications for job.
 export const getApplicationsForJob = async (jobId, recruiterId, options = {}) => {
   await getOwnedJob(jobId, recruiterId);
 
@@ -394,18 +411,18 @@ export const getApplicationsForJob = async (jobId, recruiterId, options = {}) =>
   if (status) query.status = status;
 
   const [applications, total] = await Promise.all([
-    Application.find(query)
-      .populate('jobSeekerId', 'name email')
-      .populate(
-        'resumeId',
-        'name email phone location summary skills education experiences experienceYears fileUrl isVerified'
-      )
-      .sort({ createdAt: -1 })
-      .skip(skip)
-      .limit(limit)
-      .lean(),
-    Application.countDocuments(query),
-  ]);
+  Application.find(query).
+  populate('jobSeekerId', 'name email').
+  populate(
+    'resumeId',
+    'name email phone location summary skills education experiences experienceYears fileUrl isVerified'
+  ).
+  sort({ createdAt: -1 }).
+  skip(skip).
+  limit(limit).
+  lean(),
+  Application.countDocuments(query)]
+  );
 
   return {
     data: applications.map((application) => {
@@ -421,28 +438,29 @@ export const getApplicationsForJob = async (jobId, recruiterId, options = {}) =>
         message: application.message || '',
         aiScore: application.aiScore,
         hybridScore: application.hybridScore,
-        appliedAt: application.createdAt,
+        appliedAt: application.createdAt
       };
     }),
     pagination: {
       page,
       limit,
       total,
-      pages: Math.ceil(total / limit),
-    },
+      pages: Math.ceil(total / limit)
+    }
   };
 };
 
+// Get recommended applications.
 export const getRecommendedApplications = async (jobId, recruiterId) => {
   const job = await getOwnedJob(jobId, recruiterId);
-  const applications = await Application.find({ jobId })
-    .populate('jobSeekerId', 'name email')
-    .populate(
-      'resumeId',
-      'name email phone location summary skills education experiences experienceYears fileUrl isVerified'
-    )
-    .sort({ createdAt: -1 })
-    .lean();
+  const applications = await Application.find({ jobId }).
+  populate('jobSeekerId', 'name email').
+  populate(
+    'resumeId',
+    'name email phone location summary skills education experiences experienceYears fileUrl isVerified'
+  ).
+  sort({ createdAt: -1 }).
+  lean();
 
   const rankedApplications = [];
 
@@ -452,8 +470,8 @@ export const getRecommendedApplications = async (jobId, recruiterId) => {
     let hybridScore = application.hybridScore;
 
     if (aiScore === null || hybridScore === null) {
-      // Older rows may not have scores yet, so compute them lazily here
-      // instead of forcing a backfill migration.
+
+
       const scores = await hydrateApplicationScores(
         application._id,
         job,
@@ -477,7 +495,7 @@ export const getRecommendedApplications = async (jobId, recruiterId) => {
       aiScore,
       hybridScore,
       reason: aiReason || '',
-      appliedAt: application.createdAt,
+      appliedAt: application.createdAt
     });
   }
 
@@ -487,6 +505,7 @@ export const getRecommendedApplications = async (jobId, recruiterId) => {
   });
 };
 
+// Update application status.
 export const updateApplicationStatus = async (applicationId, recruiter, status) => {
   const { application, job } = await getApplicationWithOwnershipCheck(
     applicationId,
@@ -501,18 +520,18 @@ export const updateApplicationStatus = async (applicationId, recruiter, status) 
       status,
       candidateEmail: candidate.email,
       jobTitle: job.title,
-      decisionEmailSendAt: null,
+      decisionEmailSendAt: null
     };
   }
 
   if (status === 'pending') {
-    // Moving back to pending acts like an undo, so any scheduled decision
-    // email is cancelled before it can be sent.
+
+
     await Application.findByIdAndUpdate(applicationId, {
       $set: {
         status,
-        ...buildCancelledDecisionEmailUpdate(),
-      },
+        ...buildCancelledDecisionEmailUpdate()
+      }
     });
 
     logger.info(`Decision email cancelled for application ${applicationId}; status reverted to pending`);
@@ -521,7 +540,7 @@ export const updateApplicationStatus = async (applicationId, recruiter, status) 
       status,
       candidateEmail: candidate.email,
       jobTitle: job.title,
-      decisionEmailSendAt: null,
+      decisionEmailSendAt: null
     };
   }
 
@@ -529,8 +548,8 @@ export const updateApplicationStatus = async (applicationId, recruiter, status) 
   await Application.findByIdAndUpdate(applicationId, {
     $set: {
       status,
-      ...buildDecisionEmailUpdate(status),
-    },
+      ...buildDecisionEmailUpdate(status)
+    }
   });
 
   logger.info(
@@ -541,64 +560,65 @@ export const updateApplicationStatus = async (applicationId, recruiter, status) 
     status,
     candidateEmail: candidate.email,
     jobTitle: job.title,
-    decisionEmailSendAt,
+    decisionEmailSendAt
   };
 };
 
+// Process scheduled decision emails.
 export const processScheduledDecisionEmails = async () => {
   if (isProcessingDecisionEmails) return;
   isProcessingDecisionEmails = true;
 
   try {
     const now = new Date();
-    // Process a small batch at a time so email work does not monopolize the
-    // event loop if many decisions become due together.
+
+
     const dueApplications = await Application.find({
       'decisionEmail.status': 'scheduled',
-      'decisionEmail.sendAt': { $lte: now },
-    })
-      .select('_id jobId jobSeekerId status decisionEmail')
-      .limit(20)
-      .lean();
+      'decisionEmail.sendAt': { $lte: now }
+    }).
+    select('_id jobId jobSeekerId status decisionEmail').
+    limit(20).
+    lean();
 
     for (const dueApplication of dueApplications) {
-      // Claim the row first so concurrent polling loops cannot send twice.
+
       const claimedApplication = await Application.findOneAndUpdate(
         {
           _id: dueApplication._id,
           'decisionEmail.status': 'scheduled',
-          'decisionEmail.sendAt': { $lte: now },
+          'decisionEmail.sendAt': { $lte: now }
         },
         {
           $set: {
-            'decisionEmail.status': 'processing',
-          },
+            'decisionEmail.status': 'processing'
+          }
         },
         { new: true }
       ).lean();
 
       if (!claimedApplication) continue;
 
-      // If the recruiter changed the decision meanwhile, cancel the stale email.
+
       const decisionType = claimedApplication.decisionEmail?.type;
       if (!decisionType || decisionType !== claimedApplication.status) {
         await Application.findByIdAndUpdate(claimedApplication._id, {
-          $set: buildCancelledDecisionEmailUpdate(),
+          $set: buildCancelledDecisionEmailUpdate()
         });
         continue;
       }
 
       const [candidate, job] = await Promise.all([
-        User.findById(claimedApplication.jobSeekerId).lean(),
-        Job.findById(claimedApplication.jobId).lean(),
-      ]);
+      User.findById(claimedApplication.jobSeekerId).lean(),
+      Job.findById(claimedApplication.jobId).lean()]
+      );
 
       if (!candidate || !job) {
         await Application.findByIdAndUpdate(claimedApplication._id, {
           $set: {
             'decisionEmail.status': 'failed',
-            'decisionEmail.lastError': 'Candidate or job not found while sending decision email',
-          },
+            'decisionEmail.lastError': 'Candidate or job not found while sending decision email'
+          }
         });
         continue;
       }
@@ -606,14 +626,14 @@ export const processScheduledDecisionEmails = async () => {
       const { subject, html } = buildDecisionEmailContent({
         candidate,
         job,
-        status: decisionType,
+        status: decisionType
       });
 
       try {
         await sendApplicationEmail({
           to: candidate.email,
           subject,
-          html,
+          html
         });
 
         await Application.findByIdAndUpdate(claimedApplication._id, {
@@ -621,8 +641,8 @@ export const processScheduledDecisionEmails = async () => {
             'decisionEmail.status': 'sent',
             'decisionEmail.sentAt': new Date(),
             'decisionEmail.sendAt': null,
-            'decisionEmail.lastError': '',
-          },
+            'decisionEmail.lastError': ''
+          }
         });
       } catch (error) {
         logger.error(`Decision email send failed for application ${claimedApplication._id}: ${error.message}`);
@@ -630,8 +650,8 @@ export const processScheduledDecisionEmails = async () => {
         await Application.findByIdAndUpdate(claimedApplication._id, {
           $set: {
             'decisionEmail.status': 'failed',
-            'decisionEmail.lastError': error.message,
-          },
+            'decisionEmail.lastError': error.message
+          }
         });
       }
     }
@@ -640,9 +660,11 @@ export const processScheduledDecisionEmails = async () => {
   }
 };
 
+// Start decision email processor.
 export const startDecisionEmailProcessor = () => {
   if (decisionEmailProcessor) return decisionEmailProcessor;
 
+  // Handle Processor.
   const runProcessor = async () => {
     try {
       await processScheduledDecisionEmails();
@@ -651,8 +673,8 @@ export const startDecisionEmailProcessor = () => {
     }
   };
 
-  // A simple polling loop is enough here because the scheduled workload is
-  // small and entirely persisted in MongoDB.
+
+
   decisionEmailProcessor = setInterval(runProcessor, DECISION_EMAIL_POLL_MS);
   if (typeof decisionEmailProcessor.unref === 'function') {
     decisionEmailProcessor.unref();
@@ -662,6 +684,7 @@ export const startDecisionEmailProcessor = () => {
   return decisionEmailProcessor;
 };
 
+// Stop decision email processor.
 export const stopDecisionEmailProcessor = () => {
   if (!decisionEmailProcessor) return;
 

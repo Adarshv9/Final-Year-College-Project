@@ -1,8 +1,10 @@
-// Cloudinary configuration and helpers for storing resume files.
+// Configures Cloudinary for resume and media storage.
+
 import { v2 as cloudinary } from 'cloudinary';
 import ApiError from '../utils/ApiError.js';
 import { env } from './env.js';
 
+// Parse cloudinary URL.
 const parseCloudinaryUrl = (cloudinaryUrl) => {
   if (!cloudinaryUrl) return null;
 
@@ -11,7 +13,7 @@ const parseCloudinaryUrl = (cloudinaryUrl) => {
     return {
       cloud_name: parsed.hostname,
       api_key: decodeURIComponent(parsed.username),
-      api_secret: decodeURIComponent(parsed.password),
+      api_secret: decodeURIComponent(parsed.password)
     };
   } catch (_error) {
     return null;
@@ -23,16 +25,18 @@ const cloudinaryConfig = parseCloudinaryUrl(env.cloudinaryUrl);
 if (cloudinaryConfig) {
   cloudinary.config({
     ...cloudinaryConfig,
-    secure: true,
+    secure: true
   });
 }
 
+// Handle Configured.
 const ensureConfigured = () => {
   if (!cloudinaryConfig) {
     throw new ApiError(500, 'Cloudinary is not configured');
   }
 };
 
+// Handle Resume Buffer.
 export const uploadResumeBuffer = async (buffer, options = {}) => {
   ensureConfigured();
 
@@ -40,14 +44,14 @@ export const uploadResumeBuffer = async (buffer, options = {}) => {
     const stream = cloudinary.uploader.upload_stream(
       {
         resource_type: 'raw',
-        // Force Cloudinary to treat this asset as a PDF so the dashboard
-        // shows a PDF "Format" and PDF viewers/downloads behave correctly.
-        // format: 'pdf',
+
+
+
         folder: 'talentbridge/resumes',
         use_filename: true,
         unique_filename: true,
         overwrite: false,
-        ...options,
+        ...options
       },
       (error, result) => {
         if (error || !result) {
@@ -63,44 +67,47 @@ export const uploadResumeBuffer = async (buffer, options = {}) => {
   });
 };
 
+// Delete resume asset.
 export const deleteResumeAsset = async (publicId) => {
   if (!publicId || !cloudinaryConfig) return;
 
   try {
     const resImage = await cloudinary.uploader.destroy(publicId, {
-      resource_type: 'raw',
+      resource_type: 'raw'
     });
-    
-    // Also attempt raw resource deletion in case there are old format files
+
+
     if (resImage.result !== 'ok') {
       await cloudinary.uploader.destroy(publicId, {
-        resource_type: 'raw',
+        resource_type: 'raw'
       });
     }
   } catch (err) {
-    // ignore deletion errors to prevent blocker
+
   }
 };
 
+// Handle Attachment Name.
 const sanitizeAttachmentName = (value = '') =>
-  value
-    .trim()
-    .replace(/[^a-zA-Z0-9]+/g, '_')
-    .replace(/^_+|_+$/g, '')
-    .slice(0, 80);
+value.
+trim().
+replace(/[^a-zA-Z0-9]+/g, '_').
+replace(/^_+|_+$/g, '').
+slice(0, 80);
 
+// Build resume download URL.
 export const buildResumeDownloadUrl = (publicId, resumeName = 'Resume') => {
   if (!publicId || !cloudinaryConfig) return '';
 
   const attachmentName = sanitizeAttachmentName(`${resumeName}_Resume`) || 'Resume';
-  // const looksLikePdfPublicId = /\.pdf$/i.test(publicId);
+
 
   return cloudinary.url(publicId, {
     resource_type: 'raw',
     type: 'upload',
     flags: `attachment:${attachmentName}`,
     secure: true,
-    sign_url: true,
+    sign_url: true
   });
 };
 

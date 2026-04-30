@@ -1,4 +1,5 @@
-// Admin page for managing platform users, roles, and account status.
+// Admin page component for Users.
+
 import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Search, Users, Trash2, X, ShieldCheck } from 'lucide-react';
@@ -12,6 +13,7 @@ import Pagination from '../../shared/ui/Pagination';
 import Modal from '../../shared/ui/Modal';
 import { useAuth } from '../../context/AuthContext';
 
+// Render the users page.
 export default function UsersPage() {
   const { user: currentUser } = useAuth();
   const qc = useQueryClient();
@@ -23,8 +25,8 @@ export default function UsersPage() {
 
   const { data, isLoading } = useQuery({
     queryKey: ['admin-users', search, role, page],
-    queryFn: () => adminApi.getUsers({ search, role, page, limit: 15 }).then(r => r.data),
-    staleTime: 10000,
+    queryFn: () => adminApi.getUsers({ search, role, page, limit: 15 }).then((r) => r.data),
+    staleTime: 10000
   });
 
   const promoteMutation = useMutation({
@@ -34,7 +36,7 @@ export default function UsersPage() {
       setPromoteId(null);
       qc.invalidateQueries({ queryKey: ['admin-users'] });
     },
-    onError: (err) => toast.error(err.response?.data?.message || 'Failed to promote user'),
+    onError: (err) => toast.error(err.response?.data?.message || 'Failed to promote user')
   });
 
   const deleteMutation = useMutation({
@@ -44,7 +46,7 @@ export default function UsersPage() {
       setDeleteId(null);
       qc.invalidateQueries({ queryKey: ['admin-users'] });
     },
-    onError: (err) => toast.error(err.response?.data?.message || 'Failed to delete user'),
+    onError: (err) => toast.error(err.response?.data?.message || 'Failed to delete user')
   });
 
   const users = data?.data?.users || data?.users || [];
@@ -53,7 +55,7 @@ export default function UsersPage() {
   const ROLE_COLORS = {
     job_seeker: 'accent',
     recruiter: 'success',
-    admin: 'warning',
+    admin: 'warning'
   };
 
   return (
@@ -64,43 +66,43 @@ export default function UsersPage() {
         <p className="text-xs text-slate-600 mt-2">Only existing email-verified users can be promoted to admin.</p>
       </div>
 
-      {/* Filters */}
+      
       <div className="flex flex-col sm:flex-row gap-3">
         <div className="relative flex-1">
           <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
           <input
             type="text"
             value={search}
-            onChange={e => { setSearch(e.target.value); setPage(1); }}
+            onChange={(e) => {setSearch(e.target.value);setPage(1);}}
             placeholder="Search by name or email…"
-            className="w-full bg-white border border-slate-200 rounded-xl pl-9 pr-4 py-2.5 text-sm text-slate-900 placeholder-slate-400 outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 transition-all"
-          />
+            className="w-full bg-white border border-slate-200 rounded-xl pl-9 pr-4 py-2.5 text-sm text-slate-900 placeholder-slate-400 outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 transition-all" />
+          
         </div>
         <select
           value={role}
-          onChange={e => { setRole(e.target.value); setPage(1); }}
+          onChange={(e) => {setRole(e.target.value);setPage(1);}}
           className="bg-white border border-slate-200 rounded-xl px-3 py-2.5 text-sm text-slate-900 outline-none focus:border-indigo-500 cursor-pointer"
-          style={{ appearance: 'none', backgroundImage: "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%2364748b' d='M6 8L1 3h10z'/%3E%3C/svg%3E\")", backgroundRepeat: 'no-repeat', backgroundPosition: 'right 12px center', paddingRight: '2rem' }}
-        >
+          style={{ appearance: 'none', backgroundImage: "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%2364748b' d='M6 8L1 3h10z'/%3E%3C/svg%3E\")", backgroundRepeat: 'no-repeat', backgroundPosition: 'right 12px center', paddingRight: '2rem' }}>
+          
           <option value="">All Roles</option>
           <option value="job_seeker">Job Seekers</option>
           <option value="recruiter">Recruiters</option>
           <option value="admin">Admins</option>
         </select>
-        {(search || role) && (
-          <button onClick={() => { setSearch(''); setRole(''); setPage(1); }} className="flex items-center gap-1.5 text-sm text-slate-500 hover:text-rose-400 transition-colors px-2">
+        {(search || role) &&
+        <button onClick={() => {setSearch('');setRole('');setPage(1);}} className="flex items-center gap-1.5 text-sm text-slate-500 hover:text-rose-400 transition-colors px-2">
             <X size={14} /> Clear
           </button>
-        )}
+        }
       </div>
 
-      {/* Table */}
-      {isLoading ? (
-        <SkeletonList count={8} />
-      ) : users.length === 0 ? (
-        <EmptyState icon={Users} title="No users found" description="Try adjusting your search or filters" />
-      ) : (
-        <div className="bg-white border border-slate-200 rounded-xl overflow-hidden">
+      
+      {isLoading ?
+      <SkeletonList count={8} /> :
+      users.length === 0 ?
+      <EmptyState icon={Users} title="No users found" description="Try adjusting your search or filters" /> :
+
+      <div className="bg-white border border-slate-200 rounded-xl overflow-hidden">
           <table className="w-full">
             <thead>
               <tr className="bg-slate-50 border-b border-slate-200">
@@ -112,8 +114,8 @@ export default function UsersPage() {
               </tr>
             </thead>
             <tbody>
-              {users.map(user => (
-                <tr key={user._id} className="border-b border-slate-200 last:border-0 hover:bg-slate-50 transition-colors">
+              {users.map((user) =>
+            <tr key={user._id} className="border-b border-slate-200 last:border-0 hover:bg-slate-50 transition-colors">
                   <td className="px-5 py-4">
                     <div className="flex items-center gap-3">
                       <div className="w-8 h-8 bg-indigo-500/10 rounded-full flex items-center justify-center text-xs font-bold text-indigo-400 flex-shrink-0">
@@ -135,41 +137,41 @@ export default function UsersPage() {
                       <Badge variant={user.emailVerified ? 'success' : 'warning'}>
                         {user.emailVerified ? 'Email Verified' : 'Email Unverified'}
                       </Badge>
-                      {user.role !== 'admin' && !user.emailVerified && (
-                        <span className="text-xs text-amber-400">Verify email before promotion</span>
-                      )}
+                      {user.role !== 'admin' && !user.emailVerified &&
+                  <span className="text-xs text-amber-400">Verify email before promotion</span>
+                  }
                     </div>
                   </td>
                   <td className="px-5 py-4">
                     <div className="flex items-center gap-2 justify-end">
-                      {user.role !== 'admin' && (
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          disabled={!user.emailVerified}
-                          onClick={() => setPromoteId(user._id)}
-                        >
+                      {user.role !== 'admin' &&
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    disabled={!user.emailVerified}
+                    onClick={() => setPromoteId(user._id)}>
+                    
                           <ShieldCheck size={14} />
                           Make Admin
                         </Button>
-                      )}
-                      {user.email !== 'vishwakar@student.iul.ac.in' && user.email !== currentUser?.email && (
-                        <Button
-                          variant="danger"
-                          size="icon-sm"
-                          onClick={() => setDeleteId(user._id)}
-                        >
+                  }
+                      {user.email !== 'vishwakar@student.iul.ac.in' && user.email !== currentUser?.email &&
+                  <Button
+                    variant="danger"
+                    size="icon-sm"
+                    onClick={() => setDeleteId(user._id)}>
+                    
                           <Trash2 size={13} />
                         </Button>
-                      )}
+                  }
                     </div>
                   </td>
                 </tr>
-              ))}
+            )}
             </tbody>
           </table>
         </div>
-      )}
+      }
 
       <Pagination page={page} totalPages={pagination?.totalPages || 1} onPageChange={setPage} />
 
@@ -178,33 +180,33 @@ export default function UsersPage() {
         onClose={() => setPromoteId(null)}
         title="Promote User to Admin"
         footer={
-          <>
+        <>
             <Button variant="secondary" onClick={() => setPromoteId(null)}>Cancel</Button>
             <Button variant="outline" loading={promoteMutation.isPending} onClick={() => promoteMutation.mutate(promoteId)}>
               Promote to Admin
             </Button>
           </>
-        }
-      >
+        }>
+        
         <p className="text-sm text-slate-600">This will grant the selected existing verified user full admin access to the platform.</p>
       </Modal>
 
-      {/* Delete modal */}
+      
       <Modal
         isOpen={!!deleteId}
         onClose={() => setDeleteId(null)}
         title="Delete User"
         footer={
-          <>
+        <>
             <Button variant="secondary" onClick={() => setDeleteId(null)}>Cancel</Button>
             <Button variant="danger" loading={deleteMutation.isPending} onClick={() => deleteMutation.mutate(deleteId)}>
               Delete User
             </Button>
           </>
-        }
-      >
+        }>
+        
         <p className="text-sm text-slate-600">Are you sure you want to permanently delete this user account? All their data will be removed.</p>
       </Modal>
-    </div>
-  );
+    </div>);
+
 }

@@ -1,14 +1,16 @@
-// ── Token Service ──
+// Implements business logic for token workflows.
+
 import jwt from 'jsonwebtoken';
 import { env } from '../config/env.js';
 import User from '../models/User.js';
 import ApiError from '../utils/ApiError.js';
 
-/**
- * Generate an access token for a user.
- * @param {Object} user - Mongoose user document
- * @returns {string} JWT access token
- */
+
+
+
+
+
+// Generate access token.
 export const generateAccessToken = (user) => {
   return jwt.sign(
     { id: user._id, email: user.email, role: user.role },
@@ -17,12 +19,13 @@ export const generateAccessToken = (user) => {
   );
 };
 
-/**
- * Generate a refresh token, persist it in the database,
- * and return the token string.
- * @param {Object} user - Mongoose user document
- * @returns {Promise<string>} JWT refresh token
- */
+
+
+
+
+
+
+// Generate refresh token.
 export const generateRefreshToken = async (user) => {
   const refreshToken = jwt.sign(
     { id: user._id },
@@ -30,38 +33,39 @@ export const generateRefreshToken = async (user) => {
     { expiresIn: env.jwt.refreshExpiry }
   );
 
-  // Persist the token expiry so embedded refresh tokens can be pruned later.
+
   const decoded = jwt.decode(refreshToken);
   const expiresAt = new Date(decoded.exp * 1000);
   const now = new Date();
 
-  // First, remove expired tokens
+
   await User.findByIdAndUpdate(user._id, {
     $pull: {
       refreshTokens: {
-        expiresAt: { $lte: now },
-      },
-    },
+        expiresAt: { $lte: now }
+      }
+    }
   });
 
-  // Then, add the new token
+
   await User.findByIdAndUpdate(user._id, {
     $push: {
       refreshTokens: {
         token: refreshToken,
-        expiresAt,
-      },
-    },
+        expiresAt
+      }
+    }
   });
 
   return refreshToken;
 };
 
-/**
- * Verify a refresh token and return the decoded payload.
- * @param {string} token - Refresh token string
- * @returns {Promise<Object>} Decoded token payload
- */
+
+
+
+
+
+// Verify refresh token.
 export const verifyRefreshToken = async (token) => {
   const decoded = jwt.verify(token, env.jwt.refreshSecret);
   const now = new Date();
@@ -71,13 +75,13 @@ export const verifyRefreshToken = async (token) => {
     {
       $pull: {
         refreshTokens: {
-          expiresAt: { $lte: now },
-        },
-      },
+          expiresAt: { $lte: now }
+        }
+      }
     },
     {
       new: true,
-      select: '+refreshTokens',
+      select: '+refreshTokens'
     }
   );
 
@@ -92,29 +96,31 @@ export const verifyRefreshToken = async (token) => {
   return decoded;
 };
 
-/**
- * Remove a specific refresh token (used during logout).
- * @param {string} token - Refresh token string
- */
+
+
+
+
+// Remove refresh token.
 export const removeRefreshToken = async (token) => {
   await User.updateOne(
     { 'refreshTokens.token': token },
     {
       $pull: {
         refreshTokens: {
-          token,
-        },
-      },
+          token
+        }
+      }
     }
   );
 };
 
-/**
- * Remove all refresh tokens for a user (e.g. password change).
- * @param {string} userId - User ObjectId
- */
+
+
+
+
+// Remove all user tokens.
 export const removeAllUserTokens = async (userId) => {
   await User.findByIdAndUpdate(userId, {
-    $set: { refreshTokens: [] },
+    $set: { refreshTokens: [] }
   });
 };

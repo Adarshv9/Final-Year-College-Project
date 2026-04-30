@@ -1,4 +1,5 @@
-// Job seeker resume page for PDF upload, manual editing, and resume management.
+// Job seeker page component for Resume.
+
 import { useEffect, useRef, useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useForm, useFieldArray } from 'react-hook-form';
@@ -11,35 +12,37 @@ import TagInput from '../../shared/ui/TagInput';
 import Alert from '../../shared/ui/Alert';
 
 const RESUME_PROCESS_STEPS = [
-  {
-    title: 'Uploading PDF',
-    description: 'Sending your file securely to the server',
-  },
-  {
-    title: 'Extracting text',
-    description: 'Reading the PDF and extracting resume content',
-  },
-  {
-    title: 'Parsing with AI',
-    description: 'Structuring skills, experience, education, and projects',
-  },
-  {
-    title: 'Saving resume',
-    description: 'Updating your profile and storing the source PDF',
-  },
-];
+{
+  title: 'Uploading PDF',
+  description: 'Sending your file securely to the server'
+},
+{
+  title: 'Extracting text',
+  description: 'Reading the PDF and extracting resume content'
+},
+{
+  title: 'Parsing with AI',
+  description: 'Structuring skills, experience, education, and projects'
+},
+{
+  title: 'Saving resume',
+  description: 'Updating your profile and storing the source PDF'
+}];
 
+
+// Get upload status text.
 function getUploadStatusText(step, progress) {
   if (step === 0) {
-    return progress > 0 && progress < 100
-      ? `Uploading PDF (${progress}%)`
-      : 'Uploading PDF...';
+    return progress > 0 && progress < 100 ?
+    `Uploading PDF (${progress}%)` :
+    'Uploading PDF...';
   }
   if (step === 1) return 'Extracting text from PDF...';
   if (step === 2) return 'Parsing resume with AI...';
   return 'Saving resume to your profile...';
 }
 
+// Render the upload tab component.
 function UploadTab({ resume, file, setFile, uploadMutation, uploadProgress, uploadStep, aiSlow, onCancelUpload }) {
   const qc = useQueryClient();
   const fileRef = useRef(null);
@@ -53,18 +56,20 @@ function UploadTab({ resume, file, setFile, uploadMutation, uploadProgress, uplo
       toast.success('Resume deleted');
       qc.invalidateQueries({ queryKey: ['my-resume'] });
     },
-    onError: (err) => toast.error(err.response?.data?.message || 'Delete failed'),
+    onError: (err) => toast.error(err.response?.data?.message || 'Delete failed')
   });
 
+  // Handle file.
   const handleFile = (f) => {
     if (!f) return;
     if (isUploading) return;
-    // Mirror backend upload limits here so validation feels instant.
-    if (f.type !== 'application/pdf') { toast.error('Only PDF files allowed'); return; }
-    if (f.size > 2 * 1024 * 1024) { toast.error('Max file size is 2 MB'); return; }
+
+    if (f.type !== 'application/pdf') {toast.error('Only PDF files allowed');return;}
+    if (f.size > 2 * 1024 * 1024) {toast.error('Max file size is 2 MB');return;}
     setFile(f);
   };
 
+  // Handle drop.
   const handleDrop = (e) => {
     e.preventDefault();
     setDragging(false);
@@ -75,8 +80,8 @@ function UploadTab({ resume, file, setFile, uploadMutation, uploadProgress, uplo
 
   return (
     <div className="space-y-5">
-      {resume ? (
-        <div className="flex items-center justify-between p-4 bg-emerald-500/10 border border-emerald-500/30 rounded-xl">
+      {resume ?
+      <div className="flex items-center justify-between p-4 bg-emerald-500/10 border border-emerald-500/30 rounded-xl">
           <div className="flex items-center gap-3">
             <CheckCircle2 size={20} className="text-emerald-400" />
             <div>
@@ -85,38 +90,38 @@ function UploadTab({ resume, file, setFile, uploadMutation, uploadProgress, uplo
             </div>
           </div>
           <div className="flex gap-2">
-            {resume.fileUrl && (
-              <a href="/api/v1/resumes/resume/download">
+            {resume.fileUrl &&
+          <a href="/api/v1/resumes/resume/download">
                 <Button variant="secondary" size="sm"><Download size={13} /> Download</Button>
               </a>
-            )}
+          }
             <Button
-              variant="danger"
-              size="sm"
-              loading={deleteMutation.isPending}
-              disabled={isUploading}
-              onClick={() => deleteMutation.mutate()}
-            >
+            variant="danger"
+            size="sm"
+            loading={deleteMutation.isPending}
+            disabled={isUploading}
+            onClick={() => deleteMutation.mutate()}>
+            
               <Trash2 size={13} /> Remove
             </Button>
           </div>
-        </div>
-      ) : null}
+        </div> :
+      null}
 
-      {!resume ? (
-        <>
-          {/* Drop zone */}
+      {!resume ?
+      <>
+          
           <div
-            className={`border-2 border-dashed rounded-xl p-8 text-center transition-all ${isUploading ? 'opacity-60 cursor-not-allowed border-slate-200' : dragging ? 'border-indigo-500 bg-indigo-500/5 cursor-pointer' : 'border-slate-200 hover:border-slate-300 cursor-pointer'}`}
-            onClick={() => { if (!isUploading) fileRef.current?.click(); }}
-            onDragOver={(e) => {
-              e.preventDefault();
-              if (isUploading) return;
-              setDragging(true);
-            }}
-            onDragLeave={() => setDragging(false)}
-            onDrop={handleDrop}
-          >
+          className={`border-2 border-dashed rounded-xl p-8 text-center transition-all ${isUploading ? 'opacity-60 cursor-not-allowed border-slate-200' : dragging ? 'border-indigo-500 bg-indigo-500/5 cursor-pointer' : 'border-slate-200 hover:border-slate-300 cursor-pointer'}`}
+          onClick={() => {if (!isUploading) fileRef.current?.click();}}
+          onDragOver={(e) => {
+            e.preventDefault();
+            if (isUploading) return;
+            setDragging(true);
+          }}
+          onDragLeave={() => setDragging(false)}
+          onDrop={handleDrop}>
+          
             <Upload size={28} className={`mx-auto mb-3 ${dragging && !isUploading ? 'text-indigo-400' : 'text-slate-500'}`} />
             <p className="text-sm font-medium text-slate-900 mb-1">
               {file ? file.name : 'Drop your resume here or click to browse'}
@@ -125,17 +130,17 @@ function UploadTab({ resume, file, setFile, uploadMutation, uploadProgress, uplo
               {isUploading ? statusText : 'PDF only, max 2 MB'}
             </p>
             <input
-              ref={fileRef}
-              type="file"
-              accept="application/pdf"
-              className="hidden"
-              disabled={isUploading}
-              onChange={e => handleFile(e.target.files[0])}
-            />
+            ref={fileRef}
+            type="file"
+            accept="application/pdf"
+            className="hidden"
+            disabled={isUploading}
+            onChange={(e) => handleFile(e.target.files[0])} />
+          
           </div>
 
-          {isUploading && (
-            <Alert type="info">
+          {isUploading &&
+        <Alert type="info">
               <div className="space-y-4">
                 <div>
                   <div className="font-semibold text-slate-900">Processing your resume</div>
@@ -144,38 +149,38 @@ function UploadTab({ resume, file, setFile, uploadMutation, uploadProgress, uplo
                   </p>
                 </div>
 
-                {/* Slow AI warning */}
-                {aiSlow && uploadStep === 2 && (
-                  <div className="text-xs text-amber-300/90 bg-amber-500/10 border border-amber-500/20 rounded-lg px-3 py-2 flex items-center gap-2">
+                
+                {aiSlow && uploadStep === 2 &&
+            <div className="text-xs text-amber-300/90 bg-amber-500/10 border border-amber-500/20 rounded-lg px-3 py-2 flex items-center gap-2">
                     <Clock size={13} className="flex-shrink-0 text-amber-400" />
                     The AI is taking longer than usual — free models can queue. Please keep the tab open and wait.
                   </div>
-                )}
+            }
 
                 <div className="space-y-3">
                   {RESUME_PROCESS_STEPS.map((step, index) => {
-                    const isCompleted = index < uploadStep;
-                    const isActive = index === uploadStep;
-                    const title =
-                      index === 0 && isActive && uploadProgress > 0 && uploadProgress < 100
-                        ? `${step.title} (${uploadProgress}%)`
-                        : step.title;
+                const isCompleted = index < uploadStep;
+                const isActive = index === uploadStep;
+                const title =
+                index === 0 && isActive && uploadProgress > 0 && uploadProgress < 100 ?
+                `${step.title} (${uploadProgress}%)` :
+                step.title;
 
-                    return (
-                      <div key={step.title} className="flex items-start gap-3">
+                return (
+                  <div key={step.title} className="flex items-start gap-3">
                         <div className="mt-0.5 flex-shrink-0">
-                          {isCompleted ? (
-                            <CheckCircle2 size={16} className="text-emerald-300" />
-                          ) : (
-                            <span
-                              className={[
-                                'block h-3 w-3 rounded-full border',
-                                isActive
-                                  ? 'border-indigo-200 bg-indigo-300 animate-pulse'
-                                  : 'border-indigo-200/40 bg-transparent',
-                              ].join(' ')}
-                            />
-                          )}
+                          {isCompleted ?
+                      <CheckCircle2 size={16} className="text-emerald-300" /> :
+
+                      <span
+                        className={[
+                        'block h-3 w-3 rounded-full border',
+                        isActive ?
+                        'border-indigo-200 bg-indigo-300 animate-pulse' :
+                        'border-indigo-200/40 bg-transparent'].
+                        join(' ')} />
+
+                      }
                         </div>
                         <div className="min-w-0">
                           <div className={isActive ? 'text-slate-900 font-medium' : 'text-slate-600'}>
@@ -183,53 +188,54 @@ function UploadTab({ resume, file, setFile, uploadMutation, uploadProgress, uplo
                           </div>
                           <div className="text-xs text-slate-500">{step.description}</div>
                         </div>
-                      </div>
-                    );
-                  })}
+                      </div>);
+
+              })}
                 </div>
               </div>
             </Alert>
-          )}
+        }
 
           {file && (
-            isUploading ? (
-              <div className="flex gap-3">
+        isUploading ?
+        <div className="flex gap-3">
                 <Button
-                  className="flex-1"
-                  loading={uploadMutation.isPending}
-                  onClick={() => uploadMutation.mutate(file)}
-                >
+            className="flex-1"
+            loading={uploadMutation.isPending}
+            onClick={() => uploadMutation.mutate(file)}>
+            
                   <Upload size={14} /> {statusText}
                 </Button>
                 <Button
-                  variant="secondary"
-                  onClick={onCancelUpload}
-                >
+            variant="secondary"
+            onClick={onCancelUpload}>
+            
                   Cancel Upload
                 </Button>
-              </div>
-            ) : (
-              <Button
-                full
-                loading={uploadMutation.isPending}
-                onClick={() => uploadMutation.mutate(file)}
-              >
+              </div> :
+
+        <Button
+          full
+          loading={uploadMutation.isPending}
+          onClick={() => uploadMutation.mutate(file)}>
+          
                 <Upload size={14} /> Upload Resume
-              </Button>
-            )
-          )}
-        </>
-      ) : null}
-    </div>
-  );
+              </Button>)
+
+        }
+        </> :
+      null}
+    </div>);
+
 }
 
+// Render the manual edit tab component.
 function ManualEditTab({ resume }) {
   const qc = useQueryClient();
   const [skills, setSkills] = useState(resume?.skills || []);
 
   const { register, handleSubmit, control, formState: { isSubmitting } } = useForm({
-    // `values` rehydrates the editor whenever a saved resume is fetched or refreshed.
+
     values: resume ? {
       name: resume.name || '',
       email: resume.email || '',
@@ -239,8 +245,8 @@ function ManualEditTab({ resume }) {
       experienceYears: resume.experienceYears || '',
       experiences: resume.experiences || [],
       education: resume.education || [],
-      projects: resume.projects || [],
-    } : {},
+      projects: resume.projects || []
+    } : {}
   });
 
   const { fields: expFields, append: appendExp, remove: removeExp } = useFieldArray({ control, name: 'experiences' });
@@ -255,7 +261,7 @@ function ManualEditTab({ resume }) {
       toast.success('Resume saved!');
       qc.invalidateQueries({ queryKey: ['my-resume'] });
     },
-    onError: (err) => toast.error(err.response?.data?.message || 'Failed to save'),
+    onError: (err) => toast.error(err.response?.data?.message || 'Failed to save')
   });
 
   const inputCls = 'w-full bg-white border border-slate-200 rounded-lg px-3 py-2.5 text-sm text-slate-900 placeholder-slate-400 outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20';
@@ -263,8 +269,8 @@ function ManualEditTab({ resume }) {
   const sectionCls = 'bg-slate-50 rounded-lg border border-slate-200 p-4 space-y-3';
 
   return (
-    <form onSubmit={handleSubmit(d => mutation.mutate({ ...d, skills }))} className="space-y-6">
-      {/* Basic info */}
+    <form onSubmit={handleSubmit((d) => mutation.mutate({ ...d, skills }))} className="space-y-6">
+      
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div className="flex flex-col gap-1.5">
           <label className={labelCls}>Full Name</label>
@@ -288,16 +294,16 @@ function ManualEditTab({ resume }) {
         </div>
       </div>
 
-      {/* Summary */}
+      
       <div className="flex flex-col gap-1.5">
         <label className={labelCls}>Professional Summary</label>
         <textarea rows={3} className={`${inputCls} resize-y`} placeholder="Brief overview of your expertise…" {...register('summary')} />
       </div>
 
-      {/* Skills */}
+      
       <TagInput value={skills} onChange={setSkills} placeholder="Add skill…" label="Skills" />
 
-      {/* Experience */}
+      
       <div>
         <div className="flex items-center justify-between mb-3">
           <label className={labelCls}>Work Experience</label>
@@ -306,8 +312,8 @@ function ManualEditTab({ resume }) {
           </Button>
         </div>
         <div className="space-y-3">
-          {expFields.map((f, i) => (
-            <div key={f.id} className={sectionCls}>
+          {expFields.map((f, i) =>
+          <div key={f.id} className={sectionCls}>
               <div className="flex justify-end">
                 <button type="button" onClick={() => removeExp(i)} className="text-rose-400 hover:text-rose-300"><Trash2 size={14} /></button>
               </div>
@@ -318,11 +324,11 @@ function ManualEditTab({ resume }) {
                 <input className={inputCls} placeholder="End Date (or Present)" {...register(`experiences.${i}.endDate`)} />
               </div>
             </div>
-          ))}
+          )}
         </div>
       </div>
 
-      {/* Education */}
+      
       <div>
         <div className="flex items-center justify-between mb-3">
           <label className={labelCls}>Education</label>
@@ -331,8 +337,8 @@ function ManualEditTab({ resume }) {
           </Button>
         </div>
         <div className="space-y-3">
-          {eduFields.map((f, i) => (
-            <div key={f.id} className={sectionCls}>
+          {eduFields.map((f, i) =>
+          <div key={f.id} className={sectionCls}>
               <div className="flex justify-end">
                 <button type="button" onClick={() => removeEdu(i)} className="text-rose-400 hover:text-rose-300"><Trash2 size={14} /></button>
               </div>
@@ -342,11 +348,11 @@ function ManualEditTab({ resume }) {
                 <input type="number" className={inputCls} placeholder="Graduation Year" {...register(`education.${i}.year`)} />
               </div>
             </div>
-          ))}
+          )}
         </div>
       </div>
 
-      {/* Projects */}
+      
       <div>
         <div className="flex items-center justify-between mb-3">
           <label className={labelCls}>Projects</label>
@@ -355,25 +361,26 @@ function ManualEditTab({ resume }) {
           </Button>
         </div>
         <div className="space-y-3">
-          {projFields.map((f, i) => (
-            <div key={f.id} className={sectionCls}>
+          {projFields.map((f, i) =>
+          <div key={f.id} className={sectionCls}>
               <div className="flex justify-end">
                 <button type="button" onClick={() => removeProj(i)} className="text-rose-400 hover:text-rose-300"><Trash2 size={14} /></button>
               </div>
               <input className={inputCls} placeholder="Project Title" {...register(`projects.${i}.title`)} />
               <textarea rows={2} className={`${inputCls} resize-none`} placeholder="Short description…" {...register(`projects.${i}.description`)} />
             </div>
-          ))}
+          )}
         </div>
       </div>
 
       <Button type="submit" loading={isSubmitting || mutation.isPending} size="lg">
         <Save size={16} /> {isNew ? 'Create Resume' : 'Save Resume'}
       </Button>
-    </form>
-  );
+    </form>);
+
 }
 
+// Render the resume page.
 export default function ResumePage() {
   const [tab, setTab] = useState('upload');
   const [uploadFile, setUploadFile] = useState(null);
@@ -383,12 +390,14 @@ export default function ResumePage() {
   const qc = useQueryClient();
   const abortControllerRef = useRef(null);
 
+  // Handle Upload State.
   const resetUploadState = () => {
     setUploadProgress(0);
     setUploadStep(0);
     setAiSlow(false);
   };
 
+  // Handle cancel upload.
   const handleCancelUpload = () => {
     abortControllerRef.current?.abort();
   };
@@ -404,9 +413,9 @@ export default function ResumePage() {
         signal: controller.signal,
         onUploadProgress: (event) => {
           if (!event.total) return;
-          const nextProgress = Math.min(100, Math.round((event.loaded / event.total) * 100));
+          const nextProgress = Math.min(100, Math.round(event.loaded / event.total * 100));
           setUploadProgress(nextProgress);
-        },
+        }
       });
     },
     onSuccess: () => {
@@ -425,26 +434,26 @@ export default function ResumePage() {
     },
     onSettled: () => {
       abortControllerRef.current = null;
-    },
+    }
   });
 
   useEffect(() => {
     if (!uploadMutation.isPending) return undefined;
     if (uploadProgress < 100) {
-      // eslint-disable-next-line react-hooks/set-state-in-effect
+
       setUploadStep(0);
       return undefined;
     }
 
-    // PDF reached server — start the server-side pipeline steps
+
     setUploadStep(1);
 
-    // Step 1 (text extraction) is fast — advance to AI parsing after ~1.5s
+
     const extractTimer = setTimeout(() => setUploadStep(2), 1500);
 
-    // Step 2 (AI) can take 30-60s on a free model.
-    // Show a "taking longer than usual" warning after 15s.
-    // Do NOT auto-advance to "Saving" — only advance when the response truly arrives.
+
+
+
     const slowTimer = setTimeout(() => setAiSlow(true), 16_500);
 
     return () => {
@@ -453,10 +462,10 @@ export default function ResumePage() {
     };
   }, [uploadMutation.isPending, uploadProgress]);
 
-  // When the mutation finally resolves (AI done + saved), bump to the last step briefly
+
   useEffect(() => {
     if (uploadMutation.isSuccess) {
-      // eslint-disable-next-line react-hooks/set-state-in-effect
+
       setUploadStep(3);
     }
   }, [uploadMutation.isSuccess]);
@@ -467,19 +476,19 @@ export default function ResumePage() {
 
   const { data: resume, isLoading } = useQuery({
     queryKey: ['my-resume'],
-    queryFn: () => resumeApi.get().then(r => r.data.data).catch(err => {
-      // A missing resume is a normal empty state for new users.
+    queryFn: () => resumeApi.get().then((r) => r.data.data).catch((err) => {
+
       if (err.response?.status === 404) return null;
       throw err;
-    }),
+    })
   });
 
   if (isLoading) {
     return (
       <div className="max-w-2xl mx-auto space-y-4">
         {Array.from({ length: 4 }).map((_, i) => <Skeleton key={i} className="h-20" />)}
-      </div>
-    );
+      </div>);
+
   }
 
   return (
@@ -493,42 +502,42 @@ export default function ResumePage() {
         This page manages the actual document recruiters see.
       </Alert>
 
-      {/* Tabs */}
+      
       <div className="flex gap-1 border-b border-slate-200">
         {[
-          { id: 'upload', label: 'Upload PDF', icon: Paperclip },
-          { id: 'manual', label: 'Manual Edit', icon: Edit3 },
-        ].map(t => (
-          <button
-            key={t.id}
-            disabled={uploadMutation.isPending}
-            onClick={() => setTab(t.id)}
-            className={[
-              'flex items-center gap-1.5 px-4 py-2.5 text-sm font-medium border-b-2 -mb-px transition-all disabled:opacity-60 disabled:cursor-not-allowed',
-              tab === t.id ? 'text-indigo-600 border-indigo-500' : 'text-slate-500 border-transparent hover:text-slate-700',
-            ].join(' ')}
-          >
+        { id: 'upload', label: 'Upload PDF', icon: Paperclip },
+        { id: 'manual', label: 'Manual Edit', icon: Edit3 }].
+        map((t) =>
+        <button
+          key={t.id}
+          disabled={uploadMutation.isPending}
+          onClick={() => setTab(t.id)}
+          className={[
+          'flex items-center gap-1.5 px-4 py-2.5 text-sm font-medium border-b-2 -mb-px transition-all disabled:opacity-60 disabled:cursor-not-allowed',
+          tab === t.id ? 'text-indigo-600 border-indigo-500' : 'text-slate-500 border-transparent hover:text-slate-700'].
+          join(' ')}>
+          
             <t.icon size={14} />
             {t.label}
           </button>
-        ))}
+        )}
       </div>
 
       <div>
-        {tab === 'upload' && (
-          <UploadTab
-            resume={resume}
-            file={uploadFile}
-            setFile={setUploadFile}
-            uploadMutation={uploadMutation}
-            uploadProgress={uploadProgress}
-            uploadStep={uploadStep}
-            aiSlow={aiSlow}
-            onCancelUpload={handleCancelUpload}
-          />
-        )}
+        {tab === 'upload' &&
+        <UploadTab
+          resume={resume}
+          file={uploadFile}
+          setFile={setUploadFile}
+          uploadMutation={uploadMutation}
+          uploadProgress={uploadProgress}
+          uploadStep={uploadStep}
+          aiSlow={aiSlow}
+          onCancelUpload={handleCancelUpload} />
+
+        }
         {tab === 'manual' && <ManualEditTab resume={resume} />}
       </div>
-    </div>
-  );
+    </div>);
+
 }

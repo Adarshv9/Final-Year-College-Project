@@ -1,4 +1,5 @@
-// Registration page for job seekers and recruiters with initial account setup.
+// Page component for the Register authentication flow.
+
 import { createElement, useEffect, useState } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { useForm, useWatch } from 'react-hook-form';
@@ -14,9 +15,10 @@ const schema = z.object({
   name: z.string().min(2, 'Name must be at least 2 characters'),
   email: z.string().email('Enter a valid email'),
   password: z.string().min(6, 'At least 6 characters'),
-  role: z.enum(['job_seeker', 'recruiter'], { error: 'Select a role' }),
+  role: z.enum(['job_seeker', 'recruiter'], { error: 'Select a role' })
 });
 
+// Render the register page.
 export default function RegisterPage() {
   const [showPass, setShowPass] = useState(false);
   const navigate = useNavigate();
@@ -25,7 +27,7 @@ export default function RegisterPage() {
 
   const { register, handleSubmit, control, setValue, formState: { errors, isSubmitting } } = useForm({
     resolver: zodResolver(schema),
-    defaultValues: { role: initialRole },
+    defaultValues: { role: initialRole }
   });
 
   const selectedRole = useWatch({ control, name: 'role' });
@@ -34,6 +36,7 @@ export default function RegisterPage() {
     setValue('role', initialRole);
   }, [initialRole, setValue]);
 
+  // Handle submit.
   const onSubmit = async (data) => {
     try {
       await authApi.register(data);
@@ -42,7 +45,7 @@ export default function RegisterPage() {
     } catch (err) {
       const errors = err.response?.data?.errors;
       if (errors?.length) {
-        errors.forEach(e => toast.error(e.message || e));
+        errors.forEach((e) => toast.error(e.message || e));
       } else {
         toast.error(err.response?.data?.message || 'Registration failed. Please try again.');
       }
@@ -57,7 +60,7 @@ export default function RegisterPage() {
       </div>
 
       <div className="relative w-full max-w-[480px] bg-white border border-slate-200 rounded-2xl p-8 shadow-2xl animate-fade-in">
-        {/* Logo */}
+        
         <div className="flex items-center gap-3 mb-8">
           <Link to="/" aria-label="Go to home" className="inline-flex items-center gap-2.5">
             <BrandLogo imageClassName="h-10 w-auto" />
@@ -68,38 +71,38 @@ export default function RegisterPage() {
         <p className="text-sm text-slate-600 mb-8">Join CompasX and start your journey</p>
 
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
-          {/* Role Selection */}
+          
           <div className="flex flex-col gap-1.5">
             <label className="text-sm font-medium text-slate-900">I am a…</label>
             <div className="grid grid-cols-2 gap-3">
               {[
-                { value: 'job_seeker', label: 'Job Seeker', icon: User, desc: 'Find your dream job' },
-                { value: 'recruiter', label: 'Recruiter', icon: BriefIcon, desc: 'Hire top talent' },
-              ].map(({ value, label, icon, desc }) => (
-                <button
-                  key={value}
-                  type="button"
-                  onClick={() => setValue('role', value)}
-                  className={[
-                    'flex flex-col items-center gap-2 p-4 rounded-xl border-2 transition-all duration-150 cursor-pointer',
-                    selectedRole === value
-                      ? 'border-indigo-500 bg-indigo-500/10'
-                      : 'border-slate-200 bg-white hover:border-slate-300',
-                  ].join(' ')}
-                >
+              { value: 'job_seeker', label: 'Job Seeker', icon: User, desc: 'Find your dream job' },
+              { value: 'recruiter', label: 'Recruiter', icon: BriefIcon, desc: 'Hire top talent' }].
+              map(({ value, label, icon, desc }) =>
+              <button
+                key={value}
+                type="button"
+                onClick={() => setValue('role', value)}
+                className={[
+                'flex flex-col items-center gap-2 p-4 rounded-xl border-2 transition-all duration-150 cursor-pointer',
+                selectedRole === value ?
+                'border-indigo-500 bg-indigo-500/10' :
+                'border-slate-200 bg-white hover:border-slate-300'].
+                join(' ')}>
+                
                   {createElement(icon, { size: 20, className: selectedRole === value ? 'text-indigo-600' : 'text-slate-500' })}
                   <div>
                     <div className={`text-sm font-semibold ${selectedRole === value ? 'text-indigo-600' : 'text-slate-900'}`}>{label}</div>
                     <div className="text-xs text-slate-500">{desc}</div>
                   </div>
                 </button>
-              ))}
+              )}
             </div>
             <input type="hidden" {...register('role')} />
             {errors.role && <p className="text-xs text-rose-400">{errors.role.message}</p>}
           </div>
 
-          {/* Name */}
+          
           <div className="flex flex-col gap-1.5">
             <label className="text-sm font-medium text-slate-900">Full name</label>
             <div className="relative">
@@ -109,13 +112,13 @@ export default function RegisterPage() {
                 placeholder="John Doe"
                 autoComplete="name"
                 className={`w-full bg-white border rounded-lg pl-9 pr-3 py-2.5 text-sm text-slate-900 placeholder-slate-400 outline-none transition-all focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 ${errors.name ? 'border-rose-500' : 'border-slate-200'}`}
-                {...register('name')}
-              />
+                {...register('name')} />
+              
             </div>
             {errors.name && <p className="text-xs text-rose-400">{errors.name.message}</p>}
           </div>
 
-          {/* Email */}
+          
           <div className="flex flex-col gap-1.5">
             <label className="text-sm font-medium text-slate-900">Email address</label>
             <div className="relative">
@@ -125,13 +128,13 @@ export default function RegisterPage() {
                 placeholder="you@example.com"
                 autoComplete="email"
                 className={`w-full bg-white border rounded-lg pl-9 pr-3 py-2.5 text-sm text-slate-900 placeholder-slate-400 outline-none transition-all focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 ${errors.email ? 'border-rose-500' : 'border-slate-200'}`}
-                {...register('email')}
-              />
+                {...register('email')} />
+              
             </div>
             {errors.email && <p className="text-xs text-rose-400">{errors.email.message}</p>}
           </div>
 
-          {/* Password */}
+          
           <div className="flex flex-col gap-1.5">
             <label className="text-sm font-medium text-slate-900">Password</label>
             <div className="relative">
@@ -141,25 +144,25 @@ export default function RegisterPage() {
                 placeholder="At least 6 characters"
                 autoComplete="new-password"
                 className={`w-full bg-white border rounded-lg pl-9 pr-10 py-2.5 text-sm text-slate-900 placeholder-slate-400 outline-none transition-all focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 ${errors.password ? 'border-rose-500' : 'border-slate-200'}`}
-                {...register('password')}
-              />
+                {...register('password')} />
+              
               <button
                 type="button"
                 className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-900 transition-colors"
-                onClick={() => setShowPass(p => !p)}
-              >
+                onClick={() => setShowPass((p) => !p)}>
+                
                 {showPass ? <EyeOff size={16} /> : <Eye size={16} />}
               </button>
             </div>
             {errors.password && <p className="text-xs text-rose-400">{errors.password.message}</p>}
           </div>
 
-          {selectedRole === 'recruiter' && (
-            <div className="flex items-start gap-2 p-3 bg-amber-500/10 border border-amber-500/20 rounded-lg text-xs text-amber-400">
+          {selectedRole === 'recruiter' &&
+          <div className="flex items-start gap-2 p-3 bg-amber-500/10 border border-amber-500/20 rounded-lg text-xs text-amber-400">
               <Info size={14} className="mt-0.5 flex-shrink-0" />
               <span>Recruiter accounts require admin approval before login is granted.</span>
             </div>
-          )}
+          }
 
           <Button type="submit" full loading={isSubmitting} size="lg">
             Create Account
@@ -171,6 +174,6 @@ export default function RegisterPage() {
           <Link to="/login" className="text-indigo-600 font-medium hover:underline">Sign in</Link>
         </p>
       </div>
-    </div>
-  );
+    </div>);
+
 }

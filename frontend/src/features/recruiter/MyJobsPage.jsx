@@ -1,4 +1,5 @@
-// Recruiter page that lists posted jobs and quick actions for each listing.
+// Recruiter page component for My Jobs.
+
 import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Link, useNavigate } from 'react-router-dom';
@@ -11,6 +12,7 @@ import { SkeletonCard } from '../../shared/ui/Skeleton';
 import EmptyState from '../../shared/ui/EmptyState';
 import Modal from '../../shared/ui/Modal';
 
+// Render the my jobs page.
 export default function MyJobsPage() {
   const qc = useQueryClient();
   const navigate = useNavigate();
@@ -18,7 +20,7 @@ export default function MyJobsPage() {
 
   const { data, isLoading } = useQuery({
     queryKey: ['my-jobs'],
-    queryFn: () => jobsApi.myJobs({ limit: 50 }).then(r => r.data),
+    queryFn: () => jobsApi.myJobs({ limit: 50 }).then((r) => r.data)
   });
 
   const deleteMutation = useMutation({
@@ -28,7 +30,7 @@ export default function MyJobsPage() {
       setDeleteId(null);
       qc.invalidateQueries({ queryKey: ['my-jobs'] });
     },
-    onError: (err) => toast.error(err.response?.data?.message || 'Failed to delete'),
+    onError: (err) => toast.error(err.response?.data?.message || 'Failed to delete')
   });
 
   const jobs = data?.data || [];
@@ -37,8 +39,8 @@ export default function MyJobsPage() {
     return (
       <div className="max-w-4xl mx-auto grid gap-4">
         {Array.from({ length: 4 }).map((_, i) => <SkeletonCard key={i} />)}
-      </div>
-    );
+      </div>);
+
   }
 
   return (
@@ -53,21 +55,21 @@ export default function MyJobsPage() {
         </Link>
       </div>
 
-      {jobs.length === 0 ? (
-        <EmptyState
-          icon={Briefcase}
-          title="No jobs posted yet"
-          description="Start attracting top talent by creating your first job listing"
-          action={<Link to="/recruiter/jobs/new"><Button><Plus size={15} /> Post Your First Job</Button></Link>}
-        />
-      ) : (
-        <div className="space-y-4">
-          {jobs.map(job => (
-            <div
-              key={job._id}
-              className="bg-white border border-slate-200 rounded-xl p-5 hover:border-indigo-500/40 transition-all cursor-pointer"
-              onClick={() => navigate(`/recruiter/jobs/${job._id}/applications`)}
-            >
+      {jobs.length === 0 ?
+      <EmptyState
+        icon={Briefcase}
+        title="No jobs posted yet"
+        description="Start attracting top talent by creating your first job listing"
+        action={<Link to="/recruiter/jobs/new"><Button><Plus size={15} /> Post Your First Job</Button></Link>} /> :
+
+
+      <div className="space-y-4">
+          {jobs.map((job) =>
+        <div
+          key={job._id}
+          className="bg-white border border-slate-200 rounded-xl p-5 hover:border-indigo-500/40 transition-all cursor-pointer"
+          onClick={() => navigate(`/recruiter/jobs/${job._id}/applications`)}>
+          
               <div className="flex items-start justify-between gap-4">
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2 flex-wrap mb-1">
@@ -76,9 +78,9 @@ export default function MyJobsPage() {
                     {job.location?.type && <Badge variant={job.location.type}>{job.location.type}</Badge>}
                   </div>
                   <p className="text-sm text-slate-600">{job.companyName}</p>
-                  {job.location?.city && (
-                    <p className="text-xs text-slate-500 mt-1">{job.location.city}{job.location.country ? `, ${job.location.country}` : ''}</p>
-                  )}
+                  {job.location?.city &&
+              <p className="text-xs text-slate-500 mt-1">{job.location.city}{job.location.country ? `, ${job.location.country}` : ''}</p>
+              }
                 </div>
                 <div className="flex items-center gap-2 flex-shrink-0">
                   <div className="inline-flex items-center gap-1.5 px-2.5 py-1.5 bg-slate-100 rounded-lg text-sm">
@@ -91,43 +93,43 @@ export default function MyJobsPage() {
                     </Button>
                   </Link>
                   <Button
-                    variant="danger"
-                    size="icon"
-                    onClick={(e) => { e.stopPropagation(); setDeleteId(job._id); }}
-                  >
+                variant="danger"
+                size="icon"
+                onClick={(e) => {e.stopPropagation();setDeleteId(job._id);}}>
+                
                     <Trash2 size={14} />
                   </Button>
                 </div>
               </div>
 
-              {job.requiredSkills?.length > 0 && (
-                <div className="flex flex-wrap gap-1.5 mt-3 pt-3 border-t border-slate-200">
-                  {job.requiredSkills.slice(0, 5).map(s => (
-                    <span key={s} className="px-2 py-0.5 bg-indigo-500/10 text-indigo-400 rounded-full text-xs">{s}</span>
-                  ))}
+              {job.requiredSkills?.length > 0 &&
+          <div className="flex flex-wrap gap-1.5 mt-3 pt-3 border-t border-slate-200">
+                  {job.requiredSkills.slice(0, 5).map((s) =>
+            <span key={s} className="px-2 py-0.5 bg-indigo-500/10 text-indigo-400 rounded-full text-xs">{s}</span>
+            )}
                 </div>
-              )}
+          }
             </div>
-          ))}
+        )}
         </div>
-      )}
+      }
 
-      {/* Delete confirm modal */}
+      
       <Modal
         isOpen={!!deleteId}
         onClose={() => setDeleteId(null)}
         title="Delete Job"
         footer={
-          <>
+        <>
             <Button variant="secondary" onClick={() => setDeleteId(null)}>Cancel</Button>
             <Button variant="danger" loading={deleteMutation.isPending} onClick={() => deleteMutation.mutate(deleteId)}>
               Delete
             </Button>
           </>
-        }
-      >
+        }>
+        
         <p className="text-sm text-slate-600">Are you sure you want to delete this job? This action cannot be undone and all applications will be permanently removed.</p>
       </Modal>
-    </div>
-  );
+    </div>);
+
 }

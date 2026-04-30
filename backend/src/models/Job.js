@@ -1,4 +1,5 @@
-// Mongoose schema for recruiter-created job postings.
+// Defines the MongoDB schema for Job data.
+
 import mongoose from 'mongoose';
 import normalizeSkills from '../utils/normalizeSkills.js';
 
@@ -8,21 +9,21 @@ const locationSchema = new mongoose.Schema(
       type: String,
       enum: ['remote', 'onsite', 'hybrid'],
       required: [true, 'Location type is required'],
-      trim: true,
+      trim: true
     },
     city: {
       type: String,
       trim: true,
-      default: null,
+      default: null
     },
     country: {
       type: String,
       trim: true,
-      default: null,
-    },
+      default: null
+    }
   },
   {
-    _id: false,
+    _id: false
   }
 );
 
@@ -32,65 +33,65 @@ const jobSchema = new mongoose.Schema(
       type: mongoose.Schema.Types.ObjectId,
       ref: 'User',
       required: [true, 'Recruiter ID is required'],
-      index: true,
+      index: true
     },
     title: {
       type: String,
       required: [true, 'Job title is required'],
-      trim: true,
+      trim: true
     },
     companyName: {
       type: String,
       required: [true, 'Company name is required'],
-      trim: true,
+      trim: true
     },
     location: {
       type: locationSchema,
-      required: [true, 'Location is required'],
+      required: [true, 'Location is required']
     },
     description: {
       type: String,
       required: [true, 'Job description is required'],
-      trim: true,
+      trim: true
     },
     requiredSkills: {
       type: [String],
       default: [],
-      set: normalizeSkills,
+      set: normalizeSkills
     },
     minExperience: {
       type: Number,
       required: [true, 'Minimum experience is required'],
-      min: 0,
+      min: 0
     },
     jobType: {
       type: String,
       enum: ['full-time', 'part-time', 'internship', 'contract'],
       required: [true, 'Job type is required'],
-      trim: true,
+      trim: true
     },
     salary: {
       type: String,
       trim: true,
-      default: '',
+      default: ''
     },
     isActive: {
       type: Boolean,
       default: true,
-      index: true,
+      index: true
     },
     applicants: {
       type: [
-        {
-          type: mongoose.Schema.Types.ObjectId,
-          ref: 'User',
-        },
-      ],
-      default: [],
-    },
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'User'
+      }],
+
+      default: []
+    }
   },
   {
-    timestamps: true,
+    timestamps: true
   }
 );
 
