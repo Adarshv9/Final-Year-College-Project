@@ -1,5 +1,4 @@
 // ── Application Service ──
-import nodemailer from 'nodemailer';
 import Application from '../models/Application.js';
 import Job from '../models/Job.js';
 import Resume from '../models/Resume.js';
@@ -9,6 +8,7 @@ import logger from '../utils/logger.js';
 import normalizeSkills from '../utils/normalizeSkills.js';
 import { buildResumeDownloadUrl } from '../config/cloudinary.js';
 import { scoreApplication } from './ai/ai.service.js';
+import { EMAIL_FROM_ADDRESS, sendEmail } from './email.service.js';
 import { computeHybridScore } from './scoring.service.js';
 
 const DECISION_EMAIL_DELAY_MS = 15 * 1000;
@@ -21,19 +21,15 @@ let isProcessingDecisionEmails = false;
 
 // ── Email ─────────────────────────────────────────────────────────────────────
 
-const transporter = nodemailer.createTransport({
-  host: 'smtp.gmail.com',
-  port: 465,
-  secure: true,
-  auth: {
-    user: process.env.EMAIL_USER,
-    pass: process.env.EMAIL_PASSWORD,
-  },
-});
-
 const sendApplicationEmail = async ({ to, subject, html }) => {
   try {
-    await transporter.sendMail({ from: process.env.EMAIL_USER, to, subject, html });
+    await sendEmail({
+      context: 'application',
+      from: EMAIL_FROM_ADDRESS,
+      to,
+      subject,
+      html,
+    });
   } catch (error) {
     logger.error(`Application email send error: ${error.message}`);
     throw new ApiError(500, 'Failed to send application email');

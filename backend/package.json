@@ -35,10 +35,10 @@
     "mongoose": "^8.9.5",
     "morgan": "^1.10.0",
     "multer": "^2.1.1",
-    "nodemailer": "^8.0.2",
     "openai": "^6.32.0",
     "otp-generator": "^4.0.1",
     "pdf-parse": "^1.1.1",
+    "resend": "^6.12.2",
     "winston": "^3.17.0"
   },
   "devDependencies": {

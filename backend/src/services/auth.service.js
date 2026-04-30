@@ -1,79 +1,9 @@
 // ── Authentication Service ──
-import { env } from '../config/env.js';
-import nodemailer from 'nodemailer';
 import otpGenerator from 'otp-generator';
 import User from '../models/User.js';
 import ApiError from '../utils/ApiError.js';
+import { EMAIL_FROM_ADDRESS, sendEmail } from './email.service.js';
 import * as tokenService from './token.service.js';
-
-// ────────────────────────────────────────
-// EMAIL CONFIGURATION
-// ────────────────────────────────────────
-
-// Initialize email transporter
-const transporter = nodemailer.createTransport({
-  host: env.email.host,
-  port: env.email.port,
-  secure: env.email.secure,
-  connectionTimeout: env.email.connectionTimeoutMs,
-  greetingTimeout: env.email.greetingTimeoutMs,
-  socketTimeout: env.email.socketTimeoutMs,
-  auth: {
-    user: env.email.user,
-    pass: env.email.password,
-  },
-});
-
-let transporterVerified = false;
-let verifyPromise = null;
-
-const withTimeout = async (promise, timeoutMs, message) => {
-  let timeoutId;
-
-  try {
-    return await Promise.race([
-      promise,
-      new Promise((_, reject) => {
-        timeoutId = setTimeout(() => reject(new Error(message)), timeoutMs);
-      }),
-    ]);
-  } finally {
-    clearTimeout(timeoutId);
-  }
-};
-
-const ensureEmailConfigured = () => {
-  if (env.email.user && env.email.password) {
-    return;
-  }
-
-  throw new ApiError(
-    503,
-    'Email delivery is not configured on the server. Set EMAIL_USER and EMAIL_PASSWORD.'
-  );
-};
-
-const verifyTransporter = async () => {
-  if (transporterVerified) {
-    return;
-  }
-
-  if (!verifyPromise) {
-    verifyPromise = withTimeout(
-      transporter.verify(),
-      env.email.sendTimeoutMs,
-      'SMTP verification timed out'
-    )
-      .then(() => {
-        transporterVerified = true;
-      })
-      .finally(() => {
-        verifyPromise = null;
-      });
-  }
-
-  await verifyPromise;
-};
 
 /**
  * Generate a 6-digit OTP
@@ -89,7 +19,7 @@ const generateOTP = () => {
 };
 
 /**
- * Send OTP to user email
+ * Send OTP to user email via Resend.
  * @param {string} email - User's email address
  * @param {string} otp - OTP to send
  * @param {string} userName - User's name
@@ -97,35 +27,28 @@ const generateOTP = () => {
  */
 const sendOTPEmail = async (email, otp, userName) => {
   try {
-    ensureEmailConfigured();
-    await verifyTransporter();
-
-    const mailOptions = {
-      from: env.email.user,
+    await sendEmail({
+      context: 'otp',
+      from: EMAIL_FROM_ADDRESS,
       to: email,
-      subject: 'Email Verification - OTP',
+      subject: 'Your CompasX Verification Code',
       html: `
-        <h2>Email Verification</h2>
-        <p>Hi ${userName},</p>
-        <p>Your OTP for email verification is:</p>
-        <h1 style="color: #333; letter-spacing: 5px;">${otp}</h1>
-        <p>This OTP will expire in 10 minutes.</p>
-        <p>If you did not request this, please ignore this email.</p>
-        <p>Best regards,<br/>Job Portal Team</p>
+        <div style="font-family: Arial, sans-serif; max-width: 480px; margin: 0 auto; padding: 32px; background: #f8fafc; border-radius: 12px;">
+          <h2 style="color: #1e293b; margin-bottom: 8px;">Email Verification</h2>
+          <p style="color: #475569;">Hi ${userName},</p>
+          <p style="color: #475569;">Use the code below to verify your email address:</p>
+          <div style="background: #fff; border: 2px solid #6366f1; border-radius: 10px; padding: 24px; text-align: center; margin: 24px 0;">
+            <span style="font-size: 36px; font-weight: bold; letter-spacing: 10px; color: #6366f1;">${otp}</span>
+          </div>
+          <p style="color: #94a3b8; font-size: 13px;">This code expires in <strong>10 minutes</strong>.</p>
+          <p style="color: #94a3b8; font-size: 13px;">If you didn't request this, you can safely ignore this email.</p>
+          <p style="color: #475569; margin-top: 24px;">— The CompasX Team</p>
+        </div>
       `,
-    };
-
-    await withTimeout(
-      transporter.sendMail(mailOptions),
-      env.email.sendTimeoutMs,
-      'SMTP send timed out'
-    );
-  } catch (error) {
-    console.error('Email send error:', error.message);
-    throw new ApiError(
-      503,
-      'Failed to send OTP email. Check production email configuration or SMTP access.'
-    );
+    });
+  } catch (err) {
+    if (err instanceof ApiError) throw err;
+    throw new ApiError(503, 'Failed to send OTP email. Please try again later.');
   }
 };
 

@@ -36,19 +36,11 @@ export const env = {
     max: parseInt(process.env.RATE_LIMIT_MAX_REQUESTS, 10) || 100,
   },
 
-  email: {
-    user: process.env.EMAIL_USER || '',
-    password: process.env.EMAIL_PASSWORD || '',
-    host: process.env.EMAIL_HOST || 'smtp.gmail.com',
-    port: parseInt(process.env.EMAIL_PORT, 10) || 465,
-    secure: process.env.EMAIL_SECURE
-      ? process.env.EMAIL_SECURE === 'true'
-      : true,
-    connectionTimeoutMs: parseInt(process.env.EMAIL_CONNECTION_TIMEOUT_MS, 10) || 10000,
-    greetingTimeoutMs: parseInt(process.env.EMAIL_GREETING_TIMEOUT_MS, 10) || 10000,
-    socketTimeoutMs: parseInt(process.env.EMAIL_SOCKET_TIMEOUT_MS, 10) || 15000,
-    sendTimeoutMs: parseInt(process.env.EMAIL_SEND_TIMEOUT_MS, 10) || 15000,
-  },
+  // Resend (transactional email — replaces nodemailer SMTP)
+  resendApiKey: process.env.RESEND_API_KEY || '',
+  // Sender address shown in emails. Use a verified domain in production,
+  // or leave blank to fall back to the Resend sandbox address for testing.
+  emailFrom: process.env.EMAIL_FROM || '',
 
 };
 
